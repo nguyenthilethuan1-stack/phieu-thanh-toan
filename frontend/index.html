@@ -384,8 +384,8 @@
 
   <script>
    const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-        ? 'http://localhost:5000'
-        : 'https://phieu-thanh-toan-backend.onrender.com'; // ⚠️ Nhớ thay link này bằng đúng URL Backend trên Render của bạn nếu khác nhé
+    ? 'http://localhost:5000'
+    : 'https://phieu-thanh-toan.onrender.com'; // ⚠️ Nhớ thay link này bằng đúng URL Backend trên Render của bạn nếu khác nhé
     let currentUser = JSON.parse(localStorage.getItem('user')) || null;
     let currentRequests = [];
     let currentEditingAttachments = []; 
