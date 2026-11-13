@@ -39,12 +39,9 @@
     .modal-content { background: #fff; width: 800px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
     .modal-close { position: absolute; top: 15px; right: 20px; background: #dc3545; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-    .progress-steps { display: flex; justify-content: space-between; position: relative; margin-top: 5px; margin-bottom: 5px; min-width: 300px; }
-    .step { text-align: center; position: relative; z-index: 1; font-size: 11px; color: #6c757d; }
-    .step-circle { width: 20px; height: 20px; border-radius: 50%; background-color: #e9ecef; border: 2px solid #ced4da; display: flex; align-items: center; justify-content: center; margin: 0 auto 3px auto; font-weight: bold; font-size: 10px; color: #495057; }
-    .step.completed .step-circle { background-color: #28a745; border-color: #28a745; color: white; }
-    .step.active .step-circle { background-color: #ffc107; border-color: #ffc107; color: black; }
-    .step.rejected .step-circle { background-color: #dc3545; border-color: #dc3545; color: white; }
+    body.role-admin #createFormContainer {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -78,17 +75,17 @@
   <div id="mainSection" class="hidden">
     
     <div class="user-info">
-      <div>👤 Xin chào, <b id="userFullName"></b> (<span id="userRoleBadge" style="color: #007bff;"></span>)</div>
+      <div>👤 Xin chào, <b id="userFullName"></b> (<span id="userRoleBadge" style="color: #007bff;"></span>)[cite: 1]</div>
       <div style="display: flex; gap: 10px;">
-        <button onclick="openChangePasswordModal()" style="background: #ffc107; color: black; padding: 5px 10px; font-size: 12px;">🔑 Đổi mật khẩu</button>
-        <button onclick="logout()" style="background: #dc3545; padding: 5px 10px; font-size: 12px;">Đăng xuất</button>
+        <button type="button" onclick="openChangePasswordModal()" style="background: #ffc107; color: black; padding: 5px 10px; font-size: 12px;">🔑 Đổi mật khẩu</button>
+        <button type="button" onclick="logout()" style="background: #dc3545; padding: 5px 10px; font-size: 12px;">Đăng xuất</button>
       </div>
     </div>
 
     <!-- Thanh chuyển tab (CHỈ ADMIN MỚI THẤY) -->
     <div id="adminNavTab" class="tab-nav hidden">
-      <button class="tab-btn active" id="tabBtnRequests" onclick="switchTab('requests')">📋 Quản lý Phiếu Thanh Toán</button>
-      <button class="tab-btn" id="tabBtnUsers" onclick="switchTab('users')">👥 Quản lý Nhân sự & Phân quyền</button>
+      <button type="button" class="tab-btn active" id="tabBtnRequests" onclick="switchTab('requests')">📋 Quản lý Phiếu Thanh Toán</button>
+      <button type="button" class="tab-btn" id="tabBtnUsers" onclick="switchTab('users')">👥 Quản lý Nhân sự & Phân quyền</button>
     </div>
 
     <!-- TAB 1: QUẢN LÝ PHIẾU THANH TOÁN -->
@@ -99,6 +96,10 @@
           <input type="hidden" id="editingRequestId" value="">
           <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 2;">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="requestCode">Số phiếu:</label>
+                <input type="text" id="requestCode" class="form-control" readonly placeholder="Hệ thống tự sinh mã..." style="background-color: #e9ecef; font-weight: bold;">
+              </div>
               <label for="title">Tiêu đề đề xuất chung:</label>
               <input type="text" id="title" required placeholder="Ví dụ: Thanh toán chi phí vật tư tháng 11">
             </div>
@@ -117,7 +118,14 @@
           <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
               <label for="department">Bộ phận yêu cầu:</label>
-              <input type="text" id="department" required placeholder="Ví dụ: Phòng Kỹ Thuật">
+              <select id="department" class="department-select" required>
+                <option value="">-- Chọn phòng ban --</option>
+                <option value="Phòng Kỹ Thuật">Phòng Kỹ Thuật</option>
+                <option value="Phòng Kế Toán">Phòng Kế Toán</option>
+                <option value="Phòng Hành Chính - Nhân Sự">Phòng Hành Chính - Nhân Sự</option>
+                <option value="Phòng Kinh Doanh">Phòng Kinh Doanh</option>
+                <option value="Ban Giám Đốc">Ban Giám Đốc</option>
+              </select>
             </div>
             <div class="form-group" style="flex: 1;">
               <label for="supplierName">Tên nhà cung cấp / Thụ hưởng:</label>
@@ -135,12 +143,12 @@
             <table class="detail-table">
               <thead>
                 <tr>
-                  <th style="width: 15%;">Số chứng từ</th>
+                  <th style="width: 10%;">Số chứng từ</th>
                   <th style="width: 15%;">Ngày chứng từ</th>
-                  <th style="width: 35%;">Diễn giải nội dung</th>
-                  <th style="width: 20%;">Số tiền (VNĐ)</th>
-                  <th style="width: 10%;">Ghi chú</th>
-                  <th style="width: 5%; text-align: center;">Xóa</th>
+                  <th style="width: 35%;">Diễn giải</th>
+                  <th style="width: 15%;">Số tiền (VNĐ)</th>
+                  <th style="width: 20%;">File đính kèm</th>
+                  <th style="width: 5%;">Xóa</th>
                 </tr>
               </thead>
               <tbody id="detailRows"></tbody>
@@ -173,21 +181,59 @@
         <div id="message"></div>
       </div>
 
+      <!-- 🔍 THANH BỘ LỌC DỮ LIỆU -->
+      <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border: 1px solid #ddd;">
+        <div style="font-weight: bold; color: #333; margin-right: 5px;">🔍 Bộ lọc:</div>
+        <div>
+          <label style="font-size: 12px; color: #555; display: block;">Từ ngày:</label>
+          <input type="date" id="filterStartDate" class="form-control" style="padding: 5px; font-size: 13px;" onchange="loadRequests()">
+        </div>
+        <div>
+          <label style="font-size: 12px; color: #555; display: block;">Đến ngày:</label>
+          <input type="date" id="filterEndDate" class="form-control" style="padding: 5px; font-size: 13px;" onchange="loadRequests()">
+        </div>
+        <div>
+          <label style="font-size: 12px; color: #555; display: block;">Trạng thái:</label>
+          <select id="filterStatus" class="form-control" style="padding: 5px; font-size: 13px;" onchange="loadRequests()">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="Chờ duyệt">⏳ Chờ duyệt</option>
+            <option value="Chờ thanh toán">💳 Chờ thanh toán</option>
+            <option value="Đã thanh toán">✅ Đã thanh toán</option>
+            <option value="Đã từ chối">❌ Từ chối</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 12px; color: #555; display: block;">Bộ phận:</label>
+          <select id="filterDepartment" class="form-control" style="padding: 5px; font-size: 13px;" onchange="loadRequests()">
+            <option value="">-- Tất cả bộ phận --</option>
+            <option value="Phòng Kỹ Thuật">Phòng Kỹ Thuật</option>
+            <option value="Phòng Hành Chính">Phòng Hành Chính</option>
+            <option value="Phòng Kế Toán">Phòng Kế Toán</option>
+            <option value="Phòng Sản Xuất">Phòng Sản Xuất</option>
+          </select>
+        </div>
+        <div style="align-self: flex-end;">
+          <button type="button" onclick="resetFilters()" style="background: #6c757d; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 Đặt lại</button>
+        </div>
+      </div>
+
       <!-- Bảng danh sách phiếu -->
       <div class="container">
         <h3>Danh Sách Phiếu & Tiến Trình Phê Duyệt</h3>
         <table>
           <thead>
             <tr>
-              <th>Người tạo</th>
-              <th>Bộ phận</th>
-              <th>Tiêu đề phiếu đề xuất</th>
-              <th>Tổng tiền</th>
-              <th>Tiến trình phê duyệt (5 Cấp)</th>
-              <th>Hành động</th>
+              <th style="width: 10%;">Số phiếu</th>
+              <th style="width: 10%;">Ngày tháng</th>
+              <th style="width: 12%;">Người tạo</th>
+              <th style="width: 18%;">Nội dung</th>
+              <th style="width: 12%;">Số tiền (VNĐ)</th>
+              <th style="width: 18%;">Tiến trình thanh toán</th>
+              <th style="width: 10%;">Kết quả</th>
+              <th style="width: 10%;">Hành động</th>
             </tr>
           </thead>
-          <tbody id="requestTableBody"></tbody>
+          <tbody id="requestsTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -215,7 +261,9 @@
           <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
               <label>Phòng ban:</label>
-              <input type="text" id="newDepartment" required placeholder="Phòng Kỹ Thuật">
+              <select id="newDepartment" class="department-select" required>
+                <option value="">-- Đang tải phòng ban... --</option>
+              </select>
             </div>
             <div class="form-group" style="flex: 1;">
               <label>Chức vụ:</label>
@@ -241,12 +289,12 @@
         <table>
           <thead>
             <tr>
+              <th>STT</th>
               <th>Tên đăng nhập</th>
               <th>Họ và tên</th>
               <th>Phòng ban</th>
               <th>Chức vụ</th>
-              <th>Cấp quản lý</th>
-              <th>Hành động</th>
+              <th style="text-align: center;">Hành động</th>
             </tr>
           </thead>
           <tbody id="userTableBody"></tbody>
@@ -256,10 +304,10 @@
 
   </div>
 
-  <!-- MODAL POPUP HIỂN THỊ CHI TIẾT PHIẾU -->
+  <!-- MODAL POPUP HIỂN THỊ CHI TIẾT PHIẾU & DUYỆT -->
   <div id="detailModal" class="modal-overlay hidden">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeDetailModal()">✕ Đóng</button>
+      <button type="button" class="modal-close" onclick="closeDetailModal()">✕ Đóng</button>
       <div id="modalBodyContent"></div>
     </div>
   </div>
@@ -267,7 +315,7 @@
   <!-- MODAL ĐỔI MẬT KHẨU CÁ NHÂN -->
   <div id="changePasswordModal" class="modal-overlay hidden">
     <div class="modal-content" style="width: 400px;">
-      <button class="modal-close" onclick="closeChangePasswordModal()">✕ Đóng</button>
+      <button type="button" class="modal-close" onclick="closeChangePasswordModal()">✕ Đóng</button>
       <h3 style="margin-top: 0; color: #007bff;">🔑 Đổi Mật Khẩu Cá Nhân</h3>
       <form id="changePasswordForm">
         <div class="form-group">
@@ -288,961 +336,1242 @@
     </div>
   </div>
 
+  <!-- MODAL SỬA TÀI KHOẢN (DÀNH CHO ADMIN) -->
+  <div id="editUserModal" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 500px;">
+      <button type="button" class="modal-close" onclick="closeEditUserModal()">✕ Đóng</button>
+      <h3 style="margin-top: 0; color: #007bff;">✏️ Chỉnh Sửa Thông Tin Nhân Sự</h3>
+      <form id="editUserForm">
+        <input type="hidden" id="editUserId">
+        <div class="form-group">
+          <label>Tên đăng nhập:</label>
+          <input type="text" id="editUsername" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu mới (Bỏ trống nếu không đổi):</label>
+          <input type="text" id="editPassword" placeholder="Nhập mật khẩu mới nếu muốn đổi">
+        </div>
+        <div class="form-group">
+          <label>Họ và tên:</label>
+          <input type="text" id="editFullName" required>
+        </div>
+        <div class="form-group">
+          <label>Phòng ban:</label>
+          <select id="editDepartment" class="department-select" required>
+            <option value="">-- Đang tải phòng ban... --</option>
+          </select>
+        </div>
+        <div class="form-group">
+            <label>Chức vụ / Quyền hạn (Role):</label>
+            <select id="editRole" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <option value="nhanvien">Nhân viên</option>
+                <option value="tbp">Trưởng bộ phận</option>
+                <option value="kt_thanhtoan">Kế toán thanh toán</option>
+                <option value="ktt">Kế toán trưởng</option>
+                <option value="gd">Giám đốc</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="form-group">
+          <label>Cấp quản lý (Username):</label>
+          <input type="text" id="editManager">
+        </div>
+        <button type="submit" style="width: 100%; background-color: #ffc107; color: black; padding: 10px;">Lưu Thay Đổi</button>
+      </form>
+      <div id="editUserMsg" style="margin-top: 10px; display: none; padding: 8px; border-radius: 4px; text-align: center;"></div>
+    </div>
+  </div>
+
   <script>
-    let currentUser = null;
+    const API_BASE_URL = 'http://localhost:5000';
+    let currentUser = JSON.parse(localStorage.getItem('user')) || null;
     let currentRequests = [];
     let currentEditingAttachments = []; 
     let selectedFilesData = []; 
+    let departmentsCache = []; 
+    let allUsersCache = [];
 
-    const loginForm = document.getElementById('loginForm');
-    const loginSection = document.getElementById('loginSection');
-    const mainSection = document.getElementById('mainSection');
-    const loginMessage = document.getElementById('loginMessage');
-    const form = document.getElementById('paymentForm');
-    const messageDiv = document.getElementById('message');
-    const tableBody = document.getElementById('requestTableBody');
+    // --- HÀM ĐĂNG XUẤT ---
+    window.logout = function() {
+        currentUser = null;
+        localStorage.removeItem('user');
+        localStorage.clear();
+        location.reload();
+    };
 
-    function switchTab(tabName) {
-      const reqTab = document.getElementById('tabContentRequests');
-      const userTab = document.getElementById('tabContentUsers');
-      const btnReq = document.getElementById('tabBtnRequests');
-      const btnUser = document.getElementById('tabBtnUsers');
+    // --- CHUYỂN TAB ---
+    window.switchTab = function(tabName) {
+        const reqTab = document.getElementById('tabContentRequests');
+        const userTab = document.getElementById('tabContentUsers');
+        const btnReq = document.getElementById('tabBtnRequests');
+        const btnUser = document.getElementById('tabBtnUsers');
 
-      if (tabName === 'requests') {
-        reqTab.classList.remove('hidden');
-        userTab.classList.add('hidden');
-        btnReq.classList.add('active');
-        btnUser.classList.remove('active');
-      } else {
-        reqTab.classList.add('hidden');
-        userTab.classList.remove('hidden');
-        btnReq.classList.remove('active');
-        btnUser.classList.add('active');
-        loadUsersList();
-      }
-    }
-
-    document.getElementById('attachmentFiles').addEventListener('change', function(e) {
-      const files = e.target.files;
-      selectedFilesData = [];
-      let listNames = [];
-
-      if (files.length > 0) {
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          listNames.push(file.name);
-          const reader = new FileReader();
-          reader.onload = function(uploadEvent) {
-            selectedFilesData.push({ name: file.name, data: uploadEvent.target.result });
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-      document.getElementById('fileNamesList').innerText = files.length > 0 ? "Đã chọn thêm: " + listNames.join(', ') : "";
-    });
-
-    function numberToWords(num) {
-      if (isNaN(num) || num <= 0) return "Không đồng";
-      const chuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-      function dochangchuc(so, daydu) {
-        let chữ = "", chuc = Math.floor(so / 10), donvi = so % 10;
-        if (chuc > 1) {
-          chữ = " " + chuSo[chuc] + " mươi";
-          if (donvi === 1) chữ += " mốt";
-          else if (donvi === 5) chữ += " lăm";
-          else if (donvi > 0) chữ += " " + chuSo[donvi];
-        } else if (chuc === 1) {
-          chữ = " mười";
-          if (donvi === 1) chữ += " một";
-          else if (donvi === 5) chữ += " lăm";
-          else if (donvi > 0) chữ += " " + chuSo[donvi];
-        } else if (daydu && donvi > 0) { chữ = " lẻ " + chuSo[donvi]; }
-        return chữ;
-      }
-      function docblock(so, full) {
-        let ngang = Math.floor(so / 100), chuc = so % 100, kết = "";
-        if (ngang || full) { kết = " " + chuSo[ngang] + " trăm"; kết += dochangchuc(chuc, true); }
-        else { kết = dochangchuc(chuc, false); }
-        return kết;
-      }
-      let ỷ = Math.floor(num / 1000000000), triệu = Math.floor((num % 1000000000) / 1000000), nghìn = Math.floor((num % 1000000) / 1000), tram = num % 1000;
-      let str = "";
-      if (ỷ) { str += docblock(ỷ, false) + " tỷ"; num %= 1000000000; }
-      if (triệu) { str += docblock(triệu, str !== "") + " triệu"; }
-      if (nghìn) { str += docblock(nghìn, str !== "") + " nghìn"; }
-      if (tram) { str += docblock(tram, str !== ""); }
-      str = str.trim();
-      if (str === "") return "Không đồng";
-      return str.charAt(0).toUpperCase() + str.slice(1) + " đồng chẵn.";
-    }
-
-    function addRow(data = {}) {
-      const tbody = document.getElementById('detailRows');
-      if (!tbody) return;
-      const tr = document.createElement('tr');
-      
-      const todayStr = new Date().toISOString().split('T')[0];
-      const docNo = data.docNo || '';
-      const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
-      const desc = data.desc || '';
-      const amount = data.amount !== undefined ? data.amount : '';
-      const note = data.note || '';
-
-      tr.innerHTML = `
-        <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
-        <td><input type="date" class="row-docDate" value="${docDate}" required></td>
-        <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
-        <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
-        <td><input type="text" class="row-note" placeholder="Ghi chú..." value="${note}"></td>
-        <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; padding: 4px 8px;">×</button></td>
-      `;
-      tbody.appendChild(tr);
-      calculateTotal();
-    }
-
-    function removeRow(btn) {
-      const row = btn.closest('tr');
-      if (document.querySelectorAll('#detailRows tr').length > 1) {
-        row.remove();
-        calculateTotal();
-      } else {
-        alert('Phiếu phải có ít nhất một khoản mục chi phí!');
-      }
-    }
-
-    function calculateTotal() {
-      const amountInputs = document.querySelectorAll('.row-amount');
-      let total = 0;
-      amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
-      const lblTotal = document.getElementById('lblTotalAmount');
-      const lblWords = document.getElementById('lblAmountInWords');
-      if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
-      if (lblWords) lblWords.innerText = numberToWords(total);
-    }
-
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-
-      try {
-        const res = await fetch('http://localhost:5000/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          currentUser = data.user;
-          loginSection.classList.add('hidden');
-          mainSection.classList.remove('hidden');
-          document.getElementById('userFullName').innerText = currentUser.fullName;
-          document.getElementById('userRoleBadge').innerText = `Chức vụ: ${currentUser.role.toUpperCase()}`;
-          
-          // 1. CHỈ ADMIN MỚI THẤY TAB QUẢN LÝ NHÂN SỰ
-          if (currentUser.role === 'admin') {
-            document.getElementById('adminNavTab').classList.remove('hidden');
-          } else {
-            document.getElementById('adminNavTab').classList.add('hidden');
-          }
-
-          // 2. CHỈ NHÂN VIÊN VÀ ADMIN MỚI ĐƯỢC HIỆN FORM LẬP PHIẾU
-          // Các cấp duyệt khác (tbp, kt_thanhtoan, ktt, gd) SẼ ẨN FORM LẬP PHIẾU
-          if (currentUser.role === 'nhanvien' || currentUser.role === 'admin') {
-            document.getElementById('createFormContainer').classList.remove('hidden');
-            resetFormToCreateMode();
-          } else {
-            document.getElementById('createFormContainer').classList.add('hidden');
-          }
-
-          loadRequests();
+        if (tabName === 'requests') {
+            if (reqTab) reqTab.classList.remove('hidden');
+            if (userTab) userTab.classList.add('hidden');
+            if (btnReq) btnReq.classList.add('active');
+            if (btnUser) btnUser.classList.remove('active');
         } else {
-          loginMessage.className = 'error';
-          loginMessage.innerText = '❌ ' + data.error;
-          loginMessage.style.display = 'block';
+            if (reqTab) reqTab.classList.add('hidden');
+            if (userTab) userTab.classList.remove('hidden');
+            if (btnReq) btnReq.classList.remove('active');
+            if (btnUser) btnUser.classList.add('active');
+            loadUsersList();
         }
-      } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        loginMessage.className = 'error';
-        loginMessage.innerText = '❌ Không thể kết nối server!';
-        loginMessage.style.display = 'block';
-      }
-    });
+    };
 
-    function logout() {
-      currentUser = null;
-      // Xóa toàn bộ dữ liệu lưu trữ phiên đăng nhập cũ trong trình duyệt
-      localStorage.removeItem('user');
-      localStorage.clear(); 
-
-      // Ẩn giao diện chính, hiện lại khung đăng nhập và reset form
-      mainSection.classList.add('hidden');
-      loginSection.classList.remove('hidden');
-      loginForm.reset();
-      loginMessage.style.display = 'none';
-      
-      // Tải lại trang để làm sạch toàn bộ bộ nhớ tạm (state) của trang web
-      location.reload();
-    }
-
-    // Đổi mật khẩu cá nhân
-    function openChangePasswordModal() {
-      document.getElementById('changePasswordModal').classList.remove('hidden');
-      document.getElementById('changePasswordForm').reset();
-      document.getElementById('pwdMsg').style.display = 'none';
-    }
-
-    function closeChangePasswordModal() {
-      document.getElementById('changePasswordModal').classList.add('hidden');
-    }
-
-    document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const oldPassword = document.getElementById('oldPassword').value;
-      const newPassword = document.getElementById('newPassword').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      const pwdMsg = document.getElementById('pwdMsg');
-
-      if (newPassword !== confirmPassword) {
-        pwdMsg.className = 'error';
-        pwdMsg.innerText = '❌ Mật khẩu mới không khớp!';
-        pwdMsg.style.display = 'block';
-        return;
-      }
-
-      try {
-        const res = await fetch(`http://localhost:5000/api/users/${currentUser.username}/change-password`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ oldPassword, newPassword })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          pwdMsg.className = 'success';
-          pwdMsg.innerText = '✅ ' + data.message;
-          pwdMsg.style.display = 'block';
-          setTimeout(() => { closeChangePasswordModal(); }, 1500);
-        } else {
-          pwdMsg.className = 'error';
-          pwdMsg.innerText = '❌ ' + data.error;
-          pwdMsg.style.display = 'block';
-        }
-      } catch (err) {
-        console.error('Lỗi đổi mật khẩu:', err);
-      }
-    });
-
-    function getStepStatus(currentStatus, stepIndex) {
-      if (currentStatus === 'Đã từ chối') return stepIndex === 1 ? 'rejected' : '';
-      let activeLevel = 1;
-      if (currentStatus.includes('1. Chờ Trưởng Bộ phận')) activeLevel = 1;
-      else if (currentStatus.includes('2. Chờ KT Thanh toán')) activeLevel = 2;
-      else if (currentStatus.includes('3. Chờ Kế toán trưởng')) activeLevel = 3;
-      else if (currentStatus.includes('4. Chờ Giám đốc')) activeLevel = 4;
-      else if (currentStatus.includes('5. Đã hoàn tất')) activeLevel = 5;
-
-      if (stepIndex < activeLevel) return 'completed';
-      if (stepIndex === activeLevel && activeLevel < 5) return 'active';
-      if (activeLevel === 5 && stepIndex === 5) return 'completed';
-      return '';
-    }
-
-       async function loadRequests() {
+    // --- TẢI DANH MỤC PHÒNG BAN ---
+    async function loadDepartments() {
         try {
-            // Truyền kèm thông tin user đang đăng nhập để backend lọc dữ liệu
+            const res = await fetch(`${API_BASE_URL}/api/departments`);
+            if (res.ok) {
+                departmentsCache = await res.json();
+                const selects = document.querySelectorAll('.department-select');
+                selects.forEach(sel => {
+                    sel.innerHTML = '<option value="">-- Chọn phòng ban --</option>';
+                    departmentsCache.forEach(dept => {
+                        sel.innerHTML += `<option value="${dept}">${dept}</option>`;
+                    });
+                });
+            }
+        } catch (err) {
+            console.error('Không thể tải danh mục phòng ban:', err);
+        }
+    }
+
+    // --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
+    window.generateRequestCode = function(departmentName) {
+        let prefix = "PT"; 
+        let deptLower = (departmentName || "").toLowerCase();
+        
+        if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+        else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+        else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+        else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+        else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+
+        let today = new Date();
+        let yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+        let count = (typeof currentRequests !== 'undefined' && currentRequests.length > 0) ? currentRequests.length + 1 : 1;
+        return `${prefix}-${yyyyMM}-${String(count).padStart(2, '0')}`;
+    };
+
+    // --- ĐỔI SỐ THÀNH CHỮ ---
+    window.numberToWords = function(number) {
+        if (!number || isNaN(number) || Number(number) === 0) return "Không đồng";
+        const chuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+        const tien = ["", " nghìn", " triệu", " tỷ", " nghìn tỷ", " triệu tỷ"];
+
+        function docBlock(so, dayDu) {
+            let chuoi = "";
+            let tram = Math.floor(so / 100);
+            let chuc = Math.floor((so % 100) / 10);
+            let donVi = so % 10;
+            if (dayDu || tram > 0) {
+                chuoi += " " + chuSo[tram] + " trăm";
+                chuoi += docChuc(chuc, donVi);
+            } else {
+                chuoi += docChuc(chuc, donVi);
+            }
+            return chuoi;
+        }
+
+        function docChuc(chuc, donVi) {
+            let chuoi = "";
+            if (chuc > 1) {
+                chuoi += " " + chuSo[chuc] + " mươi";
+                if (donVi === 1) chuoi += " mốt";
+                else if (donVi === 5) chuoi += " lăm";
+                else if (donVi > 0) chuoi += " " + chuSo[donVi];
+            } else if (chuc === 1) {
+                chuoi += " mười";
+                if (donVi === 5) chuoi += " lăm";
+                else if (donVi > 0) chuoi += " " + chuSo[donVi];
+            } else if (donVi > 0) {
+                if (chuoi !== "") chuoi += " lẻ";
+                else chuoi += " ";
+                chuoi += chuSo[donVi];
+            }
+            return chuoi;
+        }
+
+        let n = Math.abs(Math.round(number));
+        let viTri = [];
+        while (n > 0) {
+            viTri.push(n % 1000);
+            n = Math.floor(n / 1000);
+        }
+
+        let ketQua = "";
+        for (let i = viTri.length - 1; i >= 0; i--) {
+            if (viTri[i] > 0) {
+                let doc = docBlock(viTri[i], i < viTri.length - 1);
+                ketQua += doc + tien[i];
+            }
+        }
+        ketQua = ketQua.trim();
+        if (ketQua.length === 0) return "Không đồng";
+        return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + " đồng chẵn.";
+    };
+
+    // --- QUẢN LÝ DÒNG CHI TIẾT ---
+    window.addRow = function(data = {}) {
+        const tbody = document.getElementById('detailRows');
+        if (!tbody) return;
+        const tr = document.createElement('tr');
+        
+        const todayStr = new Date().toISOString().split('T')[0];
+        const docNo = data.docNo || '';
+        const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
+        const desc = data.desc || '';
+        const amount = data.amount !== undefined ? data.amount : '';
+        
+        const rowFiles = data.attachments || [];
+        tr.dataset.filesJson = JSON.stringify(rowFiles);
+
+        let fileLinksHtml = '<span style="color: #6c757d; font-style: italic;">Chưa chọn file</span>';
+        if (rowFiles && rowFiles.length > 0) {
+            fileLinksHtml = rowFiles.map((file) => `
+                <a href="${file.data}" target="_blank" download="${file.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để tải/xem: ${file.name}">
+                    📎 ${file.name}
+                </a>
+            `).join('');
+        }
+
+        tr.innerHTML = `
+            <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
+            <td><input type="date" class="row-docDate" value="${docDate}" required></td>
+            <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
+            <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
+            <td style="text-align: center; vertical-align: middle;">
+                <label style="background: #e2e8f0; color: #1e293b; padding: 5px 8px; border-radius: 4px; cursor: pointer; display: inline-block; font-size: 11px; font-weight: 550; margin-bottom: 2px;">
+                    📎 Chọn file
+                    <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
+                </label>
+                <div class="row-file-names" style="margin-top: 2px;">${fileLinksHtml}</div>
+            </td>
+            <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
+        `;
+        tbody.appendChild(tr);
+        calculateTotal();
+    };
+
+    window.handleRowFiles = function(input) {
+        const td = input.closest('td');
+        const tr = input.closest('tr');
+        const nameDiv = td.querySelector('.row-file-names');
+        const files = input.files;
+
+        if (!files || files.length === 0) return;
+
+        let existingFiles = [];
+        try {
+            if (tr.dataset.filesJson) {
+                existingFiles = JSON.parse(tr.dataset.filesJson);
+            }
+        } catch (e) {
+            existingFiles = [];
+        }
+
+        let promises = Array.from(files).map(file => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve({ name: file.name, data: e.target.result });
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(promises).then(newlyLoadedFiles => {
+            const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
+            tr.dataset.filesJson = JSON.stringify(combinedFiles);
+            
+            if (nameDiv) {
+                nameDiv.innerHTML = combinedFiles.map(f => `
+                    <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để tải/xem: ${f.name}">
+                        📎 ${f.name}
+                    </a>
+                `).join('');
+            }
+        });
+    };
+
+    window.removeRow = function(btn) {
+        const row = btn.closest('tr');
+        if (document.querySelectorAll('#detailRows tr').length > 1) {
+            row.remove();
+            calculateTotal();
+        } else {
+            alert('Phiếu phải có ít nhất một khoản mục chi phí!');
+        }
+    };
+
+    window.calculateTotal = function() {
+        const amountInputs = document.querySelectorAll('.row-amount');
+        let total = 0;
+        amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
+        const lblTotal = document.getElementById('lblTotalAmount');
+        const lblWords = document.getElementById('lblAmountInWords');
+        if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
+        if (lblWords) lblWords.innerText = numberToWords(total);
+    };
+
+    window.resetFormToCreateMode = function() {
+        document.getElementById('editingRequestId').value = '';
+        document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
+        document.getElementById('btnSubmitForm').innerText = 'Gửi Phiếu Đề Xuất Thanh Toán';
+        document.getElementById('btnSubmitForm').style.backgroundColor = '#28a745';
+        document.getElementById('btnSubmitForm').style.color = 'white';
+        document.getElementById('btnCancelEdit').classList.add('hidden');
+        
+        currentEditingAttachments = [];
+        selectedFilesData = [];
+        
+        const existingBox = document.getElementById('existingAttachmentsBox');
+        if (existingBox) existingBox.classList.add('hidden');
+        const existingList = document.getElementById('existingFilesList');
+        if (existingList) existingList.innerHTML = '';
+        const fileNamesList = document.getElementById('fileNamesList');
+        if (fileNamesList) fileNamesList.innerText = '';
+        
+        const paymentForm = document.getElementById('paymentForm');
+        if (paymentForm) paymentForm.reset();
+        
+        const tbody = document.getElementById('detailRows');
+        if (tbody) tbody.innerHTML = '';
+        addRow();
+
+        const codeInput = document.getElementById('requestCode');
+        if (codeInput && currentUser && currentUser.department) {
+            codeInput.value = generateRequestCode(currentUser.department);
+        }
+    };
+
+    // --- TẢI DANH SÁCH PHIẾU ---
+    window.loadRequests = async function() {
+        const tableBody = document.getElementById('requestsTableBody');
+        if (!tableBody || !currentUser) return;
+
+        try {
+            const startDate = document.getElementById('filterStartDate')?.value || '';
+            const endDate = document.getElementById('filterEndDate')?.value || '';
+            const statusFilter = document.getElementById('filterStatus')?.value || '';
+            const deptFilter = document.getElementById('filterDepartment')?.value || '';
+
             const queryParams = new URLSearchParams({
                 role: currentUser.role,
                 department: currentUser.department || '',
-                username: currentUser.username || ''
+                username: currentUser.username || '',
+                startDate: startDate,
+                endDate: endDate,
+                status: statusFilter,
+                departmentFilter: deptFilter
             });
 
-            const response = await fetch(`http://localhost:5000/api/requests?${queryParams}`);
+            const response = await fetch(`${API_BASE_URL}/api/requests?${queryParams}`);
             currentRequests = await response.json();
-            tableBody.innerHTML = '';   
+            tableBody.innerHTML = '';
 
             if (!currentRequests || currentRequests.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Chưa có phiếu nào phù hợp.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Không tìm thấy phiếu nào phù hợp với bộ lọc.</td></tr>`;
                 return;
             }  
 
-            currentRequests.forEach(req => {
-                const row = document.createElement('tr');
-                const statusText = req.status || '1. Chờ Trưởng Bộ phận duyệt';
-                const s1 = getStepStatus(statusText, 1);
-                const s2 = getStepStatus(statusText, 2);
-                const s3 = getStepStatus(statusText, 3);
-                const s4 = getStepStatus(statusText, 4);
-                const s5 = getStepStatus(statusText, 5);  
+            function renderStepBox(stepLabel, state) {
+                let bg = '#e9ecef', color = '#495057', border = '#ced4da', icon = '➖', text = 'Miễn';
+                if (state === 'duyet') { bg = '#d4edda'; color = '#155724'; border = '#c3e6cb'; icon = '✅'; text = 'Đã duyệt'; }
+                else if (state === 'cho') { bg = '#fff3cd'; color = '#856404'; border = '#ffeeba'; icon = '⏳'; text = 'Đang chờ'; }
+                else if (state === 'tu-choi') { bg = '#f8d7da'; color = '#721c24'; border = '#f5c6cb'; icon = '❌'; text = 'Từ chối'; }
+                else if (state === 'mien') { bg = '#f1f3f5'; color = '#adb5bd'; border = '#dee2e6'; icon = '➖'; text = 'Miễn'; }
 
-                let timelineHTML = `
-                    <div style="font-weight: bold; margin-bottom: 4px; color: ${statusText === 'Đã từ chối' ? 'red' : '#333'}">${statusText}</div>
-                    <div class="progress-steps">
-                      <div class="step ${s1}"><div class="step-circle">1</div>TBP</div>
-                      <div class="step ${s2}"><div class="step-circle">2</div>KT TT</div>
-                      <div class="step ${s3}"><div class="step-circle">3</div>KTT</div>
-                      <div class="step ${s4}"><div class="step-circle">4</div>GĐ</div>
-                      <div class="step ${s5}"><div class="step-circle">5</div>Xong</div>
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px 4px; background: ${bg}; color: ${color}; border: 1px solid ${border}; border-radius: 4px; min-width: 60px; text-align: center;">
+                        <span style="font-size: 8px; font-weight: bold; margin-bottom: 1px; white-space: nowrap;">${stepLabel}</span>
+                        <span style="font-size: 10px; font-weight: 600; white-space: nowrap;">${icon} ${text}</span>
                     </div>
-                `;  
-
-                let actionButtons = '';
-                if (currentUser && currentUser.role === 'tbp' && statusText.includes('1. Chờ Trưởng Bộ phận')) {
-                    actionButtons = `<button onclick="updateStatus('${req._id}', '2. Chờ KT Thanh toán duyệt')" style="background:#ffc107; color:black;">Duyệt</button>`;
-                } else if (currentUser && currentUser.role === 'kt_thanhtoan' && statusText.includes('2. Chờ KT Thanh toán')) {
-                    actionButtons = `<button onclick="updateStatus('${req._id}', '3. Chờ Kế toán trưởng duyệt')" style="background:#17a2b8;">Duyệt</button>`;
-                } else if (currentUser && currentUser.role === 'ktt' && statusText.includes('3. Chờ Kế toán trưởng')) {
-                    actionButtons = `<button onclick="updateStatus('${req._id}', '4. Chờ Giám đốc duyệt')" style="background:#007bff;">Duyệt</button>`;
-                } else if (currentUser && (currentUser.role === 'gd' || currentUser.role === 'admin') && statusText.includes('4. Chờ Giám đốc')) {
-                    actionButtons = `<button onclick="updateStatus('${req._id}', '5. Đã hoàn tất phê duyệt')" style="background:#28a745;">Phê duyệt</button>`;
-                } else {
-                    actionButtons = `<span style="color: #888; font-style: italic;">Đang chờ...</span>`;
-                }  
-
-                if (currentUser && (currentUser.role === 'nhanvien' || currentUser.role === 'admin') && statusText.includes('1. Chờ Trưởng Bộ phận')) {
-                    actionButtons += `<br><button onclick="editRequest('${req._id}')" style="background:#ffc107; color:black; margin-top:4px;">✏️ Sửa phiếu</button>`;
-                }  
-
-                if (currentUser && currentUser.role !== 'nhanvien' && !statusText.includes('Đã hoàn tất') && !statusText.includes('từ chối')) {
-                    actionButtons += `<br><button onclick="updateStatus('${req._id}', 'Đã từ chối')" style="background:#dc3545; margin-top:4px;">Từ chối</button>`;
-                }  
-
-                actionButtons += `<br><button onclick="printRequest('${req._id}')" style="background:#6c757d; margin-top:4px;">🖨️ In</button>`;  
-
-                let titleCellHTML = `
-                    <a href="javascript:void(0);" onclick="showDetailModal('${req._id}')" style="font-weight: bold; color: #007bff; text-decoration: none; font-size: 14px;">
-                      ${req.title || 'Không có tiêu đề'}
-                    </a><br>
-                    <small style="color: #555;">Loại: ${req.costType || 'N/A'}</small>
-                `;  
-
-                // Đã thêm cột Bộ phận vào giữa Người tạo và Tiêu đề
-                row.innerHTML = `
-                    <td><b>${req.createdBy || 'Hệ thống'}</b></td>
-                    <td><b>${req.department || 'N/A'}</b></td>
-                    <td>${titleCellHTML}</td>
-                    <td style="white-space: nowrap;"><b>${(req.amount || 0).toLocaleString('vi-VN')} đ</b></td>
-                    <td>${timelineHTML}</td>
-                    <td>${actionButtons}</td>
                 `;
-                tableBody.appendChild(row);
+            }
+
+            currentRequests.forEach((req, index) => {
+                let dept = req.department || '';
+                let isKyThuat = dept.toLowerCase().includes('kỹ thuật');
+
+                // 🛑 NẾU LÀ TÀI KHOẢN PHÓ GĐ SX, CHỈ CHO PHÉP HIỂN THỊ CÁC PHIẾU THUỘC PHÒNG KỸ THUẬT
+                const userRoleCheck = (currentUser.role || '').toLowerCase();
+                if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
+                    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
+                }
+
+                let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
+                let rawStatus = req.status || '';
+
+                let summaryStatus = 'Chờ duyệt';
+                let statusColor = '#856404';
+                let statusBg = '#fff3cd';
+
+                if (rawStatus.includes('từ chối')) {
+                    summaryStatus = 'Từ chối'; 
+                    statusColor = '#721c24'; 
+                    statusBg = '#f8d7da';
+                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
+                    if (req.paidStatus === 'Đã thanh toán') {
+                        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
+                        statusColor = '#155724'; 
+                        statusBg = '#d4edda';
+                    } else {
+                        summaryStatus = 'Chờ thanh toán';
+                        statusColor = '#004085'; 
+                        statusBg = '#cce5ff';
+                    }
+                } else {
+                    summaryStatus = 'Chờ duyệt'; 
+                    statusColor = '#856404'; 
+                    statusBg = '#fff3cd';
+                }
+
+                let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
+
+                if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
+                    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
+                    if (!isKyThuat) s5 = 'mien';
+                } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('4. Chờ Giám đốc')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
+                }
+
+                let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
+                stepsHTML += renderStepBox('Lập Phiếu', s1);
+                stepsHTML += renderStepBox('Trưởng BP', s2);
+                stepsHTML += renderStepBox('KT Thanh Toán', s3);
+                stepsHTML += renderStepBox('KT Trưởng', s4);
+                if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
+                stepsHTML += renderStepBox('Giám Đốc', s6);
+                stepsHTML += `</div>`;
+
+                let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || (() => {
+                    let ngay = req.submittedAt ? req.submittedAt.split('T')[0].replace(/-/g, '').substring(0, 6) : '202611';
+                    let deptLower = (req.department || "").toLowerCase();
+                    let prefix = "PT";
+                    if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+                    else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+                    else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+                    else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+                    else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+                    return `${prefix}-${ngay}-${String(index + 1).padStart(2, '0')}`;
+                })();
+
+                let actionButtonsHTML = '';
+                const roleValue = (currentUser.role || '').toLowerCase();
+                let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
+
+// 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa
+                if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien' && isPending) {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
+                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
+                        </div>
+                    `;
+                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isPending) {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+                        </div>
+                    `;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold; color: #007bff; cursor: pointer;" onclick="showDetailModal('${req._id || req.id}')">${maPhieuHienThi}</td>
+                    <td style="text-align: center;">${ngayTao}</td>
+                    <td>${req.createdBy || ''}</td>
+                    <td>${req.title || ''}</td>
+                    <td style="text-align: right;">${req.amount ? Number(req.amount).toLocaleString('vi-VN') : '0'}</td>
+                    <td style="width: auto; white-space: nowrap;">${stepsHTML}</td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: ${statusBg}; color: ${statusColor};">
+                            ${summaryStatus}
+                        </span>
+                    </td>
+                    <td style="text-align: center; white-space: nowrap; width: 60px;">${actionButtonsHTML}</td>
+                `;
+                tableBody.appendChild(tr);
             });
         } catch (error) {
             console.error('Lỗi tải danh sách:', error);
         }
-    }  
+    };
 
-    let allUsersCache = []; // Biến lưu tạm danh sách user để gọi khi sửa
+    window.resetFilters = function() {
+        if(document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = '';
+        if(document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = '';
+        if(document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
+        if(document.getElementById('filterDepartment')) document.getElementById('filterDepartment').value = '';
+        loadRequests();
+    };
 
-    async function loadUsersList() {
-      try {
-        const res = await fetch('http://localhost:5000/api/users');
-        allUsersCache = await res.json();
-        const tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = '';  
+    // --- XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
+   window.showDetailModal = function(id) {
+        const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
+        if (!req) return;
 
-        allUsersCache.forEach(u => {
-          tbody.innerHTML += `
-            <tr>
-              <td><b>${u.username}</b></td>
-              <td>${u.fullName}</td>
-              <td>${u.department || 'Chung'}</td>
-              <td><span style="color: #007bff; font-weight: bold;">${u.role.toUpperCase()}</span></td>
-              <td>${u.managerId || 'Không có'}</td>
-              <td>
-                <button onclick="openEditUserModal('${u._id}')" style="background: #ffc107; color: black; padding: 4px 8px; margin-right: 4px;">Sửa</button>
-                <button onclick="deleteUser('${u._id}')" style="background: #dc3545; padding: 4px 8px;">Xóa</button>
-              </td>
-            </tr>
-          `;
-        });
-      } catch (err) {
-        console.error('Lỗi tải danh sách user:', err);
-      }
-    }
+        currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const userRole = (currentUser.role || '').toLowerCase();
 
-    function openEditUserModal(id) {
-      const user = allUsersCache.find(u => u._id === id);
-      if (!user) return;
+        let detailsRowsHTML = '';
+        const listDetails = req.details || req.items || req.lines || [];
 
-      document.getElementById('editUserId').value = user._id;
-      document.getElementById('editUsername').value = user.username;
-      document.getElementById('editPassword').value = ''; // Để trống mật khẩu cũ
-      document.getElementById('editFullName').value = user.fullName || '';
-      document.getElementById('editDepartment').value = user.department || '';
-      document.getElementById('editRole').value = user.role || 'nhanvien';
-      document.getElementById('editManager').value = user.managerId || '';
+        if (listDetails.length > 0) {
+            listDetails.forEach((item, idx) => {
+                const itemDate = item.docDate || item.date || item.ngayChungTu || '';
+                const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
+                const docNo = item.docNo || item.soChungTu || (idx + 1);
+                const desc = item.desc || item.description || item.diengiai || '';
+                const amt = item.amount || item.sotien || 0;
 
-      document.getElementById('editUserModal').classList.remove('hidden');
-      document.getElementById('editUserMsg').style.display = 'none';
-    }
+                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
+                let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+                if (rowFiles.length > 0) {
+                    fileLinksHtml = rowFiles.map(f => `
+                        <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem/tải: ${f.name}">
+                            📎 ${f.name}
+                        </a>
+                    `).join('');
+                }
 
-    function closeEditUserModal() {
-      document.getElementById('editUserModal').classList.add('hidden');
-    }
+                detailsRowsHTML += `
+                    <tr>
+                        <td style="text-align: center;">${idx + 1}</td>
+                        <td>${docNo}</td>
+                        <td>${ngayCT}</td>
+                        <td>${desc}</td>
+                        <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
+                        <td>${fileLinksHtml}</td>
+                    </tr>
+                `;
+            });
+        }
 
-    document.getElementById('editUserForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const id = document.getElementById('editUserId').value;
-      const payload = {
-        password: document.getElementById('editPassword').value,
-        fullName: document.getElementById('editFullName').value,
-        department: document.getElementById('editDepartment').value,
-        role: document.getElementById('editRole').value,
-        managerId: document.getElementById('editManager').value
-      };
+        const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
+        
+        const userRoleStr = (currentUser.role || '').toLowerCase();
+        const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
 
-      const msg = document.getElementById('editUserMsg');
-      try {
-        const res = await fetch(`http://localhost:5000/api/users/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
+        let todayStr = new Date().toISOString().split('T')[0];
+        let currentPaidDate = req.paidDate || todayStr;
+        let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
 
-        if (res.ok) {
-          msg.className = 'success';
-          msg.innerText = '✅ ' + data.message;
-          msg.style.display = 'block';
-          loadUsersList(); // Tải lại bảng nhân sự
-          setTimeout(() => { closeEditUserModal(); }, 1500);
+        // Tạo phần mở rộng dành riêng cho Kế toán thanh toán (checkbox Đã thanh toán + Ngày thanh toán)
+        let paymentCheckboxSection = '';
+        if (isKtOrAdmin) {
+            paymentCheckboxSection = `
+                <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
+                        <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
+                    </label>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
+                        <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div style="align-self: flex-end;">
+                        <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let approvalBoxHtml = '';
+        if (canApprove || isKtOrAdmin) {
+            approvalBoxHtml = `
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
+                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+                    
+                    <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
+                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
+                    </div>
+
+                    ${paymentCheckboxSection}
+                </div>
+            `;
+        }
+        const modalContent = document.getElementById('modalBodyContent');
+        if (modalContent) {
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
+                    <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
+                    <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
+                    <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+                </div>
+                <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
+                    <thead>
+                        <tr style="background: #0d6efd; color: white;">
+                            <th style="padding: 6px;">STT</th>
+                            <th style="padding: 6px;">Số CT</th>
+                            <th style="padding: 6px;">Ngày CT</th>
+                            <th style="padding: 6px;">Diễn giải</th>
+                            <th style="padding: 6px;">Số tiền</th>
+                            <th style="padding: 6px;">File đính kèm</th>
+                        </tr>
+                    </thead>
+                    <tbody>${detailsRowsHTML}</tbody>
+                </table>
+                <div style="text-align: right; margin-top: 10px; font-size: 15px;">
+                    <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+                </div>
+                ${approvalBoxHtml}
+            `;
+        }
+
+        const modalEl = document.getElementById('detailModal');
+        if (modalEl) {
+            modalEl.classList.remove('hidden');
+            modalEl.style.display = 'flex';
+        }
+    };
+
+    window.closeDetailModal = function() {
+        const modal = document.getElementById('detailModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    };
+
+    // --- SỬA PHIẾU ---
+    window.editRequest = function(id) {
+        const req = currentRequests.find(r => 
+            (r._id && r._id.toString() === String(id)) || 
+            (r.id && r.id.toString() === String(id))
+        );
+
+        if (!req) {
+            alert('Không tìm thấy thông tin phiếu để sửa!');
+            return;
+        }
+
+        document.getElementById('editingRequestId').value = req._id || req.id || '';
+        document.getElementById('formTitleText').innerText = 'Chỉnh Sửa Phiếu Đề Xuất Thanh Toán';
+        document.getElementById('btnSubmitForm').innerText = 'Lưu Thay Đổi';
+        document.getElementById('btnSubmitForm').style.backgroundColor = '#ffc107';
+        document.getElementById('btnSubmitForm').style.color = 'black';
+        document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+        document.getElementById('title').value = req.title || '';
+        document.getElementById('costType').value = req.costType || '';
+        document.getElementById('department').value = req.department || '';
+        document.getElementById('supplierName').value = req.supplierName || '';
+        document.getElementById('bankAccount').value = req.bankAccount || '';
+
+        const tbody = document.getElementById('detailRows');
+        if (tbody) tbody.innerHTML = '';
+
+        const generalAttachments = req.attachments || [];
+
+        if (req.details && req.details.length > 0) {
+            req.details.forEach(item => {
+                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : generalAttachments;
+                addRow({
+                    docNo: item.docNo,
+                    docDate: item.docDate,
+                    desc: item.desc,
+                    amount: item.amount,
+                    attachments: rowFiles
+                });
+            });
         } else {
-          msg.className = 'error';
-          msg.innerText = '❌ ' + (data.error || 'Cập nhật thất bại!');
-          msg.style.display = 'block';
-        }
-      } catch (err) {
-        console.error('Lỗi cập nhật user:', err);
-        msg.className = 'error';
-        msg.innerText = '❌ Không thể kết nối server!';
-        msg.style.display = 'block';
-      }
-    });
-
-    async function deleteUser(id) {
-      if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) return;
-      try {
-        await fetch(`http://localhost:5000/api/users/${id}`, { method: 'DELETE' });
-        loadUsersList();
-      } catch (err) {
-        console.error('Lỗi xóa user:', err);
-      }
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const editingId = document.getElementById('editingRequestId').value;
-      const amountVal = parseFloat(document.getElementById('lblTotalAmount').innerText.replace(/\./g, '')) || 0;
-
-      const details = [];
-      document.querySelectorAll('#detailRows tr').forEach(tr => {
-        details.push({
-          docNo: tr.querySelector('.row-docNo').value,
-          docDate: tr.querySelector('.row-docDate').value,
-          desc: tr.querySelector('.row-desc').value,
-          amount: parseFloat(tr.querySelector('.row-amount').value) || 0,
-          note: tr.querySelector('.row-note').value
-        });
-      });
-
-      let allAttachments = [...currentEditingAttachments, ...selectedFilesData];
-
-      const payload = {
-        title: document.getElementById('title').value,
-        amount: amountVal,
-        costType: document.getElementById('costType').value,
-        department: document.getElementById('department').value,
-        supplierName: document.getElementById('supplierName').value,
-        bankAccount: document.getElementById('bankAccount').value,
-        details: details,
-        attachments: allAttachments,
-        createdBy: currentUser.fullName
-      };
-
-      try {
-        let url = 'http://localhost:5000/api/requests';
-        let method = 'POST';
-
-        if (editingId) {
-          url = `http://localhost:5000/api/requests/${editingId}`;
-          method = 'PUT';
+            addRow();
         }
 
-        const res = await fetch(url, {
-          method: method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-        if (res.ok) {
-          messageDiv.className = 'success';
-          messageDiv.innerText = '✅ ' + data.message;
-          messageDiv.style.display = 'block';
-          resetFormToCreateMode();
-          loadRequests();
-          setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
-        } else {
-          messageDiv.className = 'error';
-          messageDiv.innerText = '❌ ' + data.error;
-          messageDiv.style.display = 'block';
+    // --- XÓA PHIẾU ---
+    window.deleteRequest = function(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa phiếu này không?')) return;
+        fetch(`${API_BASE_URL}/api/requests/${id}`, { method: 'DELETE' })
+            .then(res => { if (res.ok) loadRequests(); else alert('Xóa thất bại!'); })
+            .catch(err => console.error('Lỗi xóa:', err));
+    };
+
+    // --- HÀM CẬP NHẬT THANH TOÁN (KẾ TOÁN) ---
+    window.updatePaidStatusAction = async function(id) {
+        const isChecked = document.getElementById('chkIsPaid')?.checked;
+        const paidDateVal = document.getElementById('inputPaidDate')?.value;
+        const paidStatus = isChecked ? 'Đã thanh toán' : 'Chờ thanh toán';
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/requests/${id}/paid-status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paidStatus, paidDate: paidDateVal })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Cập nhật trạng thái thanh toán thành công!');
+                closeDetailModal();
+                loadRequests();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể cập nhật'));
+            }
+        } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến server!');
         }
-      } catch (err) {
-        console.error('Lỗi gửi phiếu:', err);
-      }
-    });
+    };
 
-    function showDetailModal(id) {
-      const req = currentRequests.find(r => r._id === id);
-      if (!req) return;
+// --- HÀM IN PHIẾU (NHẬN TRỰC TIẾP MÃ PHIẾU TỪ GIAO DIỆN) ---
+    window.printRequest = function(id, passedCode) {
+        const req = currentRequests.find(r => (r._id && r._id.toString() === String(id)) || (r.id && r.id.toString() === String(id)));
+        if (!req) {
+            alert('Không tìm thấy thông tin phiếu để in!');
+            return;
+        }
 
-      let detailsRowsHTML = '';
-      if (req.details && req.details.length > 0) {
-        req.details.forEach((item, idx) => {
-          const itemDate = item.docDate ? item.docDate.split('T')[0] : '';
-          detailsRowsHTML += `
-            <tr>
-              <td style="text-align: center;">${idx + 1}</td>
-              <td>${item.docNo || ''}</td>
-              <td>${itemDate}</td>
-              <td>${item.desc || ''}</td>
-              <td style="text-align: right; font-weight: bold;">${Number(item.amount || 0).toLocaleString('vi-VN')} đ</td>
-              <td>${item.note || ''}</td>
-            </tr>
-          `;
+        let detailsRowsHTML = '';
+        const listDetails = req.details || req.items || req.lines || [];
+        if (Array.isArray(listDetails) && listDetails.length > 0) {
+            listDetails.forEach((item, idx) => {
+                const ngayCT = item.docDate ? String(item.docDate).split('T')[0] : '';
+                detailsRowsHTML += `<tr>
+                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.docNo || (idx + 1)}</td>
+                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${ngayCT}</td>
+                    <td style="border: 1px solid #000; padding: 6px;">${item.desc || ''}</td>
+                    <td style="border: 1px solid #000; padding: 6px; text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
+                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.note || ''}</td>
+                </tr>`;
+            });
+        }
+
+        const submittedDate = req.submittedAt ? String(req.submittedAt).split('T')[0] : (req.createdAt ? String(req.createdAt).split('T')[0] : '');
+        const createdBy = req.createdBy || 'Nhân viên';
+        const department = req.department || '';
+        const title = req.title || '';
+        const supplierName = req.supplierName || '';
+        const bankAccount = req.bankAccount || '';
+        const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
+        const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
+        
+        // 🌟 Lấy chuẩn xác 100% mã phiếu đang hiển thị trên bảng danh sách
+        let maPhieuHienThi = passedCode && passedCode !== 'undefined' ? passedCode : (req.code || req.requestCode || req.soPhieu || 'PT-01');
+
+        const rawStatus = req.status || '';
+        const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
+        const defaultTimeStr = submittedDate ? `${submittedDate} 08:30` : '2026-11-13 08:30';
+
+        const isKyThuat = String(department).toLowerCase().includes('kỹ thuật') || String(department).toLowerCase().includes('ky thuat');
+
+        let usersList = (typeof allUsersCache !== 'undefined' && Array.isArray(allUsersCache)) ? allUsersCache : [];
+
+        let foundTBP = usersList.find(u => {
+            let roleStr = String(u.role || '').toLowerCase();
+            let uDept = String(u.department || '').toLowerCase();
+            let reqDept = String(department).toLowerCase();
+            let isTbp = roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+            let deptMatch = uDept && reqDept && (uDept.includes(reqDept) || reqDept.includes(uDept));
+            return isTbp && deptMatch;
         });
-      } else {
-        detailsRowsHTML = `<tr><td colspan="6" style="text-align: center;">Không có chi tiết khoản mục</td></tr>`;
-      }
 
-      let attachmentsHTML = '<i>Không có file đính kèm</i>';
-      if (req.attachments && req.attachments.length > 0) {
-        attachmentsHTML = req.attachments.map(fileObj => {
-          if (typeof fileObj === 'object' && fileObj !== null && fileObj.data) {
-            return `<div style="margin-bottom: 5px;"><a href="${fileObj.data}" download="${fileObj.name}" style="color: #007bff; font-weight: bold; text-decoration: none;">📥 Tải xuống chứng từ: ${fileObj.name}</a></div>`;
-          } else {
-            const fileName = typeof fileObj === 'string' ? fileObj : (fileObj.name || 'Tài liệu');
-            return `<div style="margin-bottom: 5px; color: #555;">📎 ${fileName}</div>`;
-          }
-        }).join('');
-      }
+        if (!foundTBP) {
+            foundTBP = usersList.find(u => {
+                let roleStr = String(u.role || '').toLowerCase();
+                return roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+            });
+        }
 
-      const submittedTime = new Date(req.submittedAt || Date.now()).toLocaleString('vi-VN');
-      const modalBody = document.getElementById('modalBodyContent');
-      modalBody.innerHTML = `
-        <h2 style="color: #007bff; margin-top: 0; text-transform: uppercase; font-size: 16px; border-bottom: 2px solid #007bff; padding-bottom: 8px;">Chi Tiết Phiếu Đề Nghị Thanh Toán</h2>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
-          <div><b>Người tạo:</b> ${req.createdBy}</div>
-          <div><b>Trạng thái:</b> <span style="color: #28a745; font-weight: bold;">${req.status}</span></div>
-        </div>
-        <div style="margin-bottom: 10px; font-size: 13px;"><b>Tiêu đề:</b> ${req.title}</div>
-        <div style="display: flex; gap: 20px; margin-bottom: 10px; font-size: 13px;">
-          <div><b>Loại chi phí:</b> ${req.costType}</div>
-          <div><b>Bộ phận:</b> ${req.department}</div>
-        </div>
-        <div style="display: flex; gap: 20px; margin-bottom: 15px; font-size: 13px;">
-          <div><b>Nhà cung cấp / Thụ hưởng:</b> ${req.supplierName}</div>
-          <div><b>Tài khoản NH:</b> ${req.bankAccount}</div>
-        </div>
+        let foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
+        let foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
+        let foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
+        let foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('gd') || String(u.role || '').toLowerCase().includes('giam_doc'));
 
-        <h4 style="margin: 10px 0 5px 0;">Bảng kê các khoản thanh toán:</h4>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
-          <thead>
-            <tr style="background: #007bff; color: white;">
-              <th style="padding: 6px; border: 1px solid #ddd;">STT</th>
-              <th style="padding: 6px; border: 1px solid #ddd;">Số CT</th>
-              <th style="padding: 6px; border: 1px solid #ddd;">Ngày</th>
-              <th style="padding: 6px; border: 1px solid #ddd;">Diễn giải nội dung</th>
-              <th style="padding: 6px; border: 1px solid #ddd;">Số tiền (VNĐ)</th>
-              <th style="padding: 6px; border: 1px solid #ddd;">Ghi chú</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${detailsRowsHTML}
-          </tbody>
-        </table>
+        const nameNV = createdBy;
+        const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
+        const nameKT = foundKT ? foundKT.fullName : 'Nguyễn Thị Lệ Thuần';
+        const nameKTT = foundKTT ? foundKTT.fullName : 'Phạm Văn Tuấn';
+        const namePGD = foundPGD ? foundPGD.fullName : 'Đỗ Công Thịnh';
+        const nameGD = foundGD ? foundGD.fullName : 'Vũ Quang Sáng';
 
-        <div style="margin-bottom: 15px; font-size: 13px;">
-          <b>Chứng từ đính kèm:</b><br>
-          <div style="margin-top: 5px; padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">
-            ${attachmentsHTML}
-          </div>
-        </div>
+        let s1Sign = `✅ Đã lập<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>`;
+        let s2Sign = (isCompleted || rawStatus.includes('Trưởng') || rawStatus.includes('KT') || rawStatus.includes('Giám đốc') || rawStatus.includes('2.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+        let s3Sign = (isCompleted || req.paidStatus === 'Đã thanh toán') ? `✅ Đã kiểm tra<br><span style="font-size:10px; color:#555;">${req.paidDate || defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ kiểm tra</span>`;
+        let s4Sign = (isCompleted || rawStatus.includes('Kế toán trưởng') || rawStatus.includes('Giám đốc') || rawStatus.includes('4.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+        let s5Sign = (isCompleted || rawStatus.includes('PGD') || rawStatus.includes('Phó')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+        let s6Sign = (isCompleted) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
 
-        <div style="background: #e9ecef; padding: 10px; border-radius: 4px; font-size: 14px; margin-bottom: 20px;">
-          <div><b>Tổng cộng:</b> <span style="color: #d9534f; font-weight: bold; font-size: 16px;">${(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span></div>
-          <div style="margin-top: 5px;"><b>Bằng chữ:</b> <i>${numberToWords(req.amount)}</i></div>
-        </div>
-
-        <table style="width: 100%; margin-top: 20px; text-align: center; table-layout: fixed; border-collapse: collapse;">
-          <tr>
-            <td style="font-weight: bold; font-size: 12pt;">Người lập phiếu</td>
-            <td style="font-weight: bold; font-size: 12pt;">Trưởng bộ phận</td>
-            <td style="font-weight: bold; font-size: 12pt;">Kế toán thanh toán</td>
-            <td style="font-weight: bold; font-size: 12pt;">Kế toán trưởng</td>
-            <td style="font-weight: bold; font-size: 12pt;">Giám đốc</td>
-          </tr>
-          <tr>
-            <td style="font-style: italic; font-size: 10pt; color: #555;">(Ký, họ tên)</td>
-            <td style="font-style: italic; font-size: 10pt; color: #555;">(Ký, họ tên)</td>
-            <td style="font-style: italic; font-size: 10pt; color: #555;">(Ký, họ tên)</td>
-            <td style="font-style: italic; font-size: 10pt; color: #555;">(Ký, họ tên)</td>
-            <td style="font-style: italic; font-size: 10pt; color: #555;">(Ký, duyệt chi)</td>
-          </tr>
-          <tr style="height: 60px; vertical-align: bottom;">
-            <td>
-              <div style="color: #28a745; font-weight: bold; font-size: 11pt;">✓ Đã lập</div>
-              <div style="font-size: 9pt; color: #333; margin-top: 2px;">${submittedTime}</div>
-            </td>
-            <td>
-              <div style="color: ${req.status.includes('1. Chờ Trưởng') ? '#888' : '#28a745'}; font-weight: bold; font-size: 11pt;">
-                ${req.status.includes('1. Chờ Trưởng') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
-              </div>
-            </td>
-            <td>
-              <div style="color: ${req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '#888' : '#28a745'}; font-weight: bold; font-size: 11pt;">
-                ${req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
-              </div>
-            </td>
-            <td>
-              <div style="color: ${req.status.includes('3. Chờ Kế toán') || req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '#888' : '#28a745'}; font-weight: bold; font-size: 11pt;">
-                ${req.status.includes('3. Chờ Kế toán') || req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
-              </div>
-            </td>
-            <td>
-              <div style="color: ${req.status.includes('5. Đã hoàn tất') ? '#28a745' : '#888'}; font-weight: bold; font-size: 11pt;">
-                ${req.status.includes('5. Đã hoàn tất') ? '✓ Đã duyệt chi' : '(Chờ duyệt)'}
-              </div>
-            </td>
-          </tr>
-        </table>
-      `;
-
-      document.getElementById('detailModal').classList.remove('hidden');
-    }
-
-    function closeDetailModal() {
-      document.getElementById('detailModal').classList.add('hidden');
-    }
-
-    function editRequest(id) {
-      const req = currentRequests.find(r => r._id === id);
-      if (!req) return;
-
-      document.getElementById('editingRequestId').value = req._id;
-      document.getElementById('formTitleText').innerText = 'Chỉnh Sửa Phiếu Đề Xuất Thanh Toán';
-      document.getElementById('btnSubmitForm').innerText = 'Lưu Thay Đổi';
-      document.getElementById('btnSubmitForm').style.backgroundColor = '#ffc107';
-      document.getElementById('btnSubmitForm').style.color = 'black';
-      document.getElementById('btnCancelEdit').classList.remove('hidden');
-
-      document.getElementById('title').value = req.title || '';
-      document.getElementById('costType').value = req.costType || '';
-      document.getElementById('department').value = req.department || '';
-      document.getElementById('supplierName').value = req.supplierName || '';
-      document.getElementById('bankAccount').value = req.bankAccount || '';
-
-      currentEditingAttachments = req.attachments || [];
-      renderExistingAttachments();
-
-      const tbody = document.getElementById('detailRows');
-      tbody.innerHTML = '';
-      if (req.details && req.details.length > 0) {
-        req.details.forEach(item => {
-          addRow({
-            docNo: item.docNo || '',
-            docDate: item.docDate || '',
-            desc: item.desc || '',
-            amount: item.amount !== undefined ? item.amount : 0,
-            note: item.note || ''
-          });
-        });
-      } else {
-        addRow({
-          docNo: '',
-          docDate: '',
-          desc: req.title || '',
-          amount: req.amount || 0,
-          note: ''
-        });
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function renderExistingAttachments() {
-      const existingBox = document.getElementById('existingAttachmentsBox');
-      const existingList = document.getElementById('existingFilesList');
-      
-      if (currentEditingAttachments && currentEditingAttachments.length > 0) {
-        existingBox.classList.remove('hidden');
-        existingList.innerHTML = currentEditingAttachments.map((fileObj, index) => {
-          const fileName = (typeof fileObj === 'object' && fileObj !== null) ? (fileObj.name || 'Tài liệu') : fileObj;
-          return `
-            <div style="margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; padding: 5px 8px; border-radius: 4px;">
-              <span style="font-size: 13px;">📎 ${fileName}</span>
-              <button type="button" onclick="removeExistingAttachment(${index})" style="background: #dc3545; color: white; border: none; padding: 3px 8px; font-size: 11px; border-radius: 3px; cursor: pointer;">Xóa [x]</button>
-            </div>
-          `;
-        }).join('');
-      } else {
-        existingBox.classList.add('hidden');
-        existingList.innerHTML = '';
-      }
-    }
-
-    function removeExistingAttachment(index) {
-      currentEditingAttachments.splice(index, 1);
-      renderExistingAttachments();
-    }
-
-    function resetFormToCreateMode() {
-      document.getElementById('editingRequestId').value = '';
-      document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
-      document.getElementById('btnSubmitForm').innerText = 'Gửi Phiếu Đề Xuất Thanh Toán';
-      document.getElementById('btnSubmitForm').style.backgroundColor = '#28a745';
-      document.getElementById('btnSubmitForm').style.color = 'white';
-      document.getElementById('btnCancelEdit').classList.add('hidden');
-      
-      currentEditingAttachments = [];
-      selectedFilesData = [];
-      
-      const existingBox = document.getElementById('existingAttachmentsBox');
-      if (existingBox) existingBox.classList.add('hidden');
-      const existingList = document.getElementById('existingFilesList');
-      if (existingList) existingList.innerHTML = '';
-      const fileNamesList = document.getElementById('fileNamesList');
-      if (fileNamesList) fileNamesList.innerText = '';
-      
-      const paymentForm = document.getElementById('paymentForm');
-      if (paymentForm) paymentForm.reset();
-      
-      const tbody = document.getElementById('detailRows');
-      if (tbody) tbody.innerHTML = '';
-      addRow();
-    }
-
-    async function updateStatus(id, newStatus) {
-      try {
-        const response = await fetch(`http://localhost:5000/api/requests/${id}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        });
-        if (response.ok) loadRequests();
-        else alert('Cập nhật thất bại!');
-      } catch (error) { console.error('Lỗi:', error); }
-    }
-
-    function printRequest(id) {
-      const req = currentRequests.find(r => r._id === id);
-      if (!req) return;
-
-      const printWindow = window.open('', '_blank', 'width=900,height=950');
-      const createdDate = new Date(req.submittedAt || Date.now());
-      const timeStr = createdDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-      const dateStr = `Ngày ${createdDate.getDate()} tháng ${createdDate.getMonth() + 1} năm ${createdDate.getFullYear()} (${timeStr})`;
-
-      let detailsRowsHTML = '';
-      if (req.details && req.details.length > 0) {
-        req.details.forEach((item, index) => {
-          detailsRowsHTML += `
-            <tr>
-              <td style="text-align: center;">${index + 1}</td>
-              <td>${item.docNo || ''}</td>
-              <td>${item.docDate ? item.docDate.split('T')[0] : ''}</td>
-              <td>${item.desc || ''}</td>
-              <td style="text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
-              <td>${item.note || ''}</td>
-            </tr>
-          `;
-        });
-      } else {
-        detailsRowsHTML = `
-          <tr>
-            <td style="text-align: center;">1</td>
-            <td></td>
-            <td></td>
-            <td>${req.title || ''}</td>
-            <td style="text-align: right;">${Number(req.amount || 0).toLocaleString('vi-VN')}</td>
-            <td></td>
-          </tr>
-        `;
-      }
-
-      let printAttachmentsHTML = 'Không có file đính kèm';
-      if (req.attachments && req.attachments.length > 0) {
-        printAttachmentsHTML = req.attachments.map(f => (typeof f === 'object' && f !== null ? f.name : f)).join(', ');
-      }
-
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="vi">
-        <head>
-          <meta charset="UTF-8">
-          <title>In Phiếu Đề Nghị Thanh Toán - ${req.title}</title>
-          <style>
-            body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.4; padding: 25px; }
-            .print-header { display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
-            .print-logo { width: 45px; height: 45px; background-color: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
-            .print-company-name { font-weight: bold; text-transform: uppercase; font-size: 12pt; }
-            .print-company-sub { font-size: 10pt; font-weight: normal; color: #555; }
-            .title { text-align: center; font-weight: bold; font-size: 15pt; margin: 10px 0 3px 0; text-transform: uppercase; }
-            .date { text-align: center; font-style: italic; margin-bottom: 15px; font-size: 11pt; }
-            .content-row { margin-bottom: 6px; }
-            .label { font-weight: bold; }
-            table.detail { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; }
-            table.detail th, table.detail td { border: 1px solid #333; padding: 6px 8px; font-size: 11pt; }
-            table.detail th { background-color: #f2f2f2; text-align: center; }
-            table.signatures { width: 100%; margin-top: 25px; text-align: center; table-layout: fixed; border-collapse: collapse; }
-            table.signatures td { vertical-align: top; font-size: 11pt; padding: 5px; }
-            .sig-title { font-weight: bold; }
-            .sig-note { font-style: italic; font-size: 10pt; color: #555; }
-            .sig-status { margin-top: 5px; font-weight: bold; color: #007bff; font-size: 10pt; }
-            @media print { @page { margin: 1.5cm; } }
-          </style>
-        </head>
-        <body>
-          <div class="print-header">
-            <div class="print-logo">BVN</div>
+        let footerSignaturesHTML = `
             <div>
-              <div class="print-company-name">Công Ty Cổ Phần Đầu Tư BVN Quảng Bình</div>
-              <div class="print-company-sub">Bộ phận yêu cầu: ${req.department || '............'}</div>
+                <div class="signature-title">Người lập phiếu</div>
+                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+                <div class="signature-status"><b style="font-size: 11px;">${nameNV}</b><br>${s1Sign}</div>
             </div>
-            <div style="margin-left: auto; text-align: right; font-size: 10pt;">
-              <b>Mẫu số: 05-TT</b><br><i>(Ban hành theo TT 200/2014/TT-BTC)</i>
+            <div>
+                <div class="signature-title">Trưởng Bộ Phận</div>
+                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+                <div class="signature-status"><b style="font-size: 11px;">${nameTBP}</b><br>${s2Sign}</div>
             </div>
-          </div>
+            <div>
+                <div class="signature-title">Kế Toán Thanh Toán</div>
+                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+                <div class="signature-status"><b style="font-size: 11px;">${nameKT}</b><br>${s3Sign}</div>
+            </div>
+            <div>
+                <div class="signature-title">Kế Toán Trưởng</div>
+                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+                <div class="signature-status"><b style="font-size: 11px;">${nameKTT}</b><br>${s4Sign}</div>
+            </div>
+        `;
 
-          <div class="title">PHIẾU ĐỀ NGHỊ THANH TOÁN</div>
-          <div class="date">${dateStr}</div>
-
-          <div class="content-row"><span class="label">Kính gửi:</span> Ban Giám đốc và Phòng Kế toán</div>
-          <div class="content-row"><span class="label">Họ và tên người đề nghị:</span> ${req.createdBy || 'Nhân viên'}</div>
-          <div class="content-row"><span class="label">Bộ phận:</span> ${req.department || '............'}</div>
-          <div class="content-row"><span class="label">Nội dung đề xuất chung:</span> <b>${req.title}</b> (${req.costType})</div>
-          <div class="content-row"><span class="label">Đơn vị thụ hưởng:</span> ${req.supplierName} | <span class="label">Tài khoản:</span> ${req.bankAccount}</div>
-
-          <table class="detail">
-            <thead>
-              <tr>
-                <th style="width: 5%;">STT</th>
-                <th style="width: 15%;">Số chứng từ</th>
-                <th style="width: 15%;">Ngày</th>
-                <th style="width: 35%;">Diễn giải nội dung</th>
-                <th style="width: 20%;">Số tiền (VNĐ)</th>
-                <th style="width: 10%;">Ghi chú</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${detailsRowsHTML}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4" style="text-align: right; font-weight: bold;">Tổng cộng:</td>
-                <td colspan="2" style="font-weight: bold; color: #d9534f;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</td>
-              </tr>
-            </tfoot>
-          </table>
-
-          <div class="content-row"><span class="label">Số tiền bằng chữ:</span> <b><i>${numberToWords(req.amount)}</i></b></div>
-          <div class="content-row"><span class="label">Chứng từ đính kèm:</span> <i>${printAttachmentsHTML}</i></div>
-          <div class="content-row"><span class="label">Trạng thái hiện tại:</span> <b>${req.status}</b></div>
-
-          <table class="signatures">
-            <tr>
-              <td class="sig-title">Người lập phiếu</td>
-              <td class="sig-title">Trưởng bộ phận</td>
-              <td class="sig-title">Kế toán thanh toán</td>
-              <td class="sig-title">Kế toán trưởng</td>
-              <td class="sig-title">Giám đốc</td>
-            </tr>
-            <tr>
-              <td class="sig-note">(Ký, ghi rõ họ tên)</td>
-              <td class="sig-note">(Ký, ghi rõ họ tên)</td>
-              <td class="sig-note">(Ký, ghi rõ họ tên)</td>
-              <td class="sig-note">(Ký, ghi rõ họ tên)</td>
-              <td class="sig-note">(Ký, duyệt chi)</td>
-            </tr>
-            <tr style="height: 70px; vertical-align: bottom;">
-              <td>
-                <div class="sig-status" style="color: #28a745;">✓ Đã lập</div>
-                <div style="font-size: 8.5pt; color: #444; margin-top: 3px;">${dateStr}</div>
-              </td>
-              <td>
-                <div class="sig-status" style="color: ${req.status.includes('1. Chờ Trưởng') ? '#888' : '#28a745'};">
-                  ${req.status.includes('1. Chờ Trưởng') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
+        if (isKyThuat) {
+            footerSignaturesHTML += `
+                <div>
+                    <div class="signature-title">Phó Giám Đốc</div>
+                    <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+                    <div class="signature-status"><b style="font-size: 11px;">${namePGD}</b><br>${s5Sign}</div>
                 </div>
-              </td>
-              <td>
-                <div class="sig-status" style="color: ${req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '#888' : '#28a745'};">
-                  ${req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
-                </div>
-              </td>
-              <td>
-                <div class="sig-status" style="color: ${req.status.includes('3. Chờ Kế toán') || req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '#888' : '#28a745'};">
-                  ${req.status.includes('3. Chờ Kế toán') || req.status.includes('1. Chờ') || req.status.includes('2. Chờ') ? '(Chờ duyệt)' : '✓ Đã duyệt'}
-                </div>
-              </td>
-              <td>
-                <div class="sig-status" style="color: ${req.status.includes('5. Đã hoàn tất') ? '#28a745' : '#888'};">
-                  ${req.status.includes('5. Đã hoàn tất') ? '✓ Đã duyệt chi' : '(Chờ duyệt)'}
-                </div>
-              </td>
-            </tr>
-          </table>
-          <script>window.onload = function() { window.print(); };<\/script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+            `;
+        }
+
+        footerSignaturesHTML += `
+            <div>
+                <div class="signature-title">Giám Đốc</div>
+                <div style="font-size: 10px;">(Ký, đóng dấu)</div>
+                <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
+            </div>
+        `;
+
+        const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
+            <style>
+                body { font-family: "Times New Roman", Times, serif; font-size: 13px; margin: 25px; color: #000; }
+                .company-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+                .header { text-align: center; margin-bottom: 15px; }
+                .header h2 { margin: 3px 0; font-size: 17px; }
+                .meta-info { margin-bottom: 15px; line-height: 1.5; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
+                th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
+                th { background-color: #f2f2f2; text-align: center; }
+                .amount-section { font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+                .footer { display: flex; justify-content: space-between; text-align: center; font-size: 11px; margin-top: 25px; page-break-inside: avoid; }
+                .footer div { flex: 1; padding: 0 3px; }
+                .signature-title { font-weight: bold; margin-bottom: 3px; font-size: 11.5px; }
+                .signature-status { margin-top: 25px; font-size: 10.5px; }
+            </style></head><body>
+            <div class="company-header">
+                <span>CÔNG TY CỔ PHẦN ĐẦU TƯ BVN QUẢNG BÌNH</span>
+                <span>Mẫu số: TT-200</span>
+            </div>
+            <div class="header">
+                <h2>PHIẾU ĐỀ NGHỊ THANH TOÁN</h2>
+                <div style="font-size: 12px; margin-top: 4px;">Số phiếu: <b>${maPhieuHienThi}</b> | Ngày đề nghị: ${submittedDate}</div>
+            </div>
+            <div class="meta-info">
+                <div><b>Người đề nghị:</b> ${createdBy}</div>
+                <div><b>Bộ phận:</b> ${department}</div>
+                <div><b>Nội dung đề xuất:</b> ${title}</div>
+                <div><b>Nhà cung cấp / Thụ hưởng:</b> ${supplierName} ${bankAccount ? ' - <b>TK:</b> ' + bankAccount : ''}</div>
+            </div>
+            <table><thead><tr><th>Số CT</th><th>Ngày</th><th>Diễn giải nội dung</th><th>Số tiền (VNĐ)</th><th>Ghi chú</th></tr></thead>
+            <tbody>${detailsRowsHTML}</tbody></table>
+            <div class="amount-section">
+                <b>Tổng cộng tiền thanh toán:</b> <span style="color: #d9534f; font-weight: bold;">${totalAmount} VNĐ</span><br>
+                <b>Bằng chữ:</b> <i>${amountInWords}</i>
+            </div>
+
+            <div class="footer">
+                ${footerSignaturesHTML}
+            </div>
+
+            <script>window.onload = function() { window.print(); window.close(); };<\/script>
+            </body></html>`;
+
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+        }
+    };
+    // --- QUẢN LÝ NHÂN SỰ (ADMIN) ---
+    async function loadUsersList() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/users`);
+            const users = await response.json();
+            allUsersCache = users;
+            const userTableBody = document.getElementById('userTableBody');
+            if (!userTableBody) return;
+            
+            userTableBody.innerHTML = '';
+            if (!users || users.length === 0) {
+                userTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Chưa có nhân sự nào.</td></tr>`;
+                return;
+            }
+
+            users.forEach((user, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center;">${index + 1}</td>
+                    <td>${user.username || ''}</td>
+                    <td>${user.fullName || ''}</td>
+                    <td>${user.department || ''}</td>
+                    <td style="text-align: center;">${user.role || ''}</td>
+                    <td style="text-align: center; white-space: nowrap; width: 60px;">
+                        <div style="display: flex; gap: 4px; justify-content: center;">
+                            <button type="button" class="btn btn-sm" onclick="editUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                            <button type="button" class="btn btn-sm" onclick="deleteUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+                        </div>
+                    </td>
+                `;
+                userTableBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Lỗi tải nhân sự:', error);
+        }
     }
 
-    addRow();
-  </script>
-  <!-- MODAL SỬA TÀI KHOẢN (DÀNH CHO ADMIN) -->
-<div id="editUserModal" class="modal-overlay hidden">
-    <div class="modal-content" style="width: 500px;">
-        <button class="modal-close" onclick="closeEditUserModal()">✕ Đóng</button>
-        <h3 style="margin-top: 0; color: #007bff;">✏️ Chỉnh Sửa Thông Tin Nhân Sự</h3>
-        <form id="editUserForm">
-            <input type="hidden" id="editUserId">
-            <div class="form-group">
-                <label>Tên đăng nhập:</label>
-                <input type="text" id="editUsername" disabled style="background: #e9ecef;">
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu mới (Bỏ trống nếu không đổi):</label>
-                <input type="text" id="editPassword" placeholder="Nhập mật khẩu mới nếu muốn đổi">
-            </div>
-            <div class="form-group">
-                <label>Họ và tên:</label>
-                <input type="text" id="editFullName" required>
-            </div>
-            <div class="form-group">
-                <label>Phòng ban:</label>
-                <input type="text" id="editDepartment" required>
-            </div>
-            <div class="form-group">
-                <label>Chức vụ:</label>
-                <select id="editRole" required>
-                    <option value="nhanvien">Nhân viên lập phiếu</option>
-                    <option value="tbp">Trưởng bộ phận</option>
-                    <option value="kt_thanhtoan">Kế toán thanh toán</option>
-                    <option value="ktt">Kế toán trưởng</option>
-                    <option value="gd">Giám đốc</option>
-                    <option value="admin">Admin hệ thống</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Cấp quản lý (Username):</label>
-                <input type="text" id="editManager">
-            </div>
-            <button type="submit" style="width: 100%; background-color: #ffc107; color: black; padding: 10px;">Lưu Thay Đổi</button>
-        </form>
-        <div id="editUserMsg" style="margin-top: 10px; display: none; padding: 8px; border-radius: 4px; text-align: center;"></div>
-    </div>
-</div>
+    // --- MỞ MODAL SỬA NHÂN SỰ ---
+    window.editUser = function(id) {
+        const user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
+        if (!user) {
+            alert('Không tìm thấy thông tin tài khoản!');
+            return;
+        }
+
+        document.getElementById('editUserId').value = user._id || user.id || '';
+        document.getElementById('editUsername').value = user.username || '';
+        document.getElementById('editPassword').value = ''; 
+        document.getElementById('editFullName').value = user.fullName || '';
+        document.getElementById('editDepartment').value = user.department || '';
+        document.getElementById('editRole').value = user.role || 'nhanvien';
+        document.getElementById('editManager').value = user.managerId || '';
+
+        const modal = document.getElementById('editUserModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    };
+
+    // --- XÓA NHÂN SỰ ---
+    window.deleteUser = function(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa tài khoản nhân sự này không?')) return;
+        
+        fetch(`${API_BASE_URL}/api/users/${id}`, {
+            method: 'DELETE'
+        })
+        .then(res => {
+            if (res.ok) {
+                alert('Xóa tài khoản thành công!');
+                loadUsersList();
+            } else {
+                return res.json().then(err => { alert('Lỗi: ' + (err.error || 'Không thể xóa')); });
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi xóa nhân sự:', err);
+            alert('Không thể kết nối đến máy chủ server!');
+        });
+    };
+
+    // --- KHỞI CHẠY DOM CONTENT LOADED ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDepartments();
+
+        if (currentUser) {
+            const loginSection = document.getElementById('loginSection');
+            const mainSection = document.getElementById('mainSection');
+            if (loginSection) loginSection.classList.add('hidden');
+            if (mainSection) mainSection.classList.remove('hidden');
+
+            document.getElementById('userFullName').innerText = currentUser.fullName || '';
+            document.getElementById('userRoleBadge').innerText = `Chức vụ: ${(currentUser.role || '').toUpperCase()}`;
+
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminNavTab').classList.remove('hidden');
+                document.body.classList.add('role-admin');
+            } else {
+                document.getElementById('adminNavTab').classList.add('hidden');
+                document.body.classList.remove('role-admin');
+            }
+
+            if (currentUser.role === 'nhanvien' || currentUser.role === 'admin') {
+                const createContainer = document.getElementById('createFormContainer');
+                if (createContainer) createContainer.classList.remove('hidden');
+                resetFormToCreateMode();
+            }
+
+            loadRequests();
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const loginMessage = document.getElementById('loginMessage');
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        currentUser = data.user;
+                        localStorage.setItem('user', JSON.stringify(currentUser));
+                        location.reload();
+                    } else {
+                        if (loginMessage) {
+                            loginMessage.className = 'error';
+                            loginMessage.innerText = '❌ ' + (data.error || 'Đăng nhập thất bại!');
+                            loginMessage.style.display = 'block';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi kết nối:', err);
+                    alert('Không thể kết nối đến server!');
+                }
+            };
+        }
+
+        const editUserForm = document.getElementById('editUserForm');
+        if (editUserForm) {
+            editUserForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const userId = document.getElementById('editUserId').value;
+                const payload = {
+                    username: document.getElementById('editUsername').value.trim(),
+                    password: document.getElementById('editPassword').value.trim(),
+                    fullName: document.getElementById('editFullName').value.trim(),
+                    department: document.getElementById('editDepartment').value,
+                    role: document.getElementById('editRole').value,
+                    managerId: document.getElementById('editManager').value.trim()
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    const msgDiv = document.getElementById('editUserMsg');
+
+                    if (res.ok) {
+                        if (msgDiv) {
+                            msgDiv.className = 'success';
+                            msgDiv.innerText = '✅ ' + data.message;
+                            msgDiv.style.display = 'block';
+                        }
+                        setTimeout(() => {
+                            if (msgDiv) msgDiv.style.display = 'none';
+                            closeEditUserModal();
+                            loadUsersList();
+                        }, 1500);
+                    } else {
+                        if (msgDiv) {
+                            msgDiv.className = 'error';
+                            msgDiv.innerText = '❌ ' + (data.error || 'Cập nhật thất bại!');
+                            msgDiv.style.display = 'block';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi cập nhật user:', err);
+                }
+            };
+        }
+
+        const deptSelect = document.getElementById('department');
+        const codeInput = document.getElementById('requestCode');
+        if (deptSelect && codeInput) {
+            deptSelect.addEventListener('change', function() {
+                let selectedVal = deptSelect.value;
+                if (selectedVal) {
+                    codeInput.value = generateRequestCode(selectedVal);
+                } else {
+                    codeInput.value = "Hệ thống tự sinh mã...";
+                }
+            });
+        }
+
+        const attachFiles = document.getElementById('attachmentFiles');
+        if (attachFiles) {
+            attachFiles.addEventListener('change', function(e) {
+                const files = e.target.files;
+                selectedFilesData = [];
+                let listNames = [];
+                if (files.length > 0) {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        listNames.push(file.name);
+                        const reader = new FileReader();
+                        reader.onload = function(uploadEvent) {
+                            selectedFilesData.push({ name: file.name, data: uploadEvent.target.result });
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+                document.getElementById('fileNamesList').innerText = files.length > 0 ? "Đã chọn thêm: " + listNames.join(', ') : "";
+            });
+        }
+
+        const paymentForm = document.getElementById('paymentForm');
+        if (paymentForm) {
+            paymentForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const editingId = document.getElementById('editingRequestId').value;
+                const amountVal = parseFloat(document.getElementById('lblTotalAmount').innerText.replace(/\./g, '')) || 0;
+
+                const details = [];
+                document.querySelectorAll('#detailRows tr').forEach(tr => {
+                    let rowAttachments = [];
+                    try {
+                        if (tr.dataset.filesJson) {
+                            rowAttachments = JSON.parse(tr.dataset.filesJson);
+                        }
+                    } catch (e) {
+                        rowAttachments = [];
+                    }
+
+                    details.push({
+                        docNo: tr.querySelector('.row-docNo').value,
+                        docDate: tr.querySelector('.row-docDate').value,
+                        desc: tr.querySelector('.row-desc').value,
+                        amount: parseFloat(tr.querySelector('.row-amount').value) || 0,
+                        note: '',
+                        attachments: rowAttachments
+                    });
+                });
+
+                let allAttachments = [...currentEditingAttachments, ...selectedFilesData];
+                const payload = {
+                    requestCode: document.getElementById('requestCode').value,
+                    title: document.getElementById('title').value,
+                    amount: amountVal,
+                    costType: document.getElementById('costType').value,
+                    department: document.getElementById('department').value,
+                    supplierName: document.getElementById('supplierName').value,
+                    bankAccount: document.getElementById('bankAccount').value,
+                    details: details,
+                    attachments: allAttachments,
+                    createdBy: currentUser.fullName
+                };
+
+                try {
+                    let url = `${API_BASE_URL}/api/requests`;
+                    let method = 'POST';
+                    if (editingId) {
+                        url = `${API_BASE_URL}/api/requests/${editingId}`;
+                        method = 'PUT';
+                    }
+
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    const messageDiv = document.getElementById('message');
+
+                    if (res.ok) {
+                        if (messageDiv) {
+                            messageDiv.className = 'success';
+                            messageDiv.innerText = '✅ ' + data.message;
+                            messageDiv.style.display = 'block';
+                        }
+                        resetFormToCreateMode();
+                        loadRequests();
+                        setTimeout(() => { if (messageDiv) messageDiv.style.display = 'none'; }, 3000);
+                    } else {
+                        if (messageDiv) {
+                            messageDiv.className = 'error';
+                            messageDiv.innerText = '❌ ' + (data.error || 'Lưu phiếu thất bại!');
+                            messageDiv.style.display = 'block';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi gửi phiếu:', err);
+                }
+            };
+        }
+    });
+
+    // --- MODAL MẬT KHẨU & NHÂN SỰ ---
+    window.openChangePasswordModal = function() {
+        document.getElementById('changePasswordModal').classList.remove('hidden');
+        document.getElementById('changePasswordForm').reset();
+        document.getElementById('pwdMsg').style.display = 'none';
+    };
+
+    window.closeChangePasswordModal = function() {
+        document.getElementById('changePasswordModal').classList.add('hidden');
+    };
+
+    window.closeEditUserModal = function() {
+        const modal = document.getElementById('editUserModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    };
+
+    window.handleApproveAction = async function(id, action) {
+        const commentInput = document.getElementById('approvalCommentInput');
+        const comment = commentInput ? commentInput.value : '';
+        
+        if (action === 'reject' && !comment.trim()) {
+            alert('Vui lòng nhập lý do từ chối vào ô ý kiến!');
+            if (commentInput) commentInput.focus();
+            return;
+        }
+
+        const actionText = action === 'approve' ? 'phê duyệt' : 'từ chối';
+        if (!confirm(`Bạn có chắc chắn muốn ${actionText} phiếu này không?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                body: JSON.stringify({ action, comment })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(data.message || 'Thực hiện thành công!');
+                closeDetailModal();
+                loadRequests();
+            } else {
+                alert('Lỗi: ' + (data.error || data.message || 'Không thể thực hiện thao tác'));
+            }
+        } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Lỗi kết nối đến máy chủ server!');
+        }
+    };
+    </script>
 </body>
 </html>
