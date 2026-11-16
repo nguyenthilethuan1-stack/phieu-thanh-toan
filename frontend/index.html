@@ -1439,6 +1439,41 @@ document.getElementById('editUserForm').addEventListener('submit', async functio
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
+// --- XỬ LÝ XÓA TÀI KHOẢN NHÂN SỰ ---
+window.deleteUser = async function(userId) {
+    if (!userId || userId === 'undefined') {
+        alert('Không tìm thấy ID định danh của nhân sự cần xóa!');
+        return;
+    }
+
+    // Hỏi xác nhận trước khi xóa
+    const confirmDelete = confirm('Bạn có chắc chắn muốn xóa tài khoản nhân sự này khỏi hệ thống không?');
+    if (!confirmDelete) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Xóa tài khoản thành công!');
+            
+            // Tải lại bảng danh sách nhân sự ngay lập tức
+            if (typeof loadUsersList === 'function') {
+                loadUsersList();
+            } else {
+                location.reload();
+            }
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể xóa tài khoản'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối khi xóa nhân sự:', err);
+        alert('Không thể kết nối đến máy chủ server để xóa!');
+    }
+};
     // --- KHỞI CHẠY DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
         loadDepartments();
