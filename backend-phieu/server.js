@@ -357,38 +357,14 @@ app.delete('/api/requests/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// API cập nhật trạng thái duyệt phiếu từ giao diện
+// API cập nhật trạng thái phiếu (Bọc try-catch chi tiết để bắt đúng lỗi)
 app.put('/api/requests/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, comment } = req.body;
 
-    const request = await Request.findById(id);
-    if (!request) {
-      return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
-    }
-
-    // Cập nhật trạng thái và lưu lại
-    request.status = status;
-    if (comment) {
-      request.comment = comment; // Hoặc lưu vào lịch sử duyệt nếu có
-    }
-    await request.save();
-
-    res.json({ message: 'Cập nhật trạng thái thành công!', request });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// API cập nhật trạng thái duyệt phiếu (Đã thay 'Request' bằng đúng tên model của bạn)
-app.put('/api/requests/:id/status', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, comment } = req.body;
-
-    // Hãy thay 'Phieu' bằng tên biến model thực tế trong dự án của bạn (ví dụ: PhieuThanhToan, Request, v.v.)
-    const requestItem = await Phieu.findById(id); 
-    
+    // Tìm kiếm phiếu theo id (thay 'Request' bằng tên model thực tế nếu cần)
+    const requestItem = await Request.findById(id);
     if (!requestItem) {
       return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
     }
@@ -401,7 +377,8 @@ app.put('/api/requests/:id/status', async (req, res) => {
 
     res.json({ message: 'Cập nhật trạng thái thành công!', request: requestItem });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('LỖI CHI TIẾT TRÊN SERVER:', err);
+    res.status(500).json({ error: err.message }); // Trả về lỗi chi tiết để hiển thị lên trình duyệt
   }
 });
 
