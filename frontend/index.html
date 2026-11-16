@@ -1313,34 +1313,52 @@ function closeEditUserModal() {
     }
 }
 
-// --- MỞ MODAL SỬA VÀ ĐỔ DỮ LIỆU LÊN ---
-window.editUser = function(id) {
-    // Kiểm tra xem đã có biến lưu danh sách user chưa (hoặc gọi lại API lấy chi tiết nếu cần)
-    if (!window.allUsersCache || allUsersCache.length === 0) {
-        alert('Danh sách nhân sự chưa được tải xong, vui lòng thử lại sau giây lát!');
+// --- MỞ MODAL SỬA VÀ TỰ ĐỘNG GỌI API LẤY THÔNG TIN USER ---
+window.editUser = async function(id) {
+    if (!id) {
+        alert('Không tìm thấy ID nhân sự!');
         return;
     }
 
-    const user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
-    if (!user) {
-        alert('Không tìm thấy thông tin tài khoản này trong danh sách!');
-        return;
-    }
+    let user = null;
 
-    // Đổ dữ liệu cũ vào các ô input trong Modal
-    document.getElementById('editUserId').value = user._id || user.id || '';
-    document.getElementById('editUsername').value = user.username || '';
-    document.getElementById('editPassword').value = ''; // Để trống mật khẩu để người dùng tùy chọn đổi mới
-    document.getElementById('editFullName').value = user.fullName || '';
-    document.getElementById('editDepartment').value = user.department || '';
-    document.getElementById('editRole').value = user.role || 'nhanvien';
-    document.getElementById('editManager').value = user.managerId || '';
+    try {
+        // Thử tìm trong biến cache danh sách sẵn có trước nếu có
+        if (window.allUsersCache && allUsersCache.length > 0) {
+            user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
+        }
 
-    // Hiển thị modal lên màn hình
-    const modal = document.getElementById('editUserModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex'; // Hoặc block tùy theo CSS của bạn
+        // Nếu trong cache chưa có, gọi API trực tiếp lên server để lấy thông tin chi tiết user
+        if (!user) {
+            const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
+            if (response.ok) {
+                user = await response.json();
+            }
+        }
+
+        if (!user) {
+            alert('Không tìm thấy thông tin tài khoản này trên hệ thống!');
+            return;
+        }
+
+        // Đổ dữ liệu cũ vào các ô input trong Modal Sửa
+        document.getElementById('editUserId').value = user._id || user.id || id;
+        document.getElementById('editUsername').value = user.username || '';
+        document.getElementById('editPassword').value = ''; // Để trống mật khẩu để người dùng tùy chọn đổi mới
+        document.getElementById('editFullName').value = user.fullName || '';
+        document.getElementById('editDepartment').value = user.department || '';
+        document.getElementById('editRole').value = user.role || 'nhanvien';
+        document.getElementById('editManager').value = user.managerId || '';
+
+        // Hiển thị modal lên màn hình
+        const modal = document.getElementById('editUserModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex'; // Hoặc block tùy theo CSS của bạn
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối khi tải thông tin user:', err);
+        alert('Không thể kết nối đến máy chủ để lấy thông tin nhân sự!');
     }
 };
 
@@ -1387,7 +1405,7 @@ document.getElementById('editUserForm').addEventListener('submit', async functio
             }
             alert('Cập nhật tài khoản thành công!');
             
-            // Đóng modal sau 1 giây và tải lại danh sách
+            // Đóng modal sau 0.5 giây và tải lại danh sách
             setTimeout(() => {
                 closeEditUserModal();
                 if (typeof loadUsersList === 'function') {
