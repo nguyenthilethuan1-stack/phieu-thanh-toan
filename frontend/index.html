@@ -1334,6 +1334,38 @@ async function saveUserForm(event) {
         alert('Không thể kết nối đến máy chủ server!');
     }
 }
+// Thay thế hoặc bổ sung vào hàm xử lý khi bấm nút Tạo/Lưu tài khoản:
+async function saveUser(event) {
+    if (event) event.preventDefault();
+
+    const userData = {
+        username: document.getElementById('username').value, // (hoặc editUsername tùy theo form của bạn)
+        password: document.getElementById('password').value,
+        fullName: document.getElementById('fullName').value,
+        department: document.getElementById('department').value,
+        role: document.getElementById('role').value,
+        managerId: document.getElementById('managerId') ? document.getElementById('managerId').value : ''
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+            alert('Tạo tài khoản thành công!');
+            location.reload(); // Tải lại trang để cập nhật danh sách mới từ MongoDB
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối:', err);
+        alert('Không thể kết nối đến server!');
+    }
+}
 
     // --- KHỞI CHẠY DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
