@@ -136,7 +136,7 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// API đổi mật khẩu chạy trực tiếp không cần bcrypt
+//5. API đổi mật khẩu chạy trực tiếp không cần bcrypt
 app.put('/api/users/:username/change-password', async (req, res) => {
   try {
     const { username } = req.params;
@@ -353,6 +353,29 @@ app.delete('/api/requests/:id', async (req, res) => {
   try {
     await PaymentRequest.findByIdAndDelete(req.params.id);
     res.json({ message: 'Xóa phiếu thành công!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// API cập nhật trạng thái duyệt phiếu từ giao diện
+app.put('/api/requests/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, comment } = req.body;
+
+    const request = await Request.findById(id);
+    if (!request) {
+      return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
+    }
+
+    // Cập nhật trạng thái và lưu lại
+    request.status = status;
+    if (comment) {
+      request.comment = comment; // Hoặc lưu vào lịch sử duyệt nếu có
+    }
+    await request.save();
+
+    res.json({ message: 'Cập nhật trạng thái thành công!', request });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
