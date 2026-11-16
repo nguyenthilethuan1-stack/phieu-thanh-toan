@@ -1234,7 +1234,7 @@
                     <td style="text-align: center;">${user.role || ''}</td>
                     <td style="text-align: center; white-space: nowrap; width: 60px;">
                         <div style="display: flex; gap: 4px; justify-content: center;">
-                            <button type="button" class="btn btn-sm" onclick="editUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                            <button type="button" class="btn btn-sm" onclick="editUser('${user.username}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
                             <button type="button" class="btn btn-sm" onclick="deleteUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
                         </div>
                     </td>
@@ -1313,38 +1313,48 @@ function closeEditUserModal() {
     }
 }
 
-// --- MỞ MODAL SỬA VÀ TỰ ĐỘNG GỌI API LẤY THÔNG TIN USER ---
-window.editUser = async function(id) {
-    if (!id) {
-        alert('Không tìm thấy ID nhân sự!');
+// --- MỞ MODAL SỬA - TÌM KIẾM THEO USERNAME HOẶC ID ---
+window.editUser = async function(identifier) {
+    if (!identifier) {
+        alert('Không nhận diện được tài khoản cần sửa!');
         return;
     }
 
     let user = null;
 
     try {
-        // Thử tìm trong biến cache danh sách sẵn có trước nếu có
+        // 1. Tìm trong biến cache danh sách đang có sẵn trên trình duyệt
         if (window.allUsersCache && allUsersCache.length > 0) {
-            user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
+            user = allUsersCache.find(u => 
+                String(u.username) === String(identifier) || 
+                String(u._id) === String(identifier) || 
+                String(u.id) === String(identifier)
+            );
         }
 
-        // Nếu trong cache chưa có, gọi API trực tiếp lên server để lấy thông tin chi tiết user
+        // 2. Nếu chưa có trong cache, gọi API lấy danh sách mới nhất từ server
         if (!user) {
-            const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
+            const response = await fetch(`${API_BASE_URL}/api/users`);
             if (response.ok) {
-                user = await response.json();
+                const users = await response.json();
+                window.allUsersCache = users; // Cập nhật lại cache
+                user = users.find(u => 
+                    String(u.username) === String(identifier) || 
+                    String(u._id) === String(identifier) || 
+                    String(u.id) === String(identifier)
+                );
             }
         }
 
         if (!user) {
-            alert('Không tìm thấy thông tin tài khoản này trên hệ thống!');
+            alert('Không tìm thấy thông tin tài khoản: ' + identifier);
             return;
         }
 
         // Đổ dữ liệu cũ vào các ô input trong Modal Sửa
-        document.getElementById('editUserId').value = user._id || user.id || id;
+        document.getElementById('editUserId').value = user._id || user.id || user.username;
         document.getElementById('editUsername').value = user.username || '';
-        document.getElementById('editPassword').value = ''; // Để trống mật khẩu để người dùng tùy chọn đổi mới
+        document.getElementById('editPassword').value = ''; // Để trống mật khẩu nếu không muốn đổi
         document.getElementById('editFullName').value = user.fullName || '';
         document.getElementById('editDepartment').value = user.department || '';
         document.getElementById('editRole').value = user.role || 'nhanvien';
@@ -1354,11 +1364,11 @@ window.editUser = async function(id) {
         const modal = document.getElementById('editUserModal');
         if (modal) {
             modal.classList.remove('hidden');
-            modal.style.display = 'flex'; // Hoặc block tùy theo CSS của bạn
+            modal.style.display = 'flex';
         }
     } catch (err) {
-        console.error('Lỗi kết nối khi tải thông tin user:', err);
-        alert('Không thể kết nối đến máy chủ để lấy thông tin nhân sự!');
+        console.error('Lỗi kết nối khi lấy thông tin user:', err);
+        alert('Không thể kết nối đến máy chủ để lấy thông tin!');
     }
 };
 
