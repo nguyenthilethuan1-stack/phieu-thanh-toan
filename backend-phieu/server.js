@@ -380,6 +380,28 @@ app.put('/api/requests/:id/status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Bổ sung API cập nhật trạng thái duyệt phiếu vào Server
+app.put('/api/requests/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, comment } = req.body;
+
+    const request = await Request.findById(id);
+    if (!request) {
+      return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
+    }
+
+    request.status = status;
+    if (comment) {
+      request.comment = comment;
+    }
+    await request.save();
+
+    res.json({ message: 'Cập nhật trạng thái thành công!', request });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // --- KHỞI TẠO TÀI KHOẢN MẪU & ADMIN ---
 async function seedUsers() {
