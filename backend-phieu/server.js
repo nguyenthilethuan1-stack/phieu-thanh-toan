@@ -357,31 +357,35 @@ app.delete('/api/requests/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// API cập nhật trạng thái phiếu (Bọc try-catch chi tiết để bắt đúng lỗi)
+// API cập nhật trạng thái duyệt phiếu (Sử dụng trực tiếp collection của MongoDB)
 app.put('/api/requests/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, comment } = req.body;
 
-    // Tìm kiếm phiếu theo id (thay 'Request' bằng tên model thực tế nếu cần)
-    const requestItem = await Request.findById(id);
+    // Truy vấn trực tiếp qua mongoose connection để bỏ qua lỗi lệch tên Model
+    const db = mongoose.connection.db;
+    const collection = db.collection('requests'); // Hoặc 'phieus', 'payments' tùy thuộc vào tên collection trong MongoDB Atlas của bạn
+
+    const objectId = new mongoose.Types.ObjectId(id);
+    const requestItem = await collection.findOne({ _id: objectId });
+
     if (!requestItem) {
-      return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
+      return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu trong cơ sở dữ liệu!' });
     }
 
-    requestItem.status = status;
-    if (comment) {
-      requestItem.comment = comment;
-    }
-    await requestItem.save();
+    // Cập nhật trạng thái mới
+    await collection.updateOne(
+      { _id: objectId },
+      { $set: { status: status, comment: comment || '' } }
+    );
 
-    res.json({ message: 'Cập nhật trạng thái thành công!', request: requestItem });
+    res.json({ message: 'Cập nhật trạng thái thành công!' });
   } catch (err) {
-    console.error('LỖI CHI TIẾT TRÊN SERVER:', err);
-    res.status(500).json({ error: err.message }); // Trả về lỗi chi tiết để hiển thị lên trình duyệt
+    console.error('LỖI CHI TIẾT:', err);
+    res.status(500).json({ error: err.message });
   }
 });
-
 // --- KHỞI TẠO TÀI KHOẢN MẪU & ADMIN ---
 async function seedUsers() {
   try {
