@@ -136,7 +136,7 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// 5. API ĐỔI MẬT KHẨU CÁ NHÂN (Đã tối ưu)
+// 5. API ĐỔI MẬT KHẨU CÁ NHÂN (Không dùng bcrypt, chạy trực tiếp 100%)
 app.put('/api/users/:username/change-password', async (req, res) => {
   try {
     const { username } = req.params;
@@ -147,13 +147,20 @@ app.put('/api/users/:username/change-password', async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy người dùng!' });
     }
 
-    // Kiểm tra mật khẩu cũ (Nếu hệ thống của bạn dùng bcrypt, hãy dùng bcrypt.compare)
-    // Nếu hệ thống đang lưu dạng văn bản thô thì dùng: if (user.password !== oldPassword)
-    const isMatch = await bcrypt.compare(oldPassword, user.password); 
-    // Hoặc nếu không dùng bcrypt: user.password !== oldPassword
-    if (!isMatch) {
+    // Kiểm tra mật khẩu cũ (so sánh trực tiếp)
+    if (user.password !== oldPassword) {
       return res.status(400).json({ error: 'Mật khẩu cũ không chính xác!' });
     }
+
+    // Gán và lưu mật khẩu mới trực tiếp vào MongoDB
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Đổi mật khẩu thành công!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
     // Mã hóa mật khẩu mới trước khi lưu vào MongoDB
     const salt = await bcrypt.genSalt(10);
