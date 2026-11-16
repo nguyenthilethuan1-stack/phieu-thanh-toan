@@ -1729,29 +1729,24 @@ window.closeEditUserModal = function() {
     }
 };
 
-// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (TỰ ĐỘNG BẮT ĐÚNG ID) ---
+// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN ---
 document.getElementById('changePasswordForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    // Dò tìm linh hoạt ô mật khẩu cũ
-    const oldPwdInput = document.getElementById('oldPassword') || document.getElementById('currentPassword');
-    // Dò tìm linh hoạt ô mật khẩu mới
-    const newPwdInput = document.getElementById('newPassword') || document.getElementById('newPwd');
-    // Dò tìm linh hoạt ô xác nhận mật khẩu mới
-    const confirmInput = document.getElementById('confirmPassword') || document.getElementById('rePassword') || document.getElementById('newPasswordConfirm');
-
-    const oldPassword = oldPwdInput ? oldPwdInput.value.trim() : '';
-    const newPassword = newPwdInput ? newPwdInput.value.trim() : '';
-    const confirmPassword = confirmInput ? confirmInput.value.trim() : newPassword;
+    // Lấy giá trị trực tiếp bằng chính xác các ID trên HTML của bạn
+    const oldPassword = document.getElementById('oldPassword').value.trim();
+    const newPassword = document.getElementById('newPassword').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
     const pwdMsg = document.getElementById('pwdMsg');
 
-    if (!oldPassword || !newPassword) {
+    // Kiểm tra xem đã nhập đủ chưa
+    if (!oldPassword || !newPassword || !confirmPassword) {
         alert('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
         return;
     }
 
-    // Kiểm tra khớp mật khẩu mới (chỉ kiểm tra khi có ô xác nhận)
-    if (confirmInput && newPassword !== confirmPassword) {
+    // Kiểm tra xem mật khẩu mới và xác nhận có khớp nhau không
+    if (newPassword !== confirmPassword) {
         alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
         if (pwdMsg) {
             pwdMsg.style.display = 'block';
@@ -1762,7 +1757,7 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         return;
     }
 
-    // Lấy username đang đăng nhập
+    // Lấy tên tài khoản đang đăng nhập
     const currentUsername = localStorage.getItem('currentUser') || localStorage.getItem('username');
     if (!currentUsername) {
         alert('Không xác định được tài khoản đang đăng nhập. Vui lòng đăng nhập lại!');
@@ -1796,46 +1791,6 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
-
-window.handleApproveAction = async function(id, action) {
-    const commentInput = document.getElementById('approvalCommentInput');
-    const comment = commentInput ? commentInput.value : '';
-    
-    if (action === 'reject' && !comment.trim()) {
-        alert('Vui lòng nhập lý do từ chối vào ô ý kiến!');
-        if (commentInput) commentInput.focus();
-        return;
-    }
-
-    const actionText = action === 'approve' ? 'phê duyệt' : 'từ chối';
-    if (!confirm(`Bạn có chắc chắn muốn ${actionText} phiếu này không?`)) {
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
-            },
-            body: JSON.stringify({ action, comment })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            alert(data.message || 'Thực hiện thành công!');
-            closeDetailModal();
-            loadRequests();
-        } else {
-            alert('Lỗi: ' + (data.error || data.message || 'Không thể thực hiện thao tác'));
-        }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Lỗi kết nối đến máy chủ server!');
-    }
-};
     </script>
 </body>
 </html>
