@@ -380,17 +380,14 @@ app.put('/api/requests/:id/status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// API cập nhật trạng thái duyệt phiếu (Sửa lại cho khớp với mọi tên model)
+// API cập nhật trạng thái duyệt phiếu (Đã thay 'Request' bằng đúng tên model của bạn)
 app.put('/api/requests/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, comment } = req.body;
 
-    // Thay chữ 'Request' bên dưới bằng tên biến model thật trong file của bạn (ví dụ: Phieu, PhieuThanhToan, v.v.)
-    let requestItem = await Request.findById(id).catch(() => null);
-    if (!requestItem) {
-      requestItem = await Request.findOne({ _id: id }).catch(() => null);
-    }
+    // Hãy thay 'Phieu' bằng tên biến model thực tế trong dự án của bạn (ví dụ: PhieuThanhToan, Request, v.v.)
+    const requestItem = await Phieu.findById(id); 
     
     if (!requestItem) {
       return res.status(404).json({ error: 'Không tìm thấy phiếu yêu cầu!' });
