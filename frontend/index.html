@@ -1729,13 +1729,11 @@ window.closeEditUserModal = function() {
     }
 };
 
-// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (LẤY THEO THỨ TỰ Ô NHẬP LIỆU) ---
+// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (LỌC CHUẨN USERNAME) ---
 document.getElementById('changePasswordForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    // Lấy tất cả các ô input bên trong form theo đúng thứ tự hiển thị trên giao diện modal
     const inputs = this.querySelectorAll('input');
-    
     let oldPassword = '';
     let newPassword = '';
     let confirmPassword = '';
@@ -1751,8 +1749,6 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
     }
 
     const pwdMsg = document.getElementById('pwdMsg');
-
-    console.log("Giá trị lấy được -> Cũ:", oldPassword, "| Mới:", newPassword, "| Xác nhận:", confirmPassword);
 
     if (!oldPassword || !newPassword) {
         alert('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
@@ -1770,16 +1766,31 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         return;
     }
 
-    // Tự động gán cứng username luôn nếu trang đang là Admin hoặc quét qua các khóa lưu
-    let currentUsername = localStorage.getItem('currentUser') || localStorage.getItem('username') || localStorage.getItem('user');
-    
-    // Nếu vẫn không tìm thấy trong localStorage, thử lấy từ chữ "Quản Trị Hệ Thống" hoặc ô hiển thị tên trên giao diện
-    if (!currentUsername) {
-        currentUsername = 'admin'; // Mặc định nếu bạn đang đăng nhập tài khoản Admin
+    // Lấy thông tin đăng nhập từ localStorage một cách an toàn
+    let rawUser = localStorage.getItem('currentUser') || localStorage.getItem('username') || localStorage.getItem('user') || '';
+    let currentUsername = '';
+
+    // Nếu dữ liệu lưu trong localStorage là dạng JSON (ví dụ: {"username":"admin", ...})
+    if (rawUser.startsWith('{') || rawUser.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(rawUser);
+            currentUsername = parsed.username || parsed.user || parsed.name || '';
+        } catch (e) {
+            currentUsername = rawUser;
+        }
+    } else {
+        currentUsername = rawUser;
     }
 
+    // Nếu vẫn chưa lấy được username rõ ràng, mặc định lấy chuỗi hiển thị trên giao diện hoặc 'admin'
+    if (!currentUsername || currentUsername.length > 30 || currentUsername.includes('{')) {
+        currentUsername = 'admin'; // Hoặc chỉnh sửa tên tài khoản bạn đang test trực tiếp ở đây
+    }
+
+    console.log("Username chuẩn để đổi mật khẩu:", currentUsername);
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/users/${currentUsername}/change-password`, {
+        const response = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(currentUsername)}/change-password`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ oldPassword, newPassword })
