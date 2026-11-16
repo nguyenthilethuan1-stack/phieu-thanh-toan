@@ -1289,63 +1289,31 @@
             alert('Không thể kết nối đến máy chủ server!');
         });
     };
-    // --- XỬ LÝ LƯU (THÊM HOẶC CẬP NHẬT) NHÂN SỰ ---
-async function saveUserForm(event) {
-    if (event) event.preventDefault();
-    
-    const userId = document.getElementById('editUserId').value;
-    const username = document.getElementById('editUsername').value;
-    const password = document.getElementById('editPassword').value;
-    const fullName = document.getElementById('editFullName').value;
-    const department = document.getElementById('editDepartment').value;
-    const role = document.getElementById('editRole').value;
-    const managerId = document.getElementById('editManager').value;
-
-    const userData = { username, password, fullName, department, role, managerId };
-
-    // Nếu có userId thì là Sửa (PUT), nếu chưa có thì là Thêm mới (POST)
-    const url = userId 
-        ? `${API_BASE_URL}/api/users/${userId}` 
-        : `${API_BASE_URL}/api/users`;
-    const method = userId ? 'PUT' : 'POST';
-
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert(result.message || 'Lưu tài khoản thành công!');
-            // Đóng modal và tải lại danh sách
-            const modal = document.getElementById('editUserModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
-            }
-            loadUsersList(); // Gọi lại hàm tải danh sách để cập nhật lên giao diện
-        } else {
-            alert('Lỗi: ' + (result.error || 'Không thể lưu tài khoản'));
-        }
-    } catch (err) {
-        console.error('Lỗi kết nối khi lưu user:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
-}
-// Thay thế hoặc bổ sung vào hàm xử lý khi bấm nút Tạo/Lưu tài khoản:
+    // --- XỬ LÝ TẠO MỚI TÀI KHOẢN NHÂN SỰ ---
 async function saveUser(event) {
     if (event) event.preventDefault();
 
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const fullNameInput = document.getElementById('fullName');
+    const departmentInput = document.getElementById('department');
+    const roleInput = document.getElementById('role');
+    const managerIdInput = document.getElementById('managerId');
+
     const userData = {
-        username: document.getElementById('username').value, // (hoặc editUsername tùy theo form của bạn)
-        password: document.getElementById('password').value,
-        fullName: document.getElementById('fullName').value,
-        department: document.getElementById('department').value,
-        role: document.getElementById('role').value,
-        managerId: document.getElementById('managerId') ? document.getElementById('managerId').value : ''
+        username: usernameInput ? usernameInput.value.trim() : '',
+        password: passwordInput ? passwordInput.value.trim() : '',
+        fullName: fullNameInput ? fullNameInput.value.trim() : '',
+        department: departmentInput ? departmentInput.value : '',
+        role: roleInput ? roleInput.value : 'nhanvien',
+        managerId: managerIdInput ? managerIdInput.value.trim() : ''
     };
+
+    // Kiểm tra dữ liệu cơ bản trước khi gửi
+    if (!userData.username || !userData.password || !userData.fullName) {
+        alert('Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!');
+        return;
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/users`, {
@@ -1357,13 +1325,26 @@ async function saveUser(event) {
         const result = await response.json();
         if (response.ok) {
             alert('Tạo tài khoản thành công!');
-            location.reload(); // Tải lại trang để cập nhật danh sách mới từ MongoDB
+            
+            // Xóa sạch form sau khi tạo thành công
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+            if (fullNameInput) fullNameInput.value = '';
+            if (departmentInput) departmentInput.value = '';
+            if (managerIdInput) managerIdInput.value = '';
+
+            // Tải lại danh sách từ MongoDB lên bảng hiển thị
+            if (typeof loadUsersList === 'function') {
+                loadUsersList();
+            } else {
+                location.reload();
+            }
         } else {
             alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
         }
     } catch (err) {
         console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến server!');
+        alert('Không thể kết nối đến máy chủ server!');
     }
 }
 
