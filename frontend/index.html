@@ -1246,107 +1246,64 @@
         }
     }
 
-    // --- MỞ MODAL SỬA NHÂN SỰ ---
-    window.editUser = function(id) {
-        const user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
-        if (!user) {
-            alert('Không tìm thấy thông tin tài khoản!');
+    // --- XỬ LÝ TẠO MỚI TÀI KHOẢN NHÂN SỰ ---
+    async function saveUser(event) {
+        if (event) event.preventDefault();
+
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const fullNameInput = document.getElementById('fullName');
+        const departmentInput = document.getElementById('department');
+        const roleInput = document.getElementById('role');
+        const managerIdInput = document.getElementById('managerId');
+
+        const userData = {
+            username: usernameInput ? usernameInput.value.trim() : '',
+            password: passwordInput ? passwordInput.value.trim() : '',
+            fullName: fullNameInput ? fullNameInput.value.trim() : '',
+            department: departmentInput ? departmentInput.value : '',
+            role: roleInput ? roleInput.value : 'nhanvien',
+            managerId: managerIdInput ? managerIdInput.value.trim() : ''
+        };
+
+        // Kiểm tra dữ liệu cơ bản trước khi gửi
+        if (!userData.username || !userData.password || !userData.fullName) {
+            alert('Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!');
             return;
         }
 
-        document.getElementById('editUserId').value = user._id || user.id || '';
-        document.getElementById('editUsername').value = user.username || '';
-        document.getElementById('editPassword').value = ''; 
-        document.getElementById('editFullName').value = user.fullName || '';
-        document.getElementById('editDepartment').value = user.department || '';
-        document.getElementById('editRole').value = user.role || 'nhanvien';
-        document.getElementById('editManager').value = user.managerId || '';
-
-        const modal = document.getElementById('editUserModal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
-    };
-
-    // --- XÓA NHÂN SỰ ---
-    window.deleteUser = function(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa tài khoản nhân sự này không?')) return;
-        
-        fetch(`${API_BASE_URL}/api/users/${id}`, {
-            method: 'DELETE'
-        })
-        .then(res => {
-            if (res.ok) {
-                alert('Xóa tài khoản thành công!');
-                loadUsersList();
-            } else {
-                return res.json().then(err => { alert('Lỗi: ' + (err.error || 'Không thể xóa')); });
-            }
-        })
-        .catch(err => {
-            console.error('Lỗi khi xóa nhân sự:', err);
-            alert('Không thể kết nối đến máy chủ server!');
-        });
-    };
-    // --- XỬ LÝ TẠO MỚI TÀI KHOẢN NHÂN SỰ ---
-async function saveUser(event) {
-    if (event) event.preventDefault();
-
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const fullNameInput = document.getElementById('fullName');
-    const departmentInput = document.getElementById('department');
-    const roleInput = document.getElementById('role');
-    const managerIdInput = document.getElementById('managerId');
-
-    const userData = {
-        username: usernameInput ? usernameInput.value.trim() : '',
-        password: passwordInput ? passwordInput.value.trim() : '',
-        fullName: fullNameInput ? fullNameInput.value.trim() : '',
-        department: departmentInput ? departmentInput.value : '',
-        role: roleInput ? roleInput.value : 'nhanvien',
-        managerId: managerIdInput ? managerIdInput.value.trim() : ''
-    };
-
-    // Kiểm tra dữ liệu cơ bản trước khi gửi
-    if (!userData.username || !userData.password || !userData.fullName) {
-        alert('Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-        
-        const result = await response.json();
-        if (response.ok) {
-            alert('Tạo tài khoản thành công!');
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
             
-            // Xóa sạch form sau khi tạo thành công
-            if (usernameInput) usernameInput.value = '';
-            if (passwordInput) passwordInput.value = '';
-            if (fullNameInput) fullNameInput.value = '';
-            if (departmentInput) departmentInput.value = '';
-            if (managerIdInput) managerIdInput.value = '';
+            const result = await response.json();
+            if (response.ok) {
+                alert('Tạo tài khoản thành công!');
+                
+                // Xóa sạch form sau khi tạo thành công
+                if (usernameInput) usernameInput.value = '';
+                if (passwordInput) passwordInput.value = '';
+                if (fullNameInput) fullNameInput.value = '';
+                if (departmentInput) departmentInput.value = '';
+                if (managerIdInput) managerIdInput.value = '';
 
-            // Tải lại danh sách từ MongoDB lên bảng hiển thị
-            if (typeof loadUsersList === 'function') {
-                loadUsersList();
+                // Tải lại danh sách từ MongoDB lên bảng hiển thị
+                if (typeof loadUsersList === 'function') {
+                    loadUsersList();
+                } else {
+                    location.reload();
+                }
             } else {
-                location.reload();
+                alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
             }
-        } else {
-            alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
+        } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến máy chủ server!');
         }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
     }
-}
 
     // --- KHỞI CHẠY DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
