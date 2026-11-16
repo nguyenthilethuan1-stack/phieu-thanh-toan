@@ -877,28 +877,27 @@
         let todayStr = new Date().toISOString().split('T')[0];
         let currentPaidDate = req.paidDate || todayStr;
         let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
-        // --- HÀM XỬ LÝ DUYỆT HOẶC TỪ CHỐI PHIẾU ---
-window.handleApproveAction = async function(id, status, comment = '') {
+        // Sửa lại đường dẫn fetch trong giao diện thành /approve
+async function handleApproveAction(id, action = 'approve', comment = '') {
     try {
-        const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/status`, {
+        const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/approve`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: status, comment: comment })
+            body: JSON.stringify({ action: action, comment: comment }) // Gửi đúng định dạng action: 'approve' hoặc 'reject'
         });
 
         const result = await response.json();
         if (response.ok) {
-            alert('Cập nhật trạng thái phiếu thành công!');
-            location.reload(); // Tải lại trang để cập nhật danh sách mới
+            alert('Phê duyệt thành công!');
+            location.reload(); // Tải lại trang để cập nhật danh sách
         } else {
-            alert('Lỗi: ' + (result.error || 'Không thể cập nhật trạng thái'));
+            alert('Lỗi: ' + (result.error || 'Không thể phê duyệt'));
         }
     } catch (err) {
         console.error('Lỗi kết nối:', err);
         alert('Không thể kết nối đến máy chủ server!');
     }
-};
-
+}
         // Tạo phần mở rộng dành riêng cho Kế toán thanh toán (checkbox Đã thanh toán + Ngày thanh toán)
         let paymentCheckboxSection = '';
         if (isKtOrAdmin) {
