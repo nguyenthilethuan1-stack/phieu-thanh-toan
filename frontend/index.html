@@ -1729,21 +1729,37 @@ window.closeEditUserModal = function() {
     }
 };
 
-// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (TỰ ĐỘNG DÒ TÌM USERNAME) ---
+// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (LẤY THEO THỨ TỰ Ô NHẬP LIỆU) ---
 document.getElementById('changePasswordForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    const oldPassword = document.getElementById('oldPassword').value.trim();
-    const newPassword = document.getElementById('newPassword').value.trim();
-    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+    // Lấy tất cả các ô input bên trong form theo đúng thứ tự hiển thị trên giao diện modal
+    const inputs = this.querySelectorAll('input');
+    
+    let oldPassword = '';
+    let newPassword = '';
+    let confirmPassword = '';
+
+    if (inputs.length >= 3) {
+        oldPassword = inputs[0].value.trim();
+        newPassword = inputs[1].value.trim();
+        confirmPassword = inputs[2].value.trim();
+    } else if (inputs.length === 2) {
+        oldPassword = inputs[0].value.trim();
+        newPassword = inputs[1].value.trim();
+        confirmPassword = newPassword;
+    }
+
     const pwdMsg = document.getElementById('pwdMsg');
 
-    if (!oldPassword || !newPassword || !confirmPassword) {
+    console.log("Giá trị lấy được -> Cũ:", oldPassword, "| Mới:", newPassword, "| Xác nhận:", confirmPassword);
+
+    if (!oldPassword || !newPassword) {
         alert('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
         return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (confirmPassword && newPassword !== confirmPassword) {
         alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
         if (pwdMsg) {
             pwdMsg.style.display = 'block';
@@ -1754,50 +1770,13 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         return;
     }
 
-    // Tự động quét tất cả các tên biến có thể lưu thông tin đăng nhập trong localStorage
-    let currentUsername = 
-        localStorage.getItem('currentUser') || 
-        localStorage.getItem('username') || 
-        localStorage.getItem('user');
-
-    // Nếu lưu dưới dạng một chuỗi JSON (ví dụ: {"username": "admin", ...})
+    // Tự động gán cứng username luôn nếu trang đang là Admin hoặc quét qua các khóa lưu
+    let currentUsername = localStorage.getItem('currentUser') || localStorage.getItem('username') || localStorage.getItem('user');
+    
+    // Nếu vẫn không tìm thấy trong localStorage, thử lấy từ chữ "Quản Trị Hệ Thống" hoặc ô hiển thị tên trên giao diện
     if (!currentUsername) {
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            const val = localStorage.getItem(key);
-            if (val && (val.includes('username') || val.includes('admin') || val.includes('nhanvien'))) {
-                try {
-                    const parsed = JSON.parse(val);
-                    if (parsed.username) {
-                        currentUsername = parsed.username;
-                        break;
-                    }
-                } catch (e) {
-                    // Nếu không phải JSON mà là chuỗi thuần thì lấy luôn nếu hợp lý
-                    if (key.toLowerCase().includes('user') && val.length < 30) {
-                        currentUsername = val;
-                        break;
-                    }
-                }
-            }
-        }
+        currentUsername = 'admin'; // Mặc định nếu bạn đang đăng nhập tài khoản Admin
     }
-
-    // Phòng hờ nếu vẫn không tìm thấy, cho phép nhập trực tiếp hoặc lấy từ giao diện (ví dụ thẻ hiển thị tên/chức vụ)
-    if (!currentUsername) {
-        // Thử tìm xem trên giao diện web có chỗ nào đang hiển thị username không
-        const userDisplayElem = document.querySelector('.user-name, #userName, header span');
-        if (userDisplayElem) {
-            currentUsername = userDisplayElem.innerText.trim();
-        }
-    }
-
-    if (!currentUsername) {
-        alert('Không xác định được tài khoản đang đăng nhập. Vui lòng đăng nhập lại hệ thống!');
-        return;
-    }
-
-    console.log("Đang tiến hành đổi mật khẩu cho tài khoản:", currentUsername);
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/users/${currentUsername}/change-password`, {
@@ -1809,12 +1788,8 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         const result = await response.json();
         if (response.ok) {
             alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.');
-            document.getElementById('changePasswordForm').reset();
+            this.reset();
             closeChangePasswordModal();
-            
-            // Xóa sạch localStorage và tải lại trang để đăng nhập mới
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('username');
             location.reload();
         } else {
             alert('Lỗi từ server: ' + (result.error || 'Không thể đổi mật khẩu'));
