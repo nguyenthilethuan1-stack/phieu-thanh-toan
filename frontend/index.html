@@ -1701,63 +1701,125 @@ window.deleteUser = async function(userId) {
     });
 
     // --- MODAL MẬT KHẨU & NHÂN SỰ ---
-    window.openChangePasswordModal = function() {
-        document.getElementById('changePasswordModal').classList.remove('hidden');
-        document.getElementById('changePasswordForm').reset();
-        document.getElementById('pwdMsg').style.display = 'none';
-    };
+window.openChangePasswordModal = function() {
+    document.getElementById('changePasswordModal').classList.remove('hidden');
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('pwdMsg').style.display = 'none';
+};
 
-    window.closeChangePasswordModal = function() {
-        document.getElementById('changePasswordModal').classList.add('hidden');
-    };
+window.closeChangePasswordModal = function() {
+    document.getElementById('changePasswordModal').classList.add('hidden');
+};
 
-    window.closeEditUserModal = function() {
-        const modal = document.getElementById('editUserModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
+window.closeEditUserModal = function() {
+    const modal = document.getElementById('editUserModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
+
+// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN ---
+document.getElementById('changePasswordForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const oldPassword = document.getElementById('oldPassword').value.trim();
+    const newPassword = document.getElementById('newPassword').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+    const pwdMsg = document.getElementById('pwdMsg');
+
+    if (newPassword !== confirmPassword) {
+        alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+        if (pwdMsg) {
+            pwdMsg.style.display = 'block';
+            pwdMsg.style.background = '#f8d7da';
+            pwdMsg.style.color = '#721c24';
+            pwdMsg.innerHTML = 'Mật khẩu mới không khớp!';
         }
-    };
+        return;
+    }
 
-    window.handleApproveAction = async function(id, action) {
-        const commentInput = document.getElementById('approvalCommentInput');
-        const comment = commentInput ? commentInput.value : '';
-        
-        if (action === 'reject' && !comment.trim()) {
-            alert('Vui lòng nhập lý do từ chối vào ô ý kiến!');
-            if (commentInput) commentInput.focus();
-            return;
-        }
+    // Lấy username của tài khoản đang đăng nhập
+    const currentUsername = localStorage.getItem('currentUser') || localStorage.getItem('username');
 
-        const actionText = action === 'approve' ? 'phê duyệt' : 'từ chối';
-        if (!confirm(`Bạn có chắc chắn muốn ${actionText} phiếu này không?`)) {
-            return;
-        }
+    if (!currentUsername) {
+        alert('Không xác định được tài khoản đang đăng nhập. Vui lòng đăng nhập lại!');
+        return;
+    }
 
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
-                },
-                body: JSON.stringify({ action, comment })
-            });
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/users/${currentUsername}/change-password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldPassword, newPassword })
+        });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                alert(data.message || 'Thực hiện thành công!');
-                closeDetailModal();
-                loadRequests();
+        const result = await response.json();
+        if (response.ok) {
+            alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+            document.getElementById('changePasswordForm').reset();
+            closeChangePasswordModal();
+            
+            // Đăng xuất hoặc tải lại trang để ép dùng mật khẩu mới
+            if (typeof logout === 'function') {
+                logout();
             } else {
-                alert('Lỗi: ' + (data.error || data.message || 'Không thể thực hiện thao tác'));
+                location.reload();
             }
-        } catch (err) {
-            console.error('Lỗi kết nối:', err);
-            alert('Lỗi kết nối đến máy chủ server!');
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể đổi mật khẩu'));
+            if (pwdMsg) {
+                pwdMsg.style.display = 'block';
+                pwdMsg.style.background = '#f8d7da';
+                pwdMsg.style.color = '#721c24';
+                pwdMsg.innerHTML = 'Lỗi: ' + (result.error || 'Không thể đổi mật khẩu');
+            }
         }
-    };
+    } catch (err) {
+        console.error('Lỗi kết nối khi đổi mật khẩu:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+    }
+});
+
+window.handleApproveAction = async function(id, action) {
+    const commentInput = document.getElementById('approvalCommentInput');
+    const comment = commentInput ? commentInput.value : '';
+    
+    if (action === 'reject' && !comment.trim()) {
+        alert('Vui lòng nhập lý do từ chối vào ô ý kiến!');
+        if (commentInput) commentInput.focus();
+        return;
+    }
+
+    const actionText = action === 'approve' ? 'phê duyệt' : 'từ chối';
+    if (!confirm(`Bạn có chắc chắn muốn ${actionText} phiếu này không?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+            },
+            body: JSON.stringify({ action, comment })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert(data.message || 'Thực hiện thành công!');
+            closeDetailModal();
+            loadRequests();
+        } else {
+            alert('Lỗi: ' + (data.error || data.message || 'Không thể thực hiện thao tác'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối:', err);
+        alert('Lỗi kết nối đến máy chủ server!');
+    }
+};
     </script>
 </body>
 </html>
