@@ -1304,7 +1304,99 @@ document.getElementById('createUserForm').addEventListener('submit', async funct
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
+// --- MỞ MODAL SỬA NHÂN SỰ ---
+window.editUser = function(id) {
+    if (!window.allUsersCache || allUsersCache.length === 0) {
+        alert('Chưa có dữ liệu danh sách nhân sự hoặc chưa tải xong!');
+        return;
+    }
 
+    const user = allUsersCache.find(u => (u._id === id) || (u.id === id) || (String(u._id) === String(id)));
+    if (!user) {
+        alert('Không tìm thấy thông tin tài khoản này!');
+        return;
+    }
+
+    // Gán dữ liệu vào các ô input trong modal sửa
+    const setFieldValue = (elementId, value) => {
+        const el = document.getElementById(elementId);
+        if (el) el.value = value || '';
+    };
+
+    setFieldValue('editUserId', user._id || user.id);
+    setFieldValue('editUsername', user.username);
+    setFieldValue('editPassword', ''); // Để trống mật khẩu nếu không muốn đổi
+    setFieldValue('editFullName', user.fullName);
+    setFieldValue('editDepartment', user.department);
+    setFieldValue('editRole', user.role || 'nhanvien');
+    setFieldValue('editManager', user.managerId);
+
+    // Hiển thị modal sửa
+    const modal = document.getElementById('editUserModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    } else {
+        alert('Không tìm thấy giao diện Modal Sửa trên HTML!');
+    }
+};
+
+// --- XỬ LÝ LƯU CẬP NHẬT KHI SỬA NHÂN SỰ ---
+async function saveEditUser(event) {
+    if (event) event.preventDefault();
+
+    const userId = document.getElementById('editUserId').value;
+    if (!userId) {
+        alert('Không tìm thấy ID nhân sự cần sửa!');
+        return;
+    }
+
+    const userData = {
+        username: document.getElementById('editUsername').value.trim(),
+        fullName: document.getElementById('editFullName').value.trim(),
+        department: document.getElementById('editDepartment').value,
+        role: document.getElementById('editRole').value,
+        managerId: document.getElementById('editManager').value.trim()
+    };
+
+    // Nếu người dùng có nhập mật khẩu mới thì mới đưa vào dữ liệu gửi đi
+    const newPassword = document.getElementById('editPassword').value.trim();
+    if (newPassword) {
+        userData.password = newPassword;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Cập nhật tài khoản thành công!');
+            
+            // Đóng modal
+            const modal = document.getElementById('editUserModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+
+            // Tải lại danh sách
+            if (typeof loadUsersList === 'function') {
+                loadUsersList();
+            } else {
+                location.reload();
+            }
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể cập nhật tài khoản'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối khi cập nhật:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+    }
+}
     // --- KHỞI CHẠY DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
         loadDepartments();
