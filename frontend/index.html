@@ -1289,6 +1289,51 @@
             alert('Không thể kết nối đến máy chủ server!');
         });
     };
+    // --- XỬ LÝ LƯU (THÊM HOẶC CẬP NHẬT) NHÂN SỰ ---
+async function saveUserForm(event) {
+    if (event) event.preventDefault();
+    
+    const userId = document.getElementById('editUserId').value;
+    const username = document.getElementById('editUsername').value;
+    const password = document.getElementById('editPassword').value;
+    const fullName = document.getElementById('editFullName').value;
+    const department = document.getElementById('editDepartment').value;
+    const role = document.getElementById('editRole').value;
+    const managerId = document.getElementById('editManager').value;
+
+    const userData = { username, password, fullName, department, role, managerId };
+
+    // Nếu có userId thì là Sửa (PUT), nếu chưa có thì là Thêm mới (POST)
+    const url = userId 
+        ? `${API_BASE_URL}/api/users/${userId}` 
+        : `${API_BASE_URL}/api/users`;
+    const method = userId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message || 'Lưu tài khoản thành công!');
+            // Đóng modal và tải lại danh sách
+            const modal = document.getElementById('editUserModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+            loadUsersList(); // Gọi lại hàm tải danh sách để cập nhật lên giao diện
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể lưu tài khoản'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối khi lưu user:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+    }
+}
 
     // --- KHỞI CHẠY DOM CONTENT LOADED ---
     document.addEventListener('DOMContentLoaded', () => {
