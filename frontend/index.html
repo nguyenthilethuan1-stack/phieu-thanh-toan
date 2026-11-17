@@ -760,19 +760,7 @@
                 stepsHTML += renderStepBox('Giám Đốc', s6);
                 stepsHTML += `</div>`;
 
-                let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || (() => {
-    return '';
-})()
-                    let ngay = req.submittedAt ? req.submittedAt.split('T')[0].replace(/-/g, '').substring(0, 6) : '202611';
-                    let deptLower = (req.department || "").toLowerCase();
-                    let prefix = "PT";
-                    if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
-                    else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
-                    else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
-                    else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
-                    else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
-                    return `${prefix}-${ngay}-${String(index + 1).padStart(2, '0')}`;
-                })();
+               let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || '';
 
                 let actionButtonsHTML = '';
                 const roleValue = (currentUser.role || '').toLowerCase();
