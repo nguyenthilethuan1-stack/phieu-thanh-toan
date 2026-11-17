@@ -447,9 +447,9 @@
 
     // --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
     window.generateRequestCode = function(departmentName) {
-        let prefix = "PT"; 
+        let prefix = "PT";
         let deptLower = (departmentName || "").toLowerCase();
-        
+
         if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
         else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
         else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
@@ -458,8 +458,14 @@
 
         let today = new Date();
         let yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
-        let count = (typeof currentRequests !== 'undefined' && currentRequests.length > 0) ? currentRequests.length + 1 : 1;
-        return `${prefix}-${yyyyMM}-${String(count).padStart(2, '0')}`;
+        let max = 0;
+        (currentRequests || []).forEach(req => {
+            const code = String(req.requestCode || '');
+            if (!code.startsWith(`${prefix}-${yyyyMM}-`)) return;
+            const seq = parseInt(code.split('-').pop(), 10);
+            if (!isNaN(seq)) max = Math.max(max, seq);
+        });
+        return `${prefix}-${yyyyMM}-${String(max + 1).padStart(2, '0')}`;
     };
 
     // --- ĐỔI SỐ THÀNH CHỮ ---
@@ -760,7 +766,7 @@
                 stepsHTML += renderStepBox('Giám Đốc', s6);
                 stepsHTML += `</div>`;
 
-               let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || '';
+               let maPhieuHienThi = req.requestCode || '';
 
                 let actionButtonsHTML = '';
                 const roleValue = (currentUser.role || '').toLowerCase();
@@ -1024,6 +1030,9 @@ window.closeDetailModal = function() {
         document.getElementById('btnSubmitForm').style.color = 'black';
         document.getElementById('btnCancelEdit').classList.remove('hidden');
 
+        const codeInput = document.getElementById('requestCode');
+        if (codeInput) codeInput.value = req.requestCode || '';
+
         document.getElementById('title').value = req.title || '';
         document.getElementById('costType').value = req.costType || '';
         document.getElementById('department').value = req.department || '';
@@ -1120,8 +1129,8 @@ window.closeDetailModal = function() {
         const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
         const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
         
-        // 🌟 Lấy chuẩn xác 100% mã phiếu đang hiển thị trên bảng danh sách
-        let maPhieuHienThi = passedCode && passedCode !== 'undefined' ? passedCode : (req.code || req.requestCode || req.soPhieu || 'PT-01');
+        // Số phiếu in ra là mã đã lưu lúc lập phiếu
+        let maPhieuHienThi = req.requestCode || (passedCode && passedCode !== 'undefined' ? passedCode : '');
 
         const rawStatus = req.status || '';
         const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
@@ -1637,11 +1646,13 @@ window.deleteUser = async function(userId) {
         const codeInput = document.getElementById('requestCode');
         if (deptSelect && codeInput) {
             deptSelect.addEventListener('change', function() {
+                const editingId = document.getElementById('editingRequestId')?.value;
+                if (editingId) return;
                 let selectedVal = deptSelect.value;
                 if (selectedVal) {
                     codeInput.value = generateRequestCode(selectedVal);
                 } else {
-                    codeInput.value = "Hệ thống tự sinh mã...";
+                    codeInput.value = '';
                 }
             });
         }

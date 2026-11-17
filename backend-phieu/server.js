@@ -11,55 +11,81 @@ app.use(cors());
 const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rmwmya3.mongodb.net/phieu_thanh_toan?retryWrites=true&w=majority';
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Đã kết nối MongoDB Atlas thành công!'))
-  .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
-// Chuỗi kết nối MongoDB Atlas
-const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rmwmya3.mongodb.net/phieu_thanh_toan?retryWrites=true&w=majority';
-
-mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ Đã kết nối MongoDB Atlas thành công!');
-    // 🚀 Gọi hàm tự động cập nhật mã phiếu cho các dữ liệu cũ (đặt ở trong này là chuẩn nhất)
+    // Chỉ bổ sung mã cho phiếu chưa có requestCode, không ghi đè mã đã sinh lúc lập phiếu
     fixOldRequests();
   })
   .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
 
-// Định nghĩa hàm fixOldRequests đặt độc lập bên dưới
+function departmentPrefix(department) {
+  const deptLower = (department || '').toLowerCase();
+  if (deptLower.includes('hành chính') || deptLower.includes('hc')) return 'HC';
+  if (deptLower.includes('kỹ thuật') || deptLower.includes('kt')) return 'KT';
+  if (deptLower.includes('kế toán') || deptLower.includes('tckt')) return 'TCKT';
+  if (deptLower.includes('kinh doanh') || deptLower.includes('kd')) return 'KD';
+  if (deptLower.includes('ban giám đốc') || deptLower.includes('bgđ') || deptLower.includes('bgd')) return 'BGD';
+  return 'PT';
+}
+
+function yearMonthInVietnam(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit'
+  }).formatToParts(new Date(date));
+  const year = parts.find(part => part.type === 'year').value;
+  const month = parts.find(part => part.type === 'month').value;
+  return `${year}${month}`;
+}
+
+function isGeneratedRequestCode(code) {
+  return /^[A-Z]+-\d{6}-\d{2,}$/.test(String(code || '').trim());
+}
+
+async function allocateNextRequestCode(department, date = new Date()) {
+  const prefix = departmentPrefix(department);
+  const dateCode = yearMonthInVietnam(date);
+  const pattern = new RegExp(`^${prefix}-${dateCode}-(\\d+)$`);
+  const existing = await PaymentRequest.find({ requestCode: pattern }).select('requestCode');
+  let max = 0;
+  existing.forEach(item => {
+    const match = String(item.requestCode).match(pattern);
+    if (match) max = Math.max(max, parseInt(match[1], 10) || 0);
+  });
+  return `${prefix}-${dateCode}-${String(max + 1).padStart(2, '0')}`;
+}
+
+// Giữ đúng mã đã sinh trên form lúc lập phiếu nếu còn trống; nếu trùng thì lấy số tiếp theo.
+async function resolveRequestCode(department, preferredCode) {
+  const preferred = String(preferredCode || '').trim();
+  if (isGeneratedRequestCode(preferred)) {
+    const taken = await PaymentRequest.findOne({ requestCode: preferred }).select('_id');
+    if (!taken) return preferred;
+  }
+  return allocateNextRequestCode(department);
+}
+
 async function fixOldRequests() {
   try {
-    const requests = await PaymentRequest.find({ 
+    const requests = await PaymentRequest.find({
       $or: [
-        { requestCode: { $exists: false } }, 
-        { requestCode: "" },
-        { code: { $exists: false } },
-        { code: "" }
-      ] 
-    });
+        { requestCode: { $exists: false } },
+        { requestCode: null },
+        { requestCode: '' }
+      ]
+    }).sort({ submittedAt: 1, _id: 1 });
 
-    for (let [index, req] of requests.entries()) {
-      let deptLower = (req.department || "").toLowerCase();
-      let prefix = "PT";
-      if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
-      else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
-      else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
-      else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
-      else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
-
-      let dateObj = req.submittedAt || req.createdAt || new Date();
-      let dateStr = new Date(dateObj).toISOString().slice(0, 7).replace(/-/g, '');
-      
-      let generatedCode = `${prefix}-${dateStr}-${String(index + 1).padStart(2, '0')}`;
-
-      req.requestCode = generatedCode;
-      req.code = generatedCode;
-      req.soPhieu = generatedCode;
+    for (const req of requests) {
+      const dateObj = req.submittedAt || req.createdAt || new Date();
+      req.requestCode = await allocateNextRequestCode(req.department, dateObj);
       await req.save();
     }
     if (requests.length > 0) {
-      console.log(`🛠️ Đã tự động cập nhật mã phiếu cho ${requests.length} phiếu cũ!`);
+      console.log(`🛠️ Đã bổ sung mã phiếu cho ${requests.length} phiếu chưa có mã!`);
     }
   } catch (e) {
-    console.log("Fix old requests error:", e);
+    console.log('Fix old requests error:', e);
   }
 }
 
@@ -215,33 +241,10 @@ app.put('/api/users/:username/change-password', async (req, res) => {
 // 6. API TẠO PHIẾU THANH TOÁN MỚI (Đã khắc phục lỗi sinh mã tự động an toàn khi nhiều user cùng tạo)
 app.post('/api/requests', async (req, res) => {
   try {
-    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy } = req.body;
+    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy, requestCode: preferredCode } = req.body;
 
-    const dateCode = new Date().toISOString().slice(0, 7).replace(/-/g, ''); // Định dạng YYYYMM
-    
-    let prefix = "PT";
-    let deptLower = (department || "").toLowerCase();
-    if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
-    else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
-    else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
-    else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
-    else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
-
-    // Tìm phiếu mới nhất trong tháng để lấy số thứ tự tiếp theo, tránh xung đột khi nhiều người tạo cùng lúc
-    const latestRequest = await PaymentRequest.findOne({ 
-      requestCode: new RegExp(`^${prefix}-${dateCode}-`) 
-    }).sort({ _id: -1 });
-
-    let nextNumber = 1;
-    if (latestRequest && latestRequest.requestCode) {
-      const parts = latestRequest.requestCode.split('-');
-      const lastSeq = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(lastSeq)) {
-        nextNumber = lastSeq + 1;
-      }
-    }
-
-    const requestCode = `${prefix}-${dateCode}-${String(nextNumber).padStart(2, '0')}`;
+    // Mã trên danh sách chính là mã sinh ra lúc lập phiếu (ô Số phiếu trên form)
+    const requestCode = await resolveRequestCode(department, preferredCode);
 
     const newRequest = new PaymentRequest({
       requestCode, 
