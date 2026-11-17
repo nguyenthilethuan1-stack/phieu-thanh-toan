@@ -13,6 +13,23 @@ const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rm
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Đã kết nối MongoDB Atlas thành công!'))
   .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
+async function fixOldRequests() {
+  try {
+    const requests = await PaymentRequest.find({ $or: [{ requestCode: { $exists: false } }, { requestCode: "" }] });
+    for (let [index, req] of requests.entries()) {
+      req.requestCode = `PT-202611-${String(index + 1).padStart(2, '0')}`;
+      req.code = req.requestCode;
+      req.soPhieu = req.requestCode;
+      await req.save();
+    }
+    if (requests.length > 0) {
+      console.log(`🛠️ Đã tự động cập nhật mã phiếu cho ${requests.length} phiếu cũ!`);
+    }
+  } catch (e) {
+    console.log("Fix old requests error:", e);
+  }
+}
+fixOldRequests();
 
 // --- DANH MỤC PHÒNG BAN CHUẨN ---
 const STANDARD_DEPARTMENTS = [
