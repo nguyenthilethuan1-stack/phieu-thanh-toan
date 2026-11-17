@@ -760,7 +760,7 @@
                 stepsHTML += renderStepBox('Giám Đốc', s6);
                 stepsHTML += `</div>`;
 
-                let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || '';
+                let maPhieuHienThi = req.requestCode || req.soPhieu || req.code || req.requestNo || (() => {
                     let ngay = req.submittedAt ? req.submittedAt.split('T')[0].replace(/-/g, '').substring(0, 6) : '202611';
                     let deptLower = (req.department || "").toLowerCase();
                     let prefix = "PT";
