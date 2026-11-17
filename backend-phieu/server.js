@@ -13,13 +13,46 @@ const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rm
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Đã kết nối MongoDB Atlas thành công!'))
   .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
+// Chuỗi kết nối MongoDB Atlas
+const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rmwmya3.mongodb.net/phieu_thanh_toan?retryWrites=true&w=majority';
+
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('✅ Đã kết nối MongoDB Atlas thành công!');
+    // 🚀 Gọi hàm tự động cập nhật mã phiếu cho các dữ liệu cũ (đặt ở trong này là chuẩn nhất)
+    fixOldRequests();
+  })
+  .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
+
+// Định nghĩa hàm fixOldRequests đặt độc lập bên dưới
 async function fixOldRequests() {
   try {
-    const requests = await PaymentRequest.find({ $or: [{ requestCode: { $exists: false } }, { requestCode: "" }] });
+    const requests = await PaymentRequest.find({ 
+      $or: [
+        { requestCode: { $exists: false } }, 
+        { requestCode: "" },
+        { code: { $exists: false } },
+        { code: "" }
+      ] 
+    });
+
     for (let [index, req] of requests.entries()) {
-      req.requestCode = `PT-202611-${String(index + 1).padStart(2, '0')}`;
-      req.code = req.requestCode;
-      req.soPhieu = req.requestCode;
+      let deptLower = (req.department || "").toLowerCase();
+      let prefix = "PT";
+      if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+      else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+      else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+      else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+      else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+
+      let dateObj = req.submittedAt || req.createdAt || new Date();
+      let dateStr = new Date(dateObj).toISOString().slice(0, 7).replace(/-/g, '');
+      
+      let generatedCode = `${prefix}-${dateStr}-${String(index + 1).padStart(2, '0')}`;
+
+      req.requestCode = generatedCode;
+      req.code = generatedCode;
+      req.soPhieu = generatedCode;
       await req.save();
     }
     if (requests.length > 0) {
@@ -29,7 +62,6 @@ async function fixOldRequests() {
     console.log("Fix old requests error:", e);
   }
 }
-fixOldRequests();
 
 // --- DANH MỤC PHÒNG BAN CHUẨN ---
 const STANDARD_DEPARTMENTS = [
