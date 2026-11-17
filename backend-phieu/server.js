@@ -160,24 +160,41 @@ app.put('/api/users/:username/change-password', async (req, res) => {
   }
 });
 
-// 6. API TẠO PHIẾU THANH TOÁN MỚI
+// 6. API TẠO PHIẾU THANH TOÁN MỚI (ĐÃ TÍCH HỢP SINH MÃ TỰ ĐỘNG)
 app.post('/api/requests', async (req, res) => {
   try {
     const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy } = req.body;
+
+    // Đếm số lượng phiếu hiện có trong tháng để sinh mã tuần tự chuẩn xác
+    const count = await PaymentRequest.countDocuments();
+    const dateCode = new Date().toISOString().slice(0, 7).replace(/-/g, ''); // Định dạng YYYYMM
+    
+    let prefix = "PT";
+    let deptLower = (department || "").toLowerCase();
+    if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+    else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+    else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+    else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+    else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+
+    const requestCode = `${prefix}-${dateCode}-${String(count + 1).padStart(2, '0')}`;
+
     const newRequest = new PaymentRequest({
+      requestCode, // Lưu cố định mã phiếu vào DB tránh bị nhảy số thứ tự
       title, amount, costType, department, supplierName, bankAccount, description,
       details: details || [],
       attachments: attachments || [],
       createdBy,
       status: '1. Chờ Trưởng Bộ phận duyệt'
     });
+    
     await newRequest.save();
-    res.status(201).json({ message: 'Tạo phiếu đề nghị thanh toán thành công!', request: newRequest });
+    res.status(201).json({ message: 'Tạo phiếu thành công!', request: newRequest });
   } catch (err) {
+    console.error('Lỗi khi tạo phiếu:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
 // 7. API SỬA NỘI DUNG PHIẾU
 app.put('/api/requests/:id', async (req, res) => {
   try {
