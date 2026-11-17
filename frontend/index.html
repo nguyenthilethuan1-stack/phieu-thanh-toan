@@ -827,63 +827,16 @@
         loadRequests();
     };
 
-    // --- XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
-   window.showDetailModal = function(id) {
-        const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
-        if (!req) return;
-
-        currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const userRole = (currentUser.role || '').toLowerCase();
-
-        let detailsRowsHTML = '';
-        const listDetails = req.details || req.items || req.lines || [];
-
-        if (listDetails.length > 0) {
-            listDetails.forEach((item, idx) => {
-                const itemDate = item.docDate || item.date || item.ngayChungTu || '';
-                const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
-                const docNo = item.docNo || item.soChungTu || (idx + 1);
-                const desc = item.desc || item.description || item.diengiai || '';
-                const amt = item.amount || item.sotien || 0;
-
-                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
-                let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-                if (rowFiles.length > 0) {
-                    fileLinksHtml = rowFiles.map(f => `
-                        <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem/tải: ${f.name}">
-                            📎 ${f.name}
-                        </a>
-                    `).join('');
-                }
-
-                detailsRowsHTML += `
-                    <tr>
-                        <td style="text-align: center;">${idx + 1}</td>
-                        <td>${docNo}</td>
-                        <td>${ngayCT}</td>
-                        <td>${desc}</td>
-                        <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
-                        <td>${fileLinksHtml}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
-        
-        const userRoleStr = (currentUser.role || '').toLowerCase();
-        const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
-
-        let todayStr = new Date().toISOString().split('T')[0];
-        let currentPaidDate = req.paidDate || todayStr;
-        let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
-        // Sửa lại đường dẫn fetch trong giao diện thành /approve
+   // --- 1. HÀM XỬ LÝ PHÊ DUYỆT (ĐẶT Ở NGOÀI, ĐỘC LẬP TOÀN CỤC) ---
 async function handleApproveAction(id, action = 'approve', comment = '') {
+    const commentInput = document.getElementById('approvalCommentInput');
+    const userComment = commentInput ? commentInput.value : comment;
+
     try {
         const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/approve`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: action, comment: comment }) // Gửi đúng định dạng action: 'approve' hoặc 'reject'
+            body: JSON.stringify({ action: action, comment: userComment })
         });
 
         const result = await response.json();
@@ -898,85 +851,166 @@ async function handleApproveAction(id, action = 'approve', comment = '') {
         alert('Không thể kết nối đến máy chủ server!');
     }
 }
-        // Tạo phần mở rộng dành riêng cho Kế toán thanh toán (checkbox Đã thanh toán + Ngày thanh toán)
-        let paymentCheckboxSection = '';
-        if (isKtOrAdmin) {
-            paymentCheckboxSection = `
-                <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
-                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
-                        <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
-                    </label>
-                    <div style="flex: 1;">
-                        <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
-                        <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
-                    </div>
-                    <div style="align-self: flex-end;">
-                        <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
-                    </div>
-                </div>
+
+// --- 2. HÀM LƯU TRẠNG THÁI THANH TOÁN (DÀNH CHO KẾ TOÁN) ---
+async function updatePaidStatusAction(id) {
+    const chkIsPaid = document.getElementById('chkIsPaid');
+    const inputPaidDate = document.getElementById('inputPaidDate');
+    
+    const paidStatus = chkIsPaid && chkIsPaid.checked ? 'Đã thanh toán' : 'Chờ thanh toán';
+    const paidDate = inputPaidDate ? inputPaidDate.value : '';
+
+    try {
+        const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/paid-status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paidStatus, paidDate })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert('Cập nhật trạng thái thanh toán thành công!');
+            location.reload();
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể cập nhật'));
+        }
+    } catch (err) {
+        console.error('Lỗi kết nối:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+    }
+}
+
+
+// --- 3. XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
+window.showDetailModal = function(id) {
+    const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
+    if (!req) return;
+
+    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = (currentUser.role || '').toLowerCase();
+
+    let detailsRowsHTML = '';
+    const listDetails = req.details || req.items || req.lines || [];
+
+    if (listDetails.length > 0) {
+        listDetails.forEach((item, idx) => {
+            const itemDate = item.docDate || item.date || item.ngayChungTu || '';
+            const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
+            const docNo = item.docNo || item.soChungTu || (idx + 1);
+            const desc = item.desc || item.description || item.diengiai || '';
+            const amt = item.amount || item.sotien || 0;
+
+            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
+            let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+            if (rowFiles.length > 0) {
+                fileLinksHtml = rowFiles.map(f => `
+                    <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem/tải: ${f.name}">
+                        📎 ${f.name}
+                    </a>
+                `).join('');
+            }
+
+            detailsRowsHTML += `
+                <tr>
+                    <td style="text-align: center;">${idx + 1}</td>
+                    <td>${docNo}</td>
+                    <td>${ngayCT}</td>
+                    <td>${desc}</td>
+                    <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
+                    <td>${fileLinksHtml}</td>
+                </tr>
             `;
-        }
+        });
+    }
 
-        let approvalBoxHtml = '';
-        if (canApprove || isKtOrAdmin) {
-            approvalBoxHtml = `
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
-                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
-                    
-                    <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
-                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
-                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
-                    </div>
+    const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
+    
+    const userRoleStr = (currentUser.role || '').toLowerCase();
+    const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
 
-                    ${paymentCheckboxSection}
+    let todayStr = new Date().toISOString().split('T')[0];
+    let currentPaidDate = req.paidDate || todayStr;
+    let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
+
+    // Giữ nguyên phần mở rộng dành riêng cho Kế toán thanh toán (checkbox Đã thanh toán + Ngày thanh toán)
+    let paymentCheckboxSection = '';
+    if (isKtOrAdmin) {
+        paymentCheckboxSection = `
+            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
+                    <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
+                </label>
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
+                    <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
                 </div>
-            `;
-        }
-        const modalContent = document.getElementById('modalBodyContent');
-        if (modalContent) {
-            modalContent.innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
-                    <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
-                    <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
-                    <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+                <div style="align-self: flex-end;">
+                    <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
                 </div>
-                <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
-                    <thead>
-                        <tr style="background: #0d6efd; color: white;">
-                            <th style="padding: 6px;">STT</th>
-                            <th style="padding: 6px;">Số CT</th>
-                            <th style="padding: 6px;">Ngày CT</th>
-                            <th style="padding: 6px;">Diễn giải</th>
-                            <th style="padding: 6px;">Số tiền</th>
-                            <th style="padding: 6px;">File đính kèm</th>
-                        </tr>
-                    </thead>
-                    <tbody>${detailsRowsHTML}</tbody>
-                </table>
-                <div style="text-align: right; margin-top: 10px; font-size: 15px;">
-                    <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+            </div>
+        `;
+    }
+
+    let approvalBoxHtml = '';
+    if (canApprove || isKtOrAdmin) {
+        approvalBoxHtml = `
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
+                <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+                
+                <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+                    <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
+                    <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
                 </div>
-                ${approvalBoxHtml}
-            `;
-        }
 
-        const modalEl = document.getElementById('detailModal');
-        if (modalEl) {
-            modalEl.classList.remove('hidden');
-            modalEl.style.display = 'flex';
-        }
-    };
+                ${paymentCheckboxSection}
+            </div>
+        `;
+    }
 
-    window.closeDetailModal = function() {
-        const modal = document.getElementById('detailModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-        }
-    };
+    const modalContent = document.getElementById('modalBodyContent');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
+                <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
+                <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
+                <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+            </div>
+            <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
+                <thead>
+                    <tr style="background: #0d6efd; color: white;">
+                        <th style="padding: 6px;">STT</th>
+                        <th style="padding: 6px;">Số CT</th>
+                        <th style="padding: 6px;">Ngày CT</th>
+                        <th style="padding: 6px;">Diễn giải</th>
+                        <th style="padding: 6px;">Số tiền</th>
+                        <th style="padding: 6px;">File đính kèm</th>
+                    </tr>
+                </thead>
+                <tbody>${detailsRowsHTML}</tbody>
+            </table>
+            <div style="text-align: right; margin-top: 10px; font-size: 15px;">
+                <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+            </div>
+            ${approvalBoxHtml}
+        `;
+    }
 
+    const modalEl = document.getElementById('detailModal');
+    if (modalEl) {
+        modalEl.classList.remove('hidden');
+        modalEl.style.display = 'flex';
+    }
+};
+
+window.closeDetailModal = function() {
+    const modal = document.getElementById('detailModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
     // --- SỬA PHIẾU ---
     window.editRequest = function(id) {
         const req = currentRequests.find(r => 
