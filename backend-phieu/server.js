@@ -59,8 +59,9 @@ const attachmentSchema = new mongoose.Schema({
   data: { type: String, default: '' }
 }, { _id: false });
 
-// 4. Schema Phiếu đề nghị thanh toán
+// 4. Schema Phiếu đề nghị thanh toán (Đã bổ sung đầy đủ các trường tránh lỗi mất dữ liệu)
 const paymentRequestSchema = new mongoose.Schema({
+  requestCode: { type: String, default: '' },
   title: { type: String, required: true },
   amount: { type: Number, required: true },
   costType: { type: String, required: true },
@@ -73,6 +74,8 @@ const paymentRequestSchema = new mongoose.Schema({
   status: { type: String, default: '1. Chờ Trưởng Bộ phận duyệt' },
   paidStatus: { type: String, default: 'Chờ thanh toán' },
   paidDate: { type: String, default: '' },
+  comment: { type: String, default: '' },       // Lưu ý kiến duyệt
+  rejectReason: { type: String, default: '' }, // Lưu lý do từ chối
   createdBy: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now }
 });
@@ -136,7 +139,7 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-//5. API đổi mật khẩu chạy trực tiếp không cần bcrypt
+// 5. API đổi mật khẩu trực tiếp
 app.put('/api/users/:username/change-password', async (req, res) => {
   try {
     const { username } = req.params;
@@ -160,13 +163,11 @@ app.put('/api/users/:username/change-password', async (req, res) => {
   }
 });
 
-// 6. API TẠO PHIẾU THANH TOÁN MỚI (ĐÃ TÍCH HỢP SINH MÃ TỰ ĐỘNG)
+// 6. API TẠO PHIẾU THANH TOÁN MỚI (Đã khắc phục lỗi sinh mã tự động an toàn khi nhiều user cùng tạo)
 app.post('/api/requests', async (req, res) => {
   try {
     const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy } = req.body;
 
-    // Đếm số lượng phiếu hiện có trong tháng để sinh mã tuần tự chuẩn xác
-    const count = await PaymentRequest.countDocuments();
     const dateCode = new Date().toISOString().slice(0, 7).replace(/-/g, ''); // Định dạng YYYYMM
     
     let prefix = "PT";
@@ -177,10 +178,24 @@ app.post('/api/requests', async (req, res) => {
     else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
     else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
 
-    const requestCode = `${prefix}-${dateCode}-${String(count + 1).padStart(2, '0')}`;
+    // Tìm phiếu mới nhất trong tháng để lấy số thứ tự tiếp theo, tránh xung đột khi nhiều người tạo cùng lúc
+    const latestRequest = await PaymentRequest.findOne({ 
+      requestCode: new RegExp(`^${prefix}-${dateCode}-`) 
+    }).sort({ _id: -1 });
+
+    let nextNumber = 1;
+    if (latestRequest && latestRequest.requestCode) {
+      const parts = latestRequest.requestCode.split('-');
+      const lastSeq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSeq)) {
+        nextNumber = lastSeq + 1;
+      }
+    }
+
+    const requestCode = `${prefix}-${dateCode}-${String(nextNumber).padStart(2, '0')}`;
 
     const newRequest = new PaymentRequest({
-      requestCode, // Lưu cố định mã phiếu vào DB tránh bị nhảy số thứ tự
+      requestCode, 
       title, amount, costType, department, supplierName, bankAccount, description,
       details: details || [],
       attachments: attachments || [],
@@ -195,6 +210,7 @@ app.post('/api/requests', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // 7. API SỬA NỘI DUNG PHIẾU
 app.put('/api/requests/:id', async (req, res) => {
   try {
@@ -311,8 +327,7 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
   }
 });
 
-
-// --- API XỬ LÝ PHÊ DUYỆT TỪNG BƯỚC MỘT (ĐÃ SỬA LỖI NHẢY CÓC) ---
+// --- API XỬ LÝ PHÊ DUYỆT TỪNG BƯỚC MỘT ---
 app.put('/api/requests/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
@@ -327,7 +342,6 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             let currentStatus = reqDoc.status || '';
             let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
-            // Tiến hành dịch chuyển tuần tự từng bước một đúng chuẩn quy trình:
             if (currentStatus.includes('Chờ Trưởng Bộ phận') || !currentStatus) {
                 reqDoc.status = '2. Chờ KT Thanh toán';
             } 
@@ -335,7 +349,6 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                 reqDoc.status = '3. Chờ Kế toán trưởng';
             } 
             else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
-                // Phòng Kỹ thuật cần qua Phó GĐ SX trước khi lên Giám đốc
                 if (isKyThuat) {
                     reqDoc.status = '4. Chờ Phó GĐ';
                 } else {
@@ -374,6 +387,7 @@ app.delete('/api/requests/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // --- KHỞI TẠO TÀI KHOẢN MẪU & ADMIN ---
 async function seedUsers() {
   try {
