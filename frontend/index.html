@@ -2013,49 +2013,54 @@ function closeFilePreviewModal() {
     if (iframe) iframe.src = '';
     if (img) img.src = '';
 }
-let selectedFiles = []; // Mảng toàn cục lưu trữ danh sách file chuẩn bị upload
+// Mảng lưu danh sách các file đang được chọn tạm thời
+    let selectedFiles = [];
 
-const attachmentInput = document.getElementById('attachmentFiles');
-if (attachmentInput) {
-    attachmentInput.addEventListener('change', function(e) {
-        // Thêm các file mới chọn vào mảng
-        for (let i = 0; i < e.target.files.length; i++) {
-            selectedFiles.push(e.target.files[i]);
-        }
-        renderFileNamesList();
-    });
-}
-
-function renderFileNamesList() {
-    const container = document.getElementById('fileNamesList');
-    if (!container) return;
-    
-    if (selectedFiles.length === 0) {
-        container.innerHTML = '';
-        return;
+    const attachmentInput = document.getElementById('attachmentFiles');
+    if (attachmentInput) {
+        // Lắng nghe sự kiện khi người dùng chọn file
+        attachmentInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            for (let i = 0; i < files.length; i++) {
+                selectedFiles.push(files[i]);
+            }
+            renderFileNamesList();
+        });
     }
 
-    let html = '<div style="margin-top: 5px; font-weight: bold;">File đã chọn:</div>';
-    selectedFiles.forEach((file, index) => {
-        html += `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 3px 6px; margin-top: 3px; background: #fff; border: 1px solid #ccc; border-radius: 3px;">
-                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
-                <button type="button" onclick="removeFileItem(${index})" style="background: none; border: none; color: red; font-weight: bold; cursor: pointer;" title="Xóa file này">❌</button>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
+    // Hàm vẽ danh sách file kèm nút ❌ để xóa
+    function renderFileNamesList() {
+        const container = document.getElementById('fileNamesList');
+        if (!container) return;
 
-// Hàm xóa file khi bấm nút X
-window.removeFileItem = function(index) {
-    selectedFiles.splice(index, 1);
-    renderFileNamesList();
-    
-    // Reset lại input file để có thể chọn lại file đó nếu muốn
-    const fileInput = document.getElementById('attachmentFiles');
-    if (fileInput) fileInput.value = '';
-};
+        if (selectedFiles.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">Danh sách file đã chọn:</div>';
+        selectedFiles.forEach((file, index) => {
+            html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #f8f9fa; border: 1px solid #ced4da; border-radius: 4px;">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
+                    <button type="button" onclick="removeSelectedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Hàm thực hiện xóa file khỏi danh sách tạm khi bấm nút ❌
+    window.removeSelectedFile = function(index) {
+        selectedFiles.splice(index, 1);
+        renderFileNamesList();
+        
+        // Reset giá trị của input file để có thể chọn lại file đó nếu cần
+        const fileInput = document.getElementById('attachmentFiles');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
     </script>
 <!-- Modal Xem File Chuyên Nghiệp -->
 <div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
