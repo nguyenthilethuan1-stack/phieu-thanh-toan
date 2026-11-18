@@ -1905,22 +1905,55 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 function openFilePreview(dataUrl, fileName) {
     if (!dataUrl) return;
     
-    // Nếu là dạng dữ liệu gốc, ta tạo một iframe ẩn hoặc dùng dịch vụ Google Viewer để hiển thị thẳng trên web
-    if (dataUrl.startsWith('data:')) {
-        let w = window.open('', '_blank');
-        w.document.write(`
-            <html>
-                <head><title>${fileName || 'Xem file'}</title></head>
-                <body style="margin:0; background:#333; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
-                    <iframe src="${dataUrl}" style="width:90%; height:95%; border:none; background:white;"></iframe>
-                </body>
-            </html>
-        `);
-        w.document.close();
+    const modal = document.getElementById('filePreviewModal');
+    const iframe = document.getElementById('previewIframe');
+    const img = document.getElementById('previewImage');
+    const title = document.getElementById('previewModalTitle');
+    
+    if (title) title.innerText = 'Đang xem: ' + (fileName || 'File đính kèm');
+    
+    // Kiểm tra nếu là hình ảnh thì hiển thị qua thẻ img, còn lại (PDF,...) hiển thị qua iframe
+    const lowerName = (fileName || '').toLowerCase();
+    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+    
+    if (isImage) {
+        if (iframe) iframe.style.display = 'none';
+        if (img) {
+            img.style.display = 'block';
+            img.src = dataUrl;
+        }
     } else {
-        window.open(dataUrl, '_blank');
+        if (img) img.style.display = 'none';
+        if (iframe) {
+            iframe.style.display = 'block';
+            iframe.src = dataUrl;
+        }
     }
+    
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeFilePreviewModal() {
+    const modal = document.getElementById('filePreviewModal');
+    const iframe = document.getElementById('previewIframe');
+    const img = document.getElementById('previewImage');
+    if (modal) modal.style.display = 'none';
+    if (iframe) iframe.src = '';
+    if (img) img.src = '';
 }
     </script>
+    <!-- Modal Xem trước File Đính Kèm -->
+<div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center;">
+    <div style="background: white; width: 85%; height: 85%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+        <div style="padding: 10px 15px; background: #343a40; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <span id="previewModalTitle" style="font-weight: bold; font-size: 14px;">Xem file đính kèm</span>
+            <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">✕ Đóng</button>
+        </div>
+        <div style="flex: 1; background: #e9ecef; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none;"></iframe>
+            <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" />
+        </div>
+    </div>
+</div>
 </body>
 </html>
