@@ -538,15 +538,15 @@
         const desc = data.desc || '';
         const amount = data.amount !== undefined ? data.amount : '';
         
-        const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
-let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-if (rowFiles.length > 0) {
-    fileLinksHtml = rowFiles.map(f => `
-        <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem: ${f.name}">
-            📎 ${f.name}
-        </a>
-    `).join('');
-}
+        const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
+        let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+        if (rowFiles.length > 0) {
+            fileLinksHtml = rowFiles.map(f => `
+                <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem: ${f.name}">
+                    📎 ${f.name}
+                </a>
+            `).join('');
+        }
 
         tr.innerHTML = `
             <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
@@ -1905,11 +1905,20 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 function openFilePreview(dataUrl, fileName) {
     if (!dataUrl) return;
     
-    // Mở một cửa sổ mới với giao diện trình duyệt tích hợp sẵn thanh công cụ (Xem + Tải xuống)
     let win = window.open('', '_blank');
     if (!win) {
         alert('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép pop-up để xem file!');
         return;
+    }
+
+    const lowerName = (fileName || '').toLowerCase();
+    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+
+    let contentHtml = '';
+    if (isImage) {
+        contentHtml = `<div style="display:flex; justify-content:center; align-items:center; height:calc(100vh - 45px);"><img src="${dataUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" /></div>`;
+    } else {
+        contentHtml = `<embed src="${dataUrl}" type="application/pdf" style="width:100%; height:calc(100vh - 45px); border:none;" />`;
     }
 
     win.document.write(`
@@ -1923,7 +1932,6 @@ function openFilePreview(dataUrl, fileName) {
                     .header span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
                     .btn-download { background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; }
                     .btn-download:hover { background: #0b5ed7; }
-                    .content { width: 1000%; height: calc(100vh - 45px); border: none; }
                 </style>
             </head>
             <body>
@@ -1931,7 +1939,7 @@ function openFilePreview(dataUrl, fileName) {
                     <span>📄 Đang xem: <b>${fileName || 'Tài liệu'}</b></span>
                     <a href="${dataUrl}" download="${fileName || 'tai-lieu'}" class="btn-download">📥 Tải xuống máy</a>
                 </div>
-                <embed src="${dataUrl}" type="application/pdf" class="content" />
+                ${contentHtml}
             </body>
         </html>
     `);
