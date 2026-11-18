@@ -896,40 +896,37 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
 async function handleApproveAction(id, action = 'approve') {
     const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
 
-    // 1. Lấy ý kiến/lý do từ ô input trong Modal (nếu đang mở modal)
+    // 1. Lấy ý kiến/lý do từ ô textarea trong Modal
     let userComment = '';
     const commentInput = document.getElementById('approvalCommentInput');
-    if (commentInput && commentInput.value.trim() !== '') {
+    
+    // Kiểm tra xem có lấy được giá trị từ textarea hay không
+    if (commentInput) {
         userComment = commentInput.value.trim();
-    } else {
-        // Nếu không mở modal mà bấm nút trực tiếp ngoài bảng, bật prompt hỏi ý kiến/lý do
-        if (action === 'reject') {
-            userComment = prompt('Vui lòng nhập lý do từ chối phiếu này:') || '';
-            if (!userComment.trim()) {
-                alert('Bạn cần nhập lý do từ chối phiếu!');
-                return; // Dừng lại nếu không nhập lý do từ chối
-            }
-        } else {
-            userComment = prompt('Nhập ý kiến phê duyệt (có thể để trống):') || '';
+    }
+
+    // Nếu bấm từ chối mà người dùng chưa nhập gì vào textarea, mới bắt buộc hỏi hoặc báo lỗi
+    if (action === 'reject' && !userComment) {
+        userComment = prompt('Vui lòng nhập lý do từ chối phiếu này:') || '';
+        if (!userComment.trim()) {
+            alert('Bạn bắt buộc phải nhập lý do từ chối phiếu!');
+            return; 
         }
     }
 
     // 2. Hộp thoại xác nhận lần cuối
     const isConfirmed = confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`);
-    if (!isConfirmed) {
-        return; // Hủy thao tác nếu bấm Cancel
-    }
+    if (!isConfirmed) return;
 
-    // 3. Lấy role của user hiện tại từ localStorage để gửi lên server kiểm tra quyền chống vượt cấp
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
     try {
-        const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/approve`, {
+        const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 action: action, 
-                comment: userComment, // Truyền chính xác ý kiến/lý do lên server
+                comment: userComment, // Truyền thẳng nội dung trong textarea lên server
                 userRole: currentUser.role 
             })
         });
@@ -937,7 +934,7 @@ async function handleApproveAction(id, action = 'approve') {
         const result = await response.json();
         if (response.ok) {
             alert(`Thực hiện ${actionName} thành công!`);
-            location.reload(); // Tải lại trang để cập nhật danh sách
+            location.reload(); 
         } else {
             alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
         }
