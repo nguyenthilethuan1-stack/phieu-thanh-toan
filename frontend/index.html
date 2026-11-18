@@ -1130,7 +1130,7 @@ window.closeDetailModal = function() {
         const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
         
         // Số phiếu in ra là mã đã lưu lúc lập phiếu
-        let maPhieuHienThi = req.requestCode || (passedCode && passedCode !== 'undefined' ? passedCode : '');
+        let maPhieuHienThi = req.requestCode || req.code || req.soPhieu || req.requestNo || req.maPhieu || '';
 
         const rawStatus = req.status || '';
         const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
