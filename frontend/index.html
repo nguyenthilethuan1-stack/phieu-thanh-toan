@@ -1176,7 +1176,10 @@ window.closeDetailModal = function() {
 
         const rawStatus = req.status || '';
         const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
-        const defaultTimeStr = submittedDate ? `${submittedDate} 08:30` : '2026-11-13 08:30';
+        // Thay vì gán cứng 08:30, hãy lấy thời gian thực hoặc định dạng ngày tháng linh hoạt
+const now = new Date();
+const timeString = now.toTimeString().substring(0, 5); // Lấy HH:mm hiện tại
+const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
 
         const isKyThuat = String(department).toLowerCase().includes('kỹ thuật') || String(department).toLowerCase().includes('ky thuat');
 
