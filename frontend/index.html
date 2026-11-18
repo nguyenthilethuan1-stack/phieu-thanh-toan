@@ -525,8 +525,7 @@
         if (ketQua.length === 0) return "Không đồng";
         return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + " đồng chẵn.";
     };
-
-    // --- QUẢN LÝ DÒNG CHI TIẾT ---
+// --- QUẢN LÝ DÒNG CHI TIẾT ---
     window.addRow = function(data = {}) {
         const tbody = document.getElementById('detailRows');
         if (!tbody) return;
@@ -539,10 +538,9 @@
         const amount = data.amount !== undefined ? data.amount : '';
         
         const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
-let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-if (rowFiles.length > 0) {
-    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
-}
+        
+        // Lưu trữ danh sách file vào dataset của dòng để quản lý
+        tr.dataset.filesJson = JSON.stringify(rowFiles);
 
         tr.innerHTML = `
             <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
@@ -554,18 +552,40 @@ if (rowFiles.length > 0) {
                     📎 Chọn file
                     <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
                 </label>
-                <div class="row-file-names" style="margin-top: 2px;">${fileLinksHtml}</div>
+                <div class="row-file-names" style="margin-top: 4px; text-align: left;"></div>
             </td>
             <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
         `;
         tbody.appendChild(tr);
+        
+        // Cập nhật hiển thị danh sách file ban đầu (nếu có dữ liệu cũ lúc sửa phiếu)
+        updateRowFilesUI(tr, rowFiles);
         calculateTotal();
     };
+
+    // Hàm cập nhật giao diện hiển thị danh sách file có kèm nút ❌ xóa từng file
+    function updateRowFilesUI(tr, filesArray) {
+        const nameDiv = tr.querySelector('.row-file-names');
+        if (!nameDiv) return;
+
+        if (!filesArray || filesArray.length === 0) {
+            nameDiv.innerHTML = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+            return;
+        }
+
+        nameDiv.innerHTML = filesArray.map((f, index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 2px; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
+                <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="Bấm để xem: ${f.name}">
+                    📎 ${f.name}
+                </a>
+                <button type="button" onclick="removeRowFile(this, ${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; padding: 0 3px; font-size: 12px;" title="Xóa file này">×</button>
+            </div>
+        `).join('');
+    }
 
     window.handleRowFiles = function(input) {
         const td = input.closest('td');
         const tr = input.closest('tr');
-        const nameDiv = td.querySelector('.row-file-names');
         const files = input.files;
 
         if (!files || files.length === 0) return;
@@ -592,15 +612,29 @@ if (rowFiles.length > 0) {
         Promise.all(promises).then(newlyLoadedFiles => {
             const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
             tr.dataset.filesJson = JSON.stringify(combinedFiles);
-            
-            if (nameDiv) {
-                nameDiv.innerHTML = combinedFiles.map(f => `
-                   <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để xem: ${f.name}">
-    📎 ${f.name}
-</a>
-                `).join('');
-            }
+            updateRowFilesUI(tr, combinedFiles);
+            input.value = ''; // Reset input để có thể chọn lại chính file đó nếu cần
         });
+    };
+
+    // Hàm thực hiện xóa một file cụ thể khỏi dòng khi bấm dấu ×
+    window.removeRowFile = function(btn, fileIndex) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+
+        let existingFiles = [];
+        try {
+            if (tr.dataset.filesJson) {
+                existingFiles = JSON.parse(tr.dataset.filesJson);
+            }
+        } catch (e) {
+            existingFiles = [];
+        }
+
+        // Xóa file tại vị trí fileIndex
+        existingFiles.splice(fileIndex, 1);
+        tr.dataset.filesJson = JSON.stringify(existingFiles);
+        updateRowFilesUI(tr, existingFiles);
     };
 
     window.removeRow = function(btn) {
@@ -2062,6 +2096,13 @@ function closeFilePreviewModal() {
             fileInput.value = '';
         }
     };
+    window.removeDetailAttachment = function(index) {
+    // Xóa file ở dòng thứ index trong mảng chi tiết
+    if (typeof detailsList !== 'undefined' && detailsList[index]) {
+        detailsList[index].attachment = { name: '', data: '' };
+        renderDetailsTable(); // Vẽ lại bảng chi tiết
+    }
+};
     </script>
 <!-- Modal Xem File Chuyên Nghiệp -->
 <div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
