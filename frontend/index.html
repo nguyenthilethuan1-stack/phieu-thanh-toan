@@ -1691,17 +1691,26 @@ window.deleteUser = async function(userId) {
                 selectedFilesData = [];
                 let listNames = [];
                 if (files.length > 0) {
+                    let filesLoaded = 0;
                     for (let i = 0; i < files.length; i++) {
                         const file = files[i];
                         listNames.push(file.name);
                         const reader = new FileReader();
                         reader.onload = function(uploadEvent) {
-                            selectedFilesData.push({ name: file.name, data: uploadEvent.target.result });
+                            selectedFilesData.push({ 
+                                name: file.name, 
+                                data: uploadEvent.target.result // Đảm bảo lưu đúng chuỗi Data URL Base64
+                            });
+                            filesLoaded++;
+                            if (filesLoaded === files.length) {
+                                document.getElementById('fileNamesList').innerText = "Đã chọn: " + listNames.join(', ');
+                            }
                         };
                         reader.readAsDataURL(file);
                     }
+                } else {
+                    document.getElementById('fileNamesList').innerText = "";
                 }
-                document.getElementById('fileNamesList').innerText = files.length > 0 ? "Đã chọn thêm: " + listNames.join(', ') : "";
             });
         }
 
