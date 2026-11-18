@@ -11,83 +11,8 @@ app.use(cors());
 const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rmwmya3.mongodb.net/phieu_thanh_toan?retryWrites=true&w=majority';
 
 mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ Đã kết nối MongoDB Atlas thành công!');
-    // Chỉ bổ sung mã cho phiếu chưa có requestCode, không ghi đè mã đã sinh lúc lập phiếu
-    fixOldRequests();
-  })
+  .then(() => console.log('✅ Đã kết nối MongoDB Atlas thành công!'))
   .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
-
-function departmentPrefix(department) {
-  const deptLower = (department || '').toLowerCase();
-  if (deptLower.includes('hành chính') || deptLower.includes('hc')) return 'HC';
-  if (deptLower.includes('kỹ thuật') || deptLower.includes('kt')) return 'KT';
-  if (deptLower.includes('kế toán') || deptLower.includes('tckt')) return 'TCKT';
-  if (deptLower.includes('kinh doanh') || deptLower.includes('kd')) return 'KD';
-  if (deptLower.includes('ban giám đốc') || deptLower.includes('bgđ') || deptLower.includes('bgd')) return 'BGD';
-  return 'PT';
-}
-
-function yearMonthInVietnam(date = new Date()) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    year: 'numeric',
-    month: '2-digit'
-  }).formatToParts(new Date(date));
-  const year = parts.find(part => part.type === 'year').value;
-  const month = parts.find(part => part.type === 'month').value;
-  return `${year}${month}`;
-}
-
-function isGeneratedRequestCode(code) {
-  return /^[A-Z]+-\d{6}-\d{2,}$/.test(String(code || '').trim());
-}
-
-async function allocateNextRequestCode(department, date = new Date()) {
-  const prefix = departmentPrefix(department);
-  const dateCode = yearMonthInVietnam(date);
-  const pattern = new RegExp(`^${prefix}-${dateCode}-(\\d+)$`);
-  const existing = await PaymentRequest.find({ requestCode: pattern }).select('requestCode');
-  let max = 0;
-  existing.forEach(item => {
-    const match = String(item.requestCode).match(pattern);
-    if (match) max = Math.max(max, parseInt(match[1], 10) || 0);
-  });
-  return `${prefix}-${dateCode}-${String(max + 1).padStart(2, '0')}`;
-}
-
-// Giữ đúng mã đã sinh trên form lúc lập phiếu nếu còn trống; nếu trùng thì lấy số tiếp theo.
-async function resolveRequestCode(department, preferredCode) {
-  const preferred = String(preferredCode || '').trim();
-  if (isGeneratedRequestCode(preferred)) {
-    const taken = await PaymentRequest.findOne({ requestCode: preferred }).select('_id');
-    if (!taken) return preferred;
-  }
-  return allocateNextRequestCode(department);
-}
-
-async function fixOldRequests() {
-  try {
-    const requests = await PaymentRequest.find({
-      $or: [
-        { requestCode: { $exists: false } },
-        { requestCode: null },
-        { requestCode: '' }
-      ]
-    }).sort({ submittedAt: 1, _id: 1 });
-
-    for (const req of requests) {
-      const dateObj = req.submittedAt || req.createdAt || new Date();
-      req.requestCode = await allocateNextRequestCode(req.department, dateObj);
-      await req.save();
-    }
-    if (requests.length > 0) {
-      console.log(`🛠️ Đã bổ sung mã phiếu cho ${requests.length} phiếu chưa có mã!`);
-    }
-  } catch (e) {
-    console.log('Fix old requests error:', e);
-  }
-}
 
 // --- DANH MỤC PHÒNG BAN CHUẨN ---
 const STANDARD_DEPARTMENTS = [
@@ -134,9 +59,8 @@ const attachmentSchema = new mongoose.Schema({
   data: { type: String, default: '' }
 }, { _id: false });
 
-// 4. Schema Phiếu đề nghị thanh toán (Đã bổ sung đầy đủ các trường tránh lỗi mất dữ liệu)
+// 4. Schema Phiếu đề nghị thanh toán
 const paymentRequestSchema = new mongoose.Schema({
-  requestCode: { type: String, default: '' },
   title: { type: String, required: true },
   amount: { type: Number, required: true },
   costType: { type: String, required: true },
@@ -149,8 +73,6 @@ const paymentRequestSchema = new mongoose.Schema({
   status: { type: String, default: '1. Chờ Trưởng Bộ phận duyệt' },
   paidStatus: { type: String, default: 'Chờ thanh toán' },
   paidDate: { type: String, default: '' },
-  comment: { type: String, default: '' },       // Lưu ý kiến duyệt
-  rejectReason: { type: String, default: '' }, // Lưu lý do từ chối
   createdBy: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now }
 });
@@ -214,7 +136,7 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// 5. API đổi mật khẩu trực tiếp
+//5. API đổi mật khẩu chạy trực tiếp không cần bcrypt
 app.put('/api/users/:username/change-password', async (req, res) => {
   try {
     const { username } = req.params;
@@ -238,16 +160,27 @@ app.put('/api/users/:username/change-password', async (req, res) => {
   }
 });
 
-// 6. API TẠO PHIẾU THANH TOÁN MỚI (Đã khắc phục lỗi sinh mã tự động an toàn khi nhiều user cùng tạo)
+// 6. API TẠO PHIẾU THANH TOÁN MỚI (ĐÃ TÍCH HỢP SINH MÃ TỰ ĐỘNG)
 app.post('/api/requests', async (req, res) => {
   try {
-    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy, requestCode: preferredCode } = req.body;
+    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy } = req.body;
 
-    // Mã trên danh sách chính là mã sinh ra lúc lập phiếu (ô Số phiếu trên form)
-    const requestCode = await resolveRequestCode(department, preferredCode);
+    // Đếm số lượng phiếu hiện có trong tháng để sinh mã tuần tự chuẩn xác
+    const count = await PaymentRequest.countDocuments();
+    const dateCode = new Date().toISOString().slice(0, 7).replace(/-/g, ''); // Định dạng YYYYMM
+    
+    let prefix = "PT";
+    let deptLower = (department || "").toLowerCase();
+    if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+    else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+    else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+    else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+    else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+
+    const requestCode = `${prefix}-${dateCode}-${String(count + 1).padStart(2, '0')}`;
 
     const newRequest = new PaymentRequest({
-      requestCode, 
+      requestCode, // Lưu cố định mã phiếu vào DB tránh bị nhảy số thứ tự
       title, amount, costType, department, supplierName, bankAccount, description,
       details: details || [],
       attachments: attachments || [],
@@ -262,7 +195,6 @@ app.post('/api/requests', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // 7. API SỬA NỘI DUNG PHIẾU
 app.put('/api/requests/:id', async (req, res) => {
   try {
@@ -379,7 +311,7 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
   }
 });
 
-// --- API XỬ LÝ PHÊ DUYỆT TỪNG BƯỚC MỘT ---
+// --- API XỬ LÝ PHÊ DUYỆT TỪNG BƯỚC MỘT (ĐÃ SỬA LỖI NHẢY CÓC) ---
 app.put('/api/requests/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
@@ -394,6 +326,7 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             let currentStatus = reqDoc.status || '';
             let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
+            // Tiến hành dịch chuyển tuần tự từng bước một đúng chuẩn quy trình:
             if (currentStatus.includes('Chờ Trưởng Bộ phận') || !currentStatus) {
                 reqDoc.status = '2. Chờ KT Thanh toán';
             } 
@@ -401,6 +334,7 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                 reqDoc.status = '3. Chờ Kế toán trưởng';
             } 
             else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
+                // Phòng Kỹ thuật cần qua Phó GĐ SX trước khi lên Giám đốc
                 if (isKyThuat) {
                     reqDoc.status = '4. Chờ Phó GĐ';
                 } else {
@@ -439,7 +373,6 @@ app.delete('/api/requests/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // --- KHỞI TẠO TÀI KHOẢN MẪU & ADMIN ---
 async function seedUsers() {
   try {
@@ -471,3 +404,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại cổng http://localhost:${PORT}`);
 });
+
