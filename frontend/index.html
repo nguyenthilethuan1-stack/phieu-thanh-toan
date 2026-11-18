@@ -1905,26 +1905,37 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 function openFilePreview(dataUrl, fileName) {
     try {
         if (!dataUrl) return;
-        // Nếu dữ liệu là dạng Base64 Data URL, tiến hành chuyển đổi sang Blob để xem trực tiếp
+
+        // Tự động nhận diện định dạng file dựa vào tên file nếu dataUrl là dạng thô
+        let mimeType = 'application/octet-stream';
+        const lowerName = (fileName || '').toLowerCase();
+        if (lowerName.endsWith('.pdf')) {
+            mimeType = 'application/pdf';
+        } else if (lowerName.endsWith('.png')) {
+            mimeType = 'image/png';
+        } else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
+            mimeType = 'image/jpeg';
+        } else if (lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx')) {
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+
         if (dataUrl.startsWith('data:')) {
             let arr = dataUrl.split(',');
-            let mimeMatch = arr[0].match(/:(.*?);/);
-            let mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
             let bstr = atob(arr[1]);
             let n = bstr.length;
             let u8arr = new Uint8Array(n);
             while (n--) {
                 u8arr[n] = bstr.charCodeAt(n);
             }
-            let blob = new Blob([u8arr], { type: mime });
+            // Tạo Blob với đúng chuẩn MIME type của file
+            let blob = new Blob([u8arr], { type: mimeType });
             let blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl, '_blank');
         } else {
-            // Nếu là đường dẫn URL thông thường
             window.open(dataUrl, '_blank');
         }
     } catch (e) {
-        console.error('Lỗi mở file xem trực tiếp:', e);
+        console.error('Lỗi xem trực tiếp file:', e);
         window.open(dataUrl, '_blank');
     }
 }
