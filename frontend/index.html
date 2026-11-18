@@ -1904,19 +1904,63 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 });
 function openFilePreview(dataUrl, fileName) {
     if (!dataUrl) return;
-    // Vì dataUrl giờ đây là đường dẫn URL HTTP chuẩn, mở trực tiếp sẽ xem online 100% không bị tải về
-    window.open(dataUrl, '_blank');
+    
+    const modal = document.getElementById('filePreviewModal');
+    const iframe = document.getElementById('previewIframe');
+    const img = document.getElementById('previewImage');
+    const title = document.getElementById('previewModalTitle');
+    const downloadBtn = document.getElementById('modalDownloadBtn');
+    
+    if (title) title.innerText = '📄 Đang xem: ' + (fileName || 'Tài liệu đính kèm');
+    if (downloadBtn) {
+        downloadBtn.href = dataUrl;
+        downloadBtn.download = fileName || 'tai-lieu';
+    }
+    
+    // Kiểm tra định dạng file xem là Ảnh hay loại khác (PDF...)
+    const lowerName = (fileName || '').toLowerCase();
+    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+    
+    if (isImage) {
+        if (iframe) iframe.style.display = 'none';
+        if (img) {
+            img.style.display = 'block';
+            img.src = dataUrl;
+        }
+    } else {
+        if (img) img.style.display = 'none';
+        if (iframe) {
+            iframe.style.display = 'block';
+            iframe.src = dataUrl;
+        }
+    }
+    
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeFilePreviewModal() {
+    const modal = document.getElementById('filePreviewModal');
+    const iframe = document.getElementById('previewIframe');
+    const img = document.getElementById('previewImage');
+    if (modal) modal.style.display = 'none';
+    if (iframe) iframe.src = '';
+    if (img) img.src = '';
 }
     </script>
-    <!-- Modal Xem trước File Đính Kèm -->
+<!-- Modal Xem trước File Đính Kèm -->
 <div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center;">
     <div style="background: white; width: 85%; height: 85%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-        <div style="padding: 10px 15px; background: #343a40; color: white; display: flex; justify-content: space-between; align-items: center;">
-            <span id="previewModalTitle" style="font-weight: bold; font-size: 14px;">Xem file đính kèm</span>
-            <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">✕ Đóng</button>
+        <!-- Thanh tiêu đề và nút Tải / Đóng -->
+        <div style="padding: 10px 20px; background: #343a40; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <span id="previewModalTitle" style="font-weight: bold; font-size: 14px;">📄 Đang xem tài liệu</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a id="modalDownloadBtn" href="#" download="" style="background: #0d6efd; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;">📥 Tải file về máy</a>
+                <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">✕ Đóng</button>
+            </div>
         </div>
-        <div style="flex: 1; background: #e9ecef; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none;"></iframe>
+        <!-- Khung hiển thị nội dung (Ảnh hoặc PDF) -->
+        <div style="flex: 1; background: #e9ecef; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
+            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
             <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" />
         </div>
     </div>
