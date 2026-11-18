@@ -369,22 +369,11 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
   }
 });
 
+// --- API DUYỆT PHIẾU ĐÃ ĐƯỢC VÁ LỖI CHẶN VƯỢT CẤP & CHỐNG TRÙNG LẶP ---
 app.put('/api/requests/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
-        const { action, comment } = req.body; 
-        const reqDoc = await PaymentRequest.findById(id); 
-        if (!reqDoc) {
-            return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
-        }
-
-        let currentStatus = reqDoc.status || '';
-        let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
-
-        app.put('/api/requests/:id/approve', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { action, comment } = req.body; 
+        const { action, comment, userRole } = req.body; 
         const reqDoc = await PaymentRequest.findById(id); 
         if (!reqDoc) {
             return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
@@ -394,31 +383,34 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
         if (action === 'approve') {
+            // Kiểm tra nghiêm ngặt phân quyền tuần tự chống vượt cấp
             if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || !currentStatus) {
+                if (userRole && userRole !== 'tbp' && userRole !== 'admin') {
+                    return res.status(400).json({ error: 'Phiếu chưa được Trưởng Bộ phận duyệt, bạn không có quyền duyệt bước này!' });
+                }
                 reqDoc.status = '2. Chờ KT Thanh toán';
             } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
+                if (userRole && userRole !== 'kt_thanhtoan' && userRole !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Kế toán thanh toán duyệt!' });
+                }
                 reqDoc.status = '3. Chờ Kế toán trưởng';
             } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
+                if (userRole && userRole !== 'ktt' && userRole !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Kế toán trưởng duyệt!' });
+                }
                 reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
             } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
+                if (userRole && userRole !== 'pgd_sx' && userRole !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Phó GĐ sản xuất duyệt!' });
+                }
                 reqDoc.status = '4. Chờ Giám đốc';
             } else if (currentStatus.includes('4. Chờ Giám đốc')) {
+                if (userRole && userRole !== 'gd' && userRole !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
+                }
                 reqDoc.status = '5. Đã hoàn tất';
             }
             if (comment) reqDoc.comment = comment;
-        } else if (action === 'reject') {
-            reqDoc.status = 'Đã từ chối';
-            reqDoc.rejectReason = comment;
-        }
-
-        await reqDoc.save();
-        res.json({ message: 'Phê duyệt thành công bước hiện tại!', request: reqDoc });
-    } catch (err) {
-        console.error('Lỗi server khi duyệt:', err);
-        res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
-    }
-});
-
         } else if (action === 'reject') {
             reqDoc.status = 'Đã từ chối';
             reqDoc.rejectReason = comment;
