@@ -1074,19 +1074,19 @@ window.closeDetailModal = function() {
         const generalAttachments = req.attachments || [];
 
         if (req.details && req.details.length > 0) {
-            req.details.forEach(item => {
-                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : generalAttachments;
-                addRow({
-                    docNo: item.docNo,
-                    docDate: item.docDate,
-                    desc: item.desc,
-                    amount: item.amount,
-                    attachments: rowFiles
+                req.details.forEach(item => {
+                    const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
+                    addRow({
+                        docNo: item.docNo,
+                        docDate: item.docDate,
+                        desc: item.desc,
+                        amount: item.amount,
+                        attachments: rowFiles
+                    });
                 });
-            });
-        } else {
-            addRow();
-        }
+            } else {
+                addRow();
+            }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -1904,6 +1904,25 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
+function openFilePreview(dataUrl, fileName) {
+    try {
+        // Chuyển đổi dữ liệu base64/data thành Blob để ép trình duyệt mở xem trực tiếp
+        let arr = dataUrl.split(',');
+        let mime = arr[0].match(/:(.*?);/)[1];
+        let bstr = atob(arr[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        let blob = new Blob([u8arr], { type: mime });
+        let blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+    } catch (e) {
+        // Fallback nếu dữ liệu là dạng link bình thường
+        window.open(dataUrl, '_blank');
+    }
+}
     </script>
 </body>
 </html>
