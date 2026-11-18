@@ -538,17 +538,15 @@
         const desc = data.desc || '';
         const amount = data.amount !== undefined ? data.amount : '';
         
-        const rowFiles = data.attachments || [];
-        tr.dataset.filesJson = JSON.stringify(rowFiles);
-
-        let fileLinksHtml = '<span style="color: #6c757d; font-style: italic;">Chưa chọn file</span>';
-        if (rowFiles && rowFiles.length > 0) {
-            fileLinksHtml = rowFiles.map((file) => `
-                <a href="${file.data}" target="_blank" download="${file.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để tải/xem: ${file.name}">
-                    📎 ${file.name}
-                </a>
-            `).join('');
-        }
+        const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
+let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+if (rowFiles.length > 0) {
+    fileLinksHtml = rowFiles.map(f => `
+        <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem: ${f.name}">
+            📎 ${f.name}
+        </a>
+    `).join('');
+}
 
         tr.innerHTML = `
             <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
