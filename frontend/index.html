@@ -892,20 +892,35 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
         loadRequests();
     };
 
-   // --- 1. HÀM XỬ LÝ PHÊ DUYỆT CÓ HỘP THOẠI XÁC NHẬN & CHỐNG VƯỢT CẤP ---
-async function handleApproveAction(id, action = 'approve', comment = '') {
+// --- 1. HÀM XỬ LÝ PHÊ DUYỆT / TỪ CHỐI CÓ LẤY Ý KIẾN & CHỐNG VƯỢT CẤP ---
+async function handleApproveAction(id, action = 'approve') {
     const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
 
-    // 1. Hiển thị hộp thoại xác nhận lần nữa trước khi làm
+    // 1. Lấy ý kiến/lý do từ ô input trong Modal (nếu đang mở modal)
+    let userComment = '';
+    const commentInput = document.getElementById('approvalCommentInput');
+    if (commentInput && commentInput.value.trim() !== '') {
+        userComment = commentInput.value.trim();
+    } else {
+        // Nếu không mở modal mà bấm nút trực tiếp ngoài bảng, bật prompt hỏi ý kiến/lý do
+        if (action === 'reject') {
+            userComment = prompt('Vui lòng nhập lý do từ chối phiếu này:') || '';
+            if (!userComment.trim()) {
+                alert('Bạn cần nhập lý do từ chối phiếu!');
+                return; // Dừng lại nếu không nhập lý do từ chối
+            }
+        } else {
+            userComment = prompt('Nhập ý kiến phê duyệt (có thể để trống):') || '';
+        }
+    }
+
+    // 2. Hộp thoại xác nhận lần cuối
     const isConfirmed = confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`);
     if (!isConfirmed) {
         return; // Hủy thao tác nếu bấm Cancel
     }
 
-    const commentInput = document.getElementById('approvalCommentInput');
-    const userComment = commentInput ? commentInput.value : comment;
-
-    // 2. Lấy role của user hiện tại từ localStorage để gửi lên server kiểm tra quyền
+    // 3. Lấy role của user hiện tại từ localStorage để gửi lên server kiểm tra quyền chống vượt cấp
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
     try {
@@ -914,8 +929,8 @@ async function handleApproveAction(id, action = 'approve', comment = '') {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 action: action, 
-                comment: userComment,
-                userRole: currentUser.role // Quan trọng: Truyền role để Server chặn vượt cấp
+                comment: userComment, // Truyền chính xác ý kiến/lý do lên server
+                userRole: currentUser.role 
             })
         });
 
