@@ -858,24 +858,39 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
         loadRequests();
     };
 
-   // --- 1. HÀM XỬ LÝ PHÊ DUYỆT (ĐẶT Ở NGOÀI, ĐỘC LẬP TOÀN CỤC) ---
+   // --- 1. HÀM XỬ LÝ PHÊ DUYỆT CÓ HỘP THOẠI XÁC NHẬN & CHỐNG VƯỢT CẤP ---
 async function handleApproveAction(id, action = 'approve', comment = '') {
+    const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
+
+    // 1. Hiển thị hộp thoại xác nhận lần nữa trước khi làm
+    const isConfirmed = confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`);
+    if (!isConfirmed) {
+        return; // Hủy thao tác nếu bấm Cancel
+    }
+
     const commentInput = document.getElementById('approvalCommentInput');
     const userComment = commentInput ? commentInput.value : comment;
+
+    // 2. Lấy role của user hiện tại từ localStorage để gửi lên server kiểm tra quyền
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
     try {
         const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/approve`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: action, comment: userComment })
+            body: JSON.stringify({ 
+                action: action, 
+                comment: userComment,
+                userRole: currentUser.role // Quan trọng: Truyền role để Server chặn vượt cấp
+            })
         });
 
         const result = await response.json();
         if (response.ok) {
-            alert('Phê duyệt thành công!');
+            alert(`Thực hiện ${actionName} thành công!`);
             location.reload(); // Tải lại trang để cập nhật danh sách
         } else {
-            alert('Lỗi: ' + (result.error || 'Không thể phê duyệt'));
+            alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
         }
     } catch (err) {
         console.error('Lỗi kết nối:', err);
