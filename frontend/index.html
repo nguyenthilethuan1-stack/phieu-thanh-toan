@@ -744,18 +744,26 @@
 
                 let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
 
-                if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
-                    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
-                    if (!isKyThuat) s5 = 'mien';
-                } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Giám đốc')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
-                }
+if (rawStatus.toLowerCase().includes('từ chối')) {
+    // Nếu phiếu bị từ chối, bước Lập Phiếu đã xong, Trưởng BP hiển thị Từ chối, các bước sau vẫn đang chờ
+    s1 = 'duyet';
+    s2 = 'tu-choi';
+    s3 = 'cho';
+    s4 = 'cho';
+    s5 = isKyThuat ? 'cho' : 'mien';
+    s6 = 'cho';
+} else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
+    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
+    if (!isKyThuat) s5 = 'mien';
+} else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('4. Chờ Giám đốc')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
+}
 
                 let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
                 stepsHTML += renderStepBox('Lập Phiếu', s1);
