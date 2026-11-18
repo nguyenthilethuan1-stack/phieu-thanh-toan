@@ -412,8 +412,18 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             }
             if (comment) reqDoc.comment = comment;
         } else if (action === 'reject') {
-            reqDoc.status = 'Đã từ chối';
+            // Nhận diện chức vụ người từ chối để lưu trạng thái minh bạch
+            let roleTitle = 'Người duyệt';
+            if (userRole === 'tbp') roleTitle = 'Trưởng Bộ Phận';
+            else if (userRole === 'kt_thanhtoan') roleTitle = 'Kế Toán Thanh Toán';
+            else if (userRole === 'ktt') roleTitle = 'Kế Toán Trưởng';
+            else if (userRole === 'pgd_sx') roleTitle = 'Phó Giám Đốc';
+            else if (userRole === 'gd') roleTitle = 'Giám Đốc';
+            else if (userRole === 'admin') roleTitle = 'Admin';
+
+            reqDoc.status = `Đã từ chối (${roleTitle})`;
             reqDoc.rejectReason = comment;
+            if (comment) reqDoc.comment = comment;
         }
 
         await reqDoc.save();
