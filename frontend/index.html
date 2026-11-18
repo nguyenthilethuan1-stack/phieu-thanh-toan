@@ -930,14 +930,14 @@ window.showDetailModal = function(id) {
             const amt = item.amount || item.sotien || 0;
 
             const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
-            let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-            if (rowFiles.length > 0) {
-                fileLinksHtml = rowFiles.map(f => `
-                    <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem/tải: ${f.name}">
-                        📎 ${f.name}
-                    </a>
-                `).join('');
-            }
+let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+if (rowFiles.length > 0) {
+    fileLinksHtml = rowFiles.map(f => `
+        <a href="${f.data}" target="_blank" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem: ${f.name}">
+            📎 ${f.name}
+        </a>
+    `).join('');
+}
 
             detailsRowsHTML += `
                 <tr>
