@@ -1973,7 +1973,10 @@ function openFilePreview(dataUrl, fileName) {
             }
         }
 
-        if (modal) modal.style.display = 'flex';
+        // Bật Modal lên chính giữa màn hình ngay lập tức
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     } catch (err) {
         console.error('Lỗi hiển thị file:', err);
         alert('Không thể hiển thị trực tiếp. Đang tiến hành tải về máy...');
