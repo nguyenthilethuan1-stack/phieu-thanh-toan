@@ -781,9 +781,28 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
                 let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
 
 // 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa
-                let isReallyPending = rawStatus.includes('Chờ Trưởng Bộ phận') || rawStatus.includes('1. Chờ Trưởng Bộ phận');
+                const userDept = (currentUser.department || '').toLowerCase();
+                
+                // Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
+                let isWaitingTBP = rawStatus.includes('1. Chờ Trưởng Bộ phận') || rawStatus.includes('Chờ Trưởng Bộ phận') || (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.') && !rawStatus.includes('từ chối'));
+                let isWaitingKTTT = rawStatus.includes('2. Chờ KT Thanh toán');
+                let isWaitingKTT = rawStatus.includes('3. Chờ Kế toán trưởng');
+                let isWaitingPGD = rawStatus.includes('4. Chờ Phó GĐ');
+                let isWaitingGD = rawStatus.includes('4. Chờ Giám đốc');
 
-                if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien' && isPending) {
+                // Chỉ cho phép hiển thị nút Duyệt/Từ chối KHI VÀ CHỈ KHI đúng tài khoản VÀ đến ĐÚNG LƯỢT đang chờ
+                let canApprove = false;
+                if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien' && roleValue !== 'admin') {
+                    if ((roleValue.includes('truong') && !roleValue.includes('ke_toan')) && isWaitingTBP) canApprove = true;
+                    else if (roleValue.includes('thanhtoan') && isWaitingKTTT) canApprove = true;
+                    else if ((roleValue.includes('truong') && roleValue.includes('ke_toan')) && isWaitingKTT) canApprove = true;
+                    else if (roleValue.includes('pgd') && isWaitingPGD) canApprove = true;
+                    else if ((roleValue.includes('giamdoc') || roleValue.includes('gd')) && isWaitingGD) canApprove = true;
+                }
+
+                let isReallyPending = isWaitingTBP;
+
+                if (canApprove) {
                     actionButtonsHTML = `
                         <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
                             <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>

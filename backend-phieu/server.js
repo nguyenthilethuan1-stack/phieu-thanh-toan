@@ -394,11 +394,12 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
         }
 
-        if (action === 'approve') {
-            let currentStatus = reqDoc.status || '';
-            let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
+        let currentStatus = reqDoc.status || '';
+        let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
-            if (currentStatus.includes('Chờ Trưởng Bộ phận') || !currentStatus) {
+        if (action === 'approve') {
+            // Kiểm tra cực kỳ chặt chẽ từng bước để tuyệt đối không bị nhảy cóc
+            if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || currentStatus.includes('Chờ Trưởng Bộ phận') || !currentStatus) {
                 reqDoc.status = '2. Chờ KT Thanh toán';
             } 
             else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
@@ -415,8 +416,6 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                 reqDoc.status = '4. Chờ Giám đốc';
             } 
             else if (currentStatus.includes('4. Chờ Giám đốc')) {
-                reqDoc.status = '5. Đã hoàn tất';
-            } else {
                 reqDoc.status = '5. Đã hoàn tất';
             }
 
