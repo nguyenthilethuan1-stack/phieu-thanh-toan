@@ -599,9 +599,9 @@
             
             if (nameDiv) {
                 nameDiv.innerHTML = combinedFiles.map(f => `
-                    <a href="${f.data}" target="_blank" download="${f.name}" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để tải/xem: ${f.name}">
-                        📎 ${f.name}
-                    </a>
+                   <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;" title="Bấm để xem: ${f.name}">
+    📎 ${f.name}
+</a>
                 `).join('');
             }
         });
