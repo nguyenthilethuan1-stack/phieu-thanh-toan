@@ -1905,41 +1905,37 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 function openFilePreview(dataUrl, fileName) {
     if (!dataUrl) return;
     
-    const modal = document.getElementById('filePreviewModal');
-    const iframe = document.getElementById('previewIframe');
-    const img = document.getElementById('previewImage');
-    const title = document.getElementById('previewModalTitle');
-    
-    if (title) title.innerText = 'Đang xem: ' + (fileName || 'File đính kèm');
-    
-    // Kiểm tra nếu là hình ảnh thì hiển thị qua thẻ img, còn lại (PDF,...) hiển thị qua iframe
-    const lowerName = (fileName || '').toLowerCase();
-    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
-    
-    if (isImage) {
-        if (iframe) iframe.style.display = 'none';
-        if (img) {
-            img.style.display = 'block';
-            img.src = dataUrl;
-        }
-    } else {
-        if (img) img.style.display = 'none';
-        if (iframe) {
-            iframe.style.display = 'block';
-            iframe.src = dataUrl;
-        }
+    // Mở một cửa sổ mới với giao diện trình duyệt tích hợp sẵn thanh công cụ (Xem + Tải xuống)
+    let win = window.open('', '_blank');
+    if (!win) {
+        alert('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép pop-up để xem file!');
+        return;
     }
-    
-    if (modal) modal.style.display = 'flex';
-}
 
-function closeFilePreviewModal() {
-    const modal = document.getElementById('filePreviewModal');
-    const iframe = document.getElementById('previewIframe');
-    const img = document.getElementById('previewImage');
-    if (modal) modal.style.display = 'none';
-    if (iframe) iframe.src = '';
-    if (img) img.src = '';
+    win.document.write(`
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>${fileName || 'Xem file đính kèm'}</title>
+                <style>
+                    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #333; font-family: sans-serif; }
+                    .header { background: #222; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-bottom: 1px solid #444; }
+                    .header span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+                    .btn-download { background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; }
+                    .btn-download:hover { background: #0b5ed7; }
+                    .content { width: 1000%; height: calc(100vh - 45px); border: none; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <span>📄 Đang xem: <b>${fileName || 'Tài liệu'}</b></span>
+                    <a href="${dataUrl}" download="${fileName || 'tai-lieu'}" class="btn-download">📥 Tải xuống máy</a>
+                </div>
+                <embed src="${dataUrl}" type="application/pdf" class="content" />
+            </body>
+        </html>
+    `);
+    win.document.close();
 }
     </script>
     <!-- Modal Xem trước File Đính Kèm -->
