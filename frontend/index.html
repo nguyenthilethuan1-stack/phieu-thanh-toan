@@ -1917,15 +1917,8 @@ function openFilePreview(dataUrl, fileName) {
         return;
     }
 
-    const modal = document.getElementById('filePreviewModal');
-    const iframe = document.getElementById('previewIframe');
-    const img = document.getElementById('previewImage');
-    const title = document.getElementById('previewModalTitle');
-    const downloadBtn = document.getElementById('modalDownloadBtn');
-
-    if (title) title.innerText = '📄 Đang xem: ' + (fileName || 'Tài liệu đính kèm');
-
     try {
+        // 1. Chuyển đổi chuỗi Base64 Data URL thành Blob URL chuẩn xác
         let finalUrl = dataUrl;
         let mimeType = 'application/pdf';
 
@@ -1934,6 +1927,7 @@ function openFilePreview(dataUrl, fileName) {
             const mimeMatch = parts[0].match(/:(.*?);/);
             if (mimeMatch) mimeType = mimeMatch[1];
 
+            // Nếu chuỗi gốc bị lưu thành octet-stream, ép lại đúng định dạng dựa theo đuôi tên file
             const lowerName = (fileName || '').toLowerCase();
             if (mimeType === 'application/octet-stream' || !mimeType) {
                 if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
@@ -1951,32 +1945,45 @@ function openFilePreview(dataUrl, fileName) {
             finalUrl = URL.createObjectURL(blob);
         }
 
-        if (downloadBtn) {
-            downloadBtn.href = finalUrl;
-            downloadBtn.download = fileName || 'tai-lieu';
+        // 2. Mở tab mới với thanh công cụ Xem + Tải xuống
+        const win = window.open('', '_blank');
+        if (!win) {
+            alert('Trình duyệt đang chặn cửa sổ pop-up. Vui lòng cho phép pop-up!');
+            return;
         }
 
-        const lowerName = (fileName || '').toLowerCase();
-        const isImage = mimeType.startsWith('image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+        const isImage = mimeType.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/i.test(fileName || '');
+        const viewerTag = isImage
+            ? `<div style="display:flex; justify-content:center; align-items:center; height:calc(100vh - 46px); overflow:auto;"><img src="${finalUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" /></div>`
+            : `<iframe src="${finalUrl}" style="width:100%; height:calc(100vh - 46px); border:none; background:white;"></iframe>`;
 
-        if (isImage) {
-            if (iframe) iframe.style.display = 'none';
-            if (img) {
-                img.style.display = 'block';
-                img.src = finalUrl;
-            }
-        } else {
-            if (img) img.style.display = 'none';
-            if (iframe) {
-                iframe.style.display = 'block';
-                iframe.src = finalUrl;
-            }
-        }
-
-        if (modal) modal.style.display = 'flex';
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${fileName || 'Xem tài liệu'}</title>
+                    <style>
+                        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2b2b2b; font-family: Arial, sans-serif; }
+                        .toolbar { background: #1f1f1f; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 46px; box-sizing: border-box; border-bottom: 1px solid #444; }
+                        .file-title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75%; }
+                        .btn-dl { background: #0d6efd; color: #fff; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold; }
+                        .btn-dl:hover { background: #0b5ed7; }
+                    </style>
+                </head>
+                <body>
+                    <div class="toolbar">
+                        <span class="file-title">📄 <b>${fileName || 'Tài liệu đính kèm'}</b></span>
+                        <a href="${finalUrl}" download="${fileName || 'tai-lieu'}" class="btn-dl">📥 Tải xuống máy</a>
+                    </div>
+                    ${viewerTag}
+                </body>
+            </html>
+        `);
+        win.document.close();
     } catch (err) {
         console.error('Lỗi hiển thị file:', err);
-        alert('Không thể hiển thị trực tiếp. Đang tiến hành tải về máy...');
+        alert('Không thể mở trực tiếp file này. Đang tiến hành tải về máy...');
         const a = document.createElement('a');
         a.href = dataUrl;
         a.download = fileName || 'file-dinh-kem';
