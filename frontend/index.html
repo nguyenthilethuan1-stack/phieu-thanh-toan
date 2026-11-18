@@ -781,6 +781,8 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
                 let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
 
 // 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa
+                let isReallyPending = rawStatus.includes('Chờ Trưởng Bộ phận') || rawStatus.includes('1. Chờ Trưởng Bộ phận');
+
                 if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien' && isPending) {
                     actionButtonsHTML = `
                         <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
@@ -789,7 +791,7 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
                             <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
                         </div>
                     `;
-                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isPending) {
+                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
                     actionButtonsHTML = `
                         <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
                             <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
