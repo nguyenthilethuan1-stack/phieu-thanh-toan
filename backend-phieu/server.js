@@ -68,21 +68,26 @@ async function resolveRequestCode(department, preferredCode) {
 
 async function fixOldRequests() {
   try {
+    // Tìm tất cả các phiếu chưa có requestCode hoặc requestCode đang bị rỗng
     const requests = await PaymentRequest.find({
       $or: [
         { requestCode: { $exists: false } },
         { requestCode: null },
         { requestCode: '' }
       ]
-    }).sort({ submittedAt: 1, _id: 1 });
+    }).sort({ submittedAt: 1, createdAt: 1, _id: 1 });
 
     for (const req of requests) {
       const dateObj = req.submittedAt || req.createdAt || new Date();
+      // Gọi hàm cấp phát mã theo đúng thứ tự tăng dần trong tháng của phòng ban đó
       req.requestCode = await allocateNextRequestCode(req.department, dateObj);
+      
+      // Lưu cố định vào MongoDB để từ lần sau không cần quét lại nữa
       await req.save();
     }
+    
     if (requests.length > 0) {
-      console.log(`🛠️ Đã bổ sung mã phiếu cho ${requests.length} phiếu chưa có mã!`);
+      console.log(`🛠️ Đã sinh và lưu cố định mã phiếu cho ${requests.length} phiếu cũ thành công!`);
     }
   } catch (e) {
     console.log('Fix old requests error:', e);
@@ -287,7 +292,7 @@ app.put('/api/requests/:id', async (req, res) => {
   }
 });
 
-// 8. API LẤY DANH SÁCH PHIẾU THANH TOÁN (Đã tự động bù mã cho phiếu cũ nếu bị trống)
+// 8. API LẤY DANH SÁCH PHIẾU THANH TOÁN
 app.get('/api/requests', async (req, res) => {
     try {
         const { role, department, username, status, departmentFilter } = req.query;
@@ -325,27 +330,13 @@ app.get('/api/requests', async (req, res) => {
             }
         }
 
-        let requests = await PaymentRequest.find(query).sort({ submittedAt: -1, createdAt: -1 }).lean();
-
-        // 🚀 TỰ ĐỘNG BÙ ĐẮP MÃ CHO CÁC PHIẾU CŨ BỊ TRỐNG NGAY LÚC HIỂN THỊ
-        for (let reqDoc of requests) {
-            if (!reqDoc.requestCode || reqDoc.requestCode.trim() === '') {
-                const dept = reqDoc.department || 'Phòng Kỹ Thuật';
-                const dateObj = reqDoc.submittedAt || new Date();
-                const prefix = departmentPrefix(dept);
-                const dateCode = yearMonthInVietnam(dateObj);
-                // Gán tạm một mã hiển thị chuẩn để không bị trắng cột
-                reqDoc.requestCode = `${prefix}-${dateCode}-01`;
-            }
-        }
-
+        const requests = await PaymentRequest.find(query).sort({ submittedAt: -1, createdAt: -1 }).lean();
         res.json(requests);
     } catch (err) {
         console.error('Lỗi API requests:', err);
         res.status(500).json({ error: err.message });
     }
 });
-
 // 9. API CẬP NHẬT THÔNG TIN TÀI KHOẢN
 app.put('/api/users/:id', async (req, res) => {
   try {
