@@ -1809,7 +1809,7 @@ window.deleteUser = async function(userId) {
                     });
                 });
 
-                let allAttachments = [...currentEditingAttachments, ...selectedFilesData];
+                let allAttachments = [...currentEditingAttachments, ...selectedFiles];
                 const payload = {
                     requestCode: document.getElementById('requestCode').value,
                     title: document.getElementById('title').value,
