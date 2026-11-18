@@ -774,33 +774,37 @@
 
                 if (rawStatus.toLowerCase().includes('từ chối')) {
                     s1 = 'duyet';
-                    // Xác định chính xác bước nào bị từ chối dựa vào chuỗi trạng thái từ server
-                    if (rawStatus.includes('Trưởng Bộ Phận')) {
+                    // Sử dụng phương pháp kiểm tra linh hoạt không phân biệt hoa thường để bắt chính xác người từ chối
+                    let lowerStatus = rawStatus.toLowerCase();
+                    
+                    if (lowerStatus.includes('trưởng bộ phận') || lowerStatus.includes('tbp')) {
                         s2 = 'tu-choi';
                         s3 = s4 = s5 = s6 = 'cho';
-                    } else if (rawStatus.includes('Kế Toán Thanh Toán')) {
+                    } else if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('thanh toán')) {
                         s2 = 'duyet'; 
                         s3 = 'tu-choi';
                         s4 = s5 = s6 = 'cho';
-                    } else if (rawStatus.includes('Kế Toán Trưởng')) {
+                    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
                         s2 = 'duyet'; 
                         s3 = 'duyet'; 
                         s4 = 'tu-choi';
                         s5 = s6 = 'cho';
-                    } else if (rawStatus.includes('Phó Giám Đốc')) {
+                    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
                         s2 = 'duyet'; 
                         s3 = 'duyet'; 
                         s4 = 'duyet'; 
                         s5 = 'tu-choi';
                         s6 = 'cho';
-                    } else if (rawStatus.includes('Giám Đốc')) {
+                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
                         s2 = 'duyet'; 
                         s3 = 'duyet'; 
                         s4 = 'duyet'; 
                         s5 = isKyThuat ? 'duyet' : 'mien'; 
                         s6 = 'tu-choi';
                     } else {
-                        s2 = 'tu-choi'; // Mặc định nếu không khớp rõ tên chức vụ
+                        // Trường hợp tổng quát nếu chỉ chứa chuỗi "từ chối" chung chung
+                        s2 = 'tu-choi'; 
+                        s3 = s4 = s5 = s6 = 'cho';
                     }
                 } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
                     s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
@@ -824,7 +828,7 @@
                 stepsHTML += renderStepBox('Giám Đốc', s6);
                 stepsHTML += `</div>`;
 
-               let maPhieuHienThi = req.requestCode || '';
+                let maPhieuHienThi = req.requestCode || '';
 
                 let actionButtonsHTML = '';
                 const roleValue = (currentUser.role || '').toLowerCase();
