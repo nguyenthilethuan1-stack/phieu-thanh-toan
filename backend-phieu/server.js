@@ -1,20 +1,26 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Đảm bảo thư mục uploads tồn tại
+const app = express();
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ limit: '200mb', extended: true }));
+app.use(cors());
+
+// --- CẤU HÌNH THƯ MỤC UPLOAD VẬT LÝ ---
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Cấu hình nơi lưu và tên file vật lý trên server
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Đặt tên file bằng timestamp + tên gốc (được decode tiếng Việt an toàn)
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
         cb(null, uniqueSuffix + '-' + originalName);
@@ -24,14 +30,6 @@ const upload = multer({ storage: storage });
 
 // Cho phép truy cập công khai thư mục uploads qua đường dẫn tĩnh HTTP
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-
-const app = express();
-app.use(express.json({ limit: '200mb' }));
-app.use(express.urlencoded({ limit: '200mb', extended: true }));
-app.use(cors());
 
 // Chuỗi kết nối MongoDB Atlas
 const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rmwmya3.mongodb.net/phieu_thanh_toan?retryWrites=true&w=majority';
@@ -39,7 +37,6 @@ const MONGO_URI = 'mongodb+srv://nguyenthilethuan1_db_user:Thuan1210@cluster0.rm
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ Đã kết nối MongoDB Atlas thành công!');
-    // Chỉ bổ sung mã cho phiếu chưa có requestCode, không ghi đè mã đã sinh lúc lập phiếu
     fixOldRequests();
   })
   .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
@@ -82,7 +79,6 @@ async function allocateNextRequestCode(department, date = new Date()) {
   return `${prefix}-${dateCode}-${String(max + 1).padStart(2, '0')}`;
 }
 
-// Giữ đúng mã đã sinh trên form lúc lập phiếu nếu còn trống; nếu trùng thì lấy số tiếp theo.
 async function resolveRequestCode(department, preferredCode) {
   const preferred = String(preferredCode || '').trim();
   if (isGeneratedRequestCode(preferred)) {
@@ -94,7 +90,6 @@ async function resolveRequestCode(department, preferredCode) {
 
 async function fixOldRequests() {
   try {
-    // Tìm tất cả các phiếu chưa có requestCode hoặc requestCode đang bị rỗng
     const requests = await PaymentRequest.find({
       $or: [
         { requestCode: { $exists: false } },
@@ -105,22 +100,14 @@ async function fixOldRequests() {
 
     for (const req of requests) {
       const dateObj = req.submittedAt || req.createdAt || new Date();
-      // Gọi hàm cấp phát mã theo đúng thứ tự tăng dần trong tháng của phòng ban đó
       req.requestCode = await allocateNextRequestCode(req.department, dateObj);
-      
-      // Lưu cố định vào MongoDB để từ lần sau không cần quét lại nữa
       await req.save();
-    }
-    
-    if (requests.length > 0) {
-      console.log(`🛠️ Đã sinh và lưu cố định mã phiếu cho ${requests.length} phiếu cũ thành công!`);
     }
   } catch (e) {
     console.log('Fix old requests error:', e);
   }
 }
 
-// --- DANH MỤC PHÒNG BAN CHUẨN ---
 const STANDARD_DEPARTMENTS = [
   'Phòng Kỹ Thuật',
   'Phòng Kế Toán',
@@ -130,8 +117,6 @@ const STANDARD_DEPARTMENTS = [
 ];
 
 // --- SCHEMAS ---
-
-// 1. Schema Người dùng
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -146,7 +131,6 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// 2. Schema Chi tiết khoản mục thanh toán
 const paymentDetailSchema = new mongoose.Schema({
   docNo: { type: String, default: '' },
   docDate: { type: String, default: '' },
@@ -159,13 +143,11 @@ const paymentDetailSchema = new mongoose.Schema({
   }]
 }, { _id: false });
 
-// 3. Schema File đính kèm chung
 const attachmentSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   data: { type: String, default: '' }
 }, { _id: false });
 
-// 4. Schema Phiếu đề nghị thanh toán (Đã bổ sung đầy đủ các trường tránh lỗi mất dữ liệu)
 const paymentRequestSchema = new mongoose.Schema({
   requestCode: { type: String, default: '' },
   title: { type: String, required: true },
@@ -180,21 +162,18 @@ const paymentRequestSchema = new mongoose.Schema({
   status: { type: String, default: '1. Chờ Trưởng Bộ phận duyệt' },
   paidStatus: { type: String, default: 'Chờ thanh toán' },
   paidDate: { type: String, default: '' },
-  comment: { type: String, default: '' },       // Lưu ý kiến duyệt
-  rejectReason: { type: String, default: '' }, // Lưu lý do từ chối
+  comment: { type: String, default: '' },
+  rejectReason: { type: String, default: '' },
   createdBy: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now }
 });
 const PaymentRequest = mongoose.model('PaymentRequest', paymentRequestSchema);
 
 // --- API HỆ THỐNG ---
-
-// 0. API LẤY DANH MỤC PHÒNG BAN CHUẨN
 app.get('/api/departments', (req, res) => {
   res.json(STANDARD_DEPARTMENTS);
 });
 
-// API Đăng nhập
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -209,7 +188,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 2. API LẤY DANH SÁCH USER
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -219,7 +197,6 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// 3. API TẠO USER MỚI
 app.post('/api/users', async (req, res) => {
   try {
     const { username, password, fullName, department, role, managerId } = req.body;
@@ -235,7 +212,6 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// 4. API XÓA USER
 app.delete('/api/users/:id', async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -245,36 +221,28 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// 5. API đổi mật khẩu trực tiếp
 app.put('/api/users/:username/change-password', async (req, res) => {
   try {
     const { username } = req.params;
     const { oldPassword, newPassword } = req.body;
-
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({ error: 'Không tìm thấy người dùng!' });
     }
-
     if (user.password !== oldPassword) {
       return res.status(400).json({ error: 'Mật khẩu cũ không chính xác!' });
     }
-
     user.password = newPassword;
     await user.save();
-
     res.json({ message: 'Đổi mật khẩu thành công!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 6. API TẠO PHIẾU THANH TOÁN MỚI (Đã khắc phục lỗi sinh mã tự động an toàn khi nhiều user cùng tạo)
 app.post('/api/requests', async (req, res) => {
   try {
     const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy, requestCode: preferredCode } = req.body;
-
-    // Mã trên danh sách chính là mã sinh ra lúc lập phiếu (ô Số phiếu trên form)
     const requestCode = await resolveRequestCode(department, preferredCode);
 
     const newRequest = new PaymentRequest({
@@ -294,7 +262,6 @@ app.post('/api/requests', async (req, res) => {
   }
 });
 
-// 7. API SỬA NỘI DUNG PHIẾU
 app.put('/api/requests/:id', async (req, res) => {
   try {
     const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments } = req.body;
@@ -302,7 +269,6 @@ app.put('/api/requests/:id', async (req, res) => {
     if (!existingRequest) {
       return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
     }
-
     if (!existingRequest.status.includes('1. Chờ Trưởng Bộ phận')) {
       return res.status(400).json({ error: 'Phiếu đã được cấp trên duyệt, không thể chỉnh sửa!' });
     }
@@ -318,7 +284,6 @@ app.put('/api/requests/:id', async (req, res) => {
   }
 });
 
-// 8. API LẤY DANH SÁCH PHIẾU THANH TOÁN
 app.get('/api/requests', async (req, res) => {
     try {
         const { role, department, username, status, departmentFilter } = req.query;
@@ -363,24 +328,20 @@ app.get('/api/requests', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// 9. API CẬP NHẬT THÔNG TIN TÀI KHOẢN
+
 app.put('/api/users/:id', async (req, res) => {
   try {
     const { username, fullName, department, role, managerId, password } = req.body;
-
     if (username) {
       const existingUser = await User.findOne({ username, _id: { $ne: req.params.id } });
       if (existingUser) {
         return res.status(400).json({ error: 'Tên đăng nhập này đã tồn tại ở tài khoản khác!' });
       }
     }
-
     let updateData = { username, fullName, department, role, managerId };
-    
     if (password && password.trim() !== '') {
       updateData.password = password;
     }
-
     const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!updatedUser) {
       return res.status(404).json({ error: 'Không tìm thấy tài khoản!' });
@@ -391,7 +352,6 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-// 10. API CẬP NHẬT TRẠNG THÁI THANH TOÁN
 app.put('/api/requests/:id/paid-status', async (req, res) => {
   try {
     const { paidStatus, paidDate } = req.body;
@@ -409,12 +369,10 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
   }
 });
 
-// --- API XỬ LÝ PHÊ DUYỆT TỪNG BƯỚC MỘT ---
 app.put('/api/requests/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
         const { action, comment } = req.body; 
-
         const reqDoc = await PaymentRequest.findById(id); 
         if (!reqDoc) {
             return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
@@ -424,27 +382,17 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
         if (action === 'approve') {
-            // Kiểm tra cực kỳ chặt chẽ từng bước để tuyệt đối không bị nhảy cóc
-            if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || currentStatus.includes('Chờ Trưởng Bộ phận') || !currentStatus) {
+            if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || !currentStatus) {
                 reqDoc.status = '2. Chờ KT Thanh toán';
-            } 
-            else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
+            } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
                 reqDoc.status = '3. Chờ Kế toán trưởng';
-            } 
-            else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
-                if (isKyThuat) {
-                    reqDoc.status = '4. Chờ Phó GĐ';
-                } else {
-                    reqDoc.status = '4. Chờ Giám đốc';
-                }
-            } 
-            else if (currentStatus.includes('4. Chờ Phó GĐ')) {
+            } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
+                reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
+            } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
                 reqDoc.status = '4. Chờ Giám đốc';
-            } 
-            else if (currentStatus.includes('4. Chờ Giám đốc')) {
+            } else if (currentStatus.includes('4. Chờ Giám đốc')) {
                 reqDoc.status = '5. Đã hoàn tất';
             }
-
             if (comment) reqDoc.comment = comment;
         } else if (action === 'reject') {
             reqDoc.status = 'Đã từ chối';
@@ -458,29 +406,27 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
     }
 });
+
 // API Upload file lẻ trả về đường dẫn URL công khai
 app.post('/api/upload', upload.array('files'), (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
-            return.status(400).json({ error: 'Không có file nào được tải lên!' });
+            return res.status(400).json({ error: 'Không có file nào được tải lên!' });
         }
-        
-        // Trả về danh sách các đường dẫn URL tuyệt đối tới file trên server
         const fileUrls = req.files.map(file => {
             const baseUrl = `${req.protocol}://${req.get('host')}`;
             return {
                 name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
-                data: `${baseUrl}/uploads/${file.filename}` // Đây là URL HTTP thực sự thay vì chuỗi base64!
+                data: `${baseUrl}/uploads/${file.filename}`
             };
         });
-
         res.json({ success: true, files: fileUrls });
     } catch (err) {
         console.error('Lỗi upload file:', err);
         res.status(500).json({ error: err.message });
     }
 });
-// XÓA PHIẾU
+
 app.delete('/api/requests/:id', async (req, res) => {
   try {
     await PaymentRequest.findByIdAndDelete(req.params.id);
@@ -490,7 +436,6 @@ app.delete('/api/requests/:id', async (req, res) => {
   }
 });
 
-// --- KHỞI TẠO TÀI KHOẢN MẪU & ADMIN ---
 async function seedUsers() {
   try {
     const defaultUsers = [
@@ -503,20 +448,14 @@ async function seedUsers() {
       { username: 'gd1', password: '123', fullName: 'Hoàng Văn Giám Đốc', department: 'Ban Giám Đốc', role: 'gd', managerId: '' }
     ];
     for (let u of defaultUsers) {
-      await User.findOneAndUpdate(
-        { username: u.username },
-        u,
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+      await User.findOneAndUpdate({ username: u.username }, u, { upsert: true, new: true, setDefaultsOnInsert: true });
     }
-    console.log('🌱 Đã đồng bộ tài khoản mẫu và Admin thành công!');
   } catch (err) {
     console.error('Lỗi khởi tạo tài khoản:', err.message);
   }
 }
 seedUsers();
 
-// --- LẮNG NGHE CỔNG SERVER ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại cổng http://localhost:${PORT}`);
