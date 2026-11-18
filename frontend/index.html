@@ -1939,6 +1939,8 @@ function openFilePreview(dataUrl, fileName) {
                 if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
                 else if (lowerName.endsWith('.png')) mimeType = 'image/png';
                 else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
+                else if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                else if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
             }
 
             const byteCharacters = atob(parts[1]);
@@ -1958,14 +1960,25 @@ function openFilePreview(dataUrl, fileName) {
 
         const lowerName = (fileName || '').toLowerCase();
         const isImage = mimeType.startsWith('image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+        const isOfficeDoc = lowerName.endsWith('.doc') || lowerName.endsWith('.docx') || lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx');
 
         if (isImage) {
+            // Trường hợp là ảnh: Bật thẻ img, ẩn iframe
             if (iframe) iframe.style.display = 'none';
             if (img) {
                 img.style.display = 'block';
                 img.src = finalUrl;
             }
+        } else if (isOfficeDoc) {
+            // Trường hợp là file Word/Excel: Thông báo trực quan và gợi ý bấm tải xuống vì Office không view trực tiếp trên iframe web được
+            if (img) img.style.display = 'none';
+            if (iframe) {
+                iframe.style.display = 'block';
+                // Sử dụng Google Docs Viewer nhúng để hỗ trợ xem file Office trực tuyến ngay trên web!
+                iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(finalUrl)}&embedded=true`;
+            }
         } else {
+            // Trường hợp là PDF hoặc định dạng khác
             if (img) img.style.display = 'none';
             if (iframe) {
                 iframe.style.display = 'block';
@@ -1973,7 +1986,7 @@ function openFilePreview(dataUrl, fileName) {
             }
         }
 
-        // Bật Modal lên chính giữa màn hình ngay lập tức
+        // Kích hoạt hiển thị Modal trên giao diện
         if (modal) {
             modal.style.display = 'flex';
         }
