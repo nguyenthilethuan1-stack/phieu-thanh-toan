@@ -1903,45 +1903,21 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
     }
 });
 function openFilePreview(dataUrl, fileName) {
-    try {
-        if (!dataUrl) return;
-
-        // Mở trước một cửa sổ trống trên trình duyệt để tránh bị chặn pop-up
-        let win = window.open('', '_blank');
-        if (!win) {
-            alert('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép pop-up cho trang web này!');
-            return;
-        }
-
-        // Kiểm tra xem dữ liệu có phải dạng base64 data url không
-        if (dataUrl.startsWith('data:')) {
-            let arr = dataUrl.split(',');
-            let mimeMatch = arr[0].match(/:(.*?);/);
-            let mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-            let bstr = atob(arr[1]);
-            let n = bstr.length;
-            let u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            let blob = new Blob([u8arr], { type: mime });
-            let blobUrl = URL.createObjectURL(blob);
-
-            // Gói trực tiếp vào thẻ embed/iframe của tab mới mở để xem trực tiếp
-            win.document.write(`
-                <html>
-                    <head><title>${fileName || 'Xem file'}</title></head>
-                    <body style="margin:0; background:#555; display:flex; justify-content:center; align-items:center; height:100vh;">
-                        <embed src="${blobUrl}" type="${mime}" style="width:100%; height:100%;" />
-                    </body>
-                </html>
-            `);
-            win.document.close();
-        } else {
-            win.location.href = dataUrl;
-        }
-    } catch (e) {
-        console.error('Lỗi hiển thị file:', e);
+    if (!dataUrl) return;
+    
+    // Nếu là dạng dữ liệu gốc, ta tạo một iframe ẩn hoặc dùng dịch vụ Google Viewer để hiển thị thẳng trên web
+    if (dataUrl.startsWith('data:')) {
+        let w = window.open('', '_blank');
+        w.document.write(`
+            <html>
+                <head><title>${fileName || 'Xem file'}</title></head>
+                <body style="margin:0; background:#333; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+                    <iframe src="${dataUrl}" style="width:90%; height:95%; border:none; background:white;"></iframe>
+                </body>
+            </html>
+        `);
+        w.document.close();
+    } else {
         window.open(dataUrl, '_blank');
     }
 }
