@@ -539,14 +539,10 @@
         const amount = data.amount !== undefined ? data.amount : '';
         
         const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
-        let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-        if (rowFiles.length > 0) {
-            fileLinksHtml = rowFiles.map(f => `
-                <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; cursor: pointer;">
-    📎 ${f.name}
-</a>
-            `).join('');
-        }
+let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+if (rowFiles.length > 0) {
+    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
+}
 
         tr.innerHTML = `
             <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
@@ -927,14 +923,10 @@ window.showDetailModal = function(id) {
             const desc = item.desc || item.description || item.diengiai || '';
             const amt = item.amount || item.sotien || 0;
 
-            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : (req.attachments || []);
+            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
 let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
 if (rowFiles.length > 0) {
-    fileLinksHtml = rowFiles.map(f => `
-        <a href="${f.data}" target="_blank" style="color: #0d6efd; text-decoration: underline; display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="Bấm để xem: ${f.name}">
-            📎 ${f.name}
-        </a>
-    `).join('');
+    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
 }
 
             detailsRowsHTML += `
@@ -1911,92 +1903,79 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
-function openFilePreview(dataUrl, fileName) {
-    if (!dataUrl || dataUrl === 'undefined' || dataUrl === '') {
-        alert('Không tìm thấy dữ liệu của file đính kèm này!');
+// Biến lưu danh sách file đang được mở trong modal
+let currentModalFiles = [];
+let currentFileIndex = 0;
+
+function openFilePreview(filesInput, selectedIndex = 0) {
+    let filesList = [];
+    
+    // Xử lý linh hoạt: nhận vào 1 file đơn lẻ hoặc một mảng nhiều file
+    if (typeof filesInput === 'string') {
+        filesList = [{ name: arguments[1] || 'Tài liệu', data: filesInput }];
+    } else if (Array.isArray(filesInput)) {
+        filesList = filesInput;
+    }
+
+    if (!filesList || filesList.length === 0) {
+        alert('Không tìm thấy file đính kèm!');
         return;
     }
 
+    currentModalFiles = filesList;
+    currentFileIndex = selectedIndex;
+    renderCurrentModalFile();
+
+    // Hiển thị Modal
     const modal = document.getElementById('filePreviewModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function renderCurrentModalFile() {
+    const file = currentModalFiles[currentFileIndex];
+    if (!file) return;
+
     const iframe = document.getElementById('previewIframe');
     const img = document.getElementById('previewImage');
     const title = document.getElementById('previewModalTitle');
     const downloadBtn = document.getElementById('modalDownloadBtn');
+    const tabsContainer = document.getElementById('modalFilesTabs');
 
-    if (title) title.innerText = '📄 Đang xem: ' + (fileName || 'Tài liệu đính kèm');
+    if (title) title.innerText = `📄 Đang xem: ${file.name}`;
+    if (downloadBtn) {
+        downloadBtn.href = file.data;
+        downloadBtn.download = file.name || 'tai-lieu';
+    }
 
-    try {
-        let finalUrl = dataUrl;
-        let mimeType = 'application/pdf';
-
-        if (dataUrl.startsWith('data:')) {
-            const parts = dataUrl.split(',');
-            const mimeMatch = parts[0].match(/:(.*?);/);
-            if (mimeMatch) mimeType = mimeMatch[1];
-
-            const lowerName = (fileName || '').toLowerCase();
-            if (mimeType === 'application/octet-stream' || !mimeType) {
-                if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
-                else if (lowerName.endsWith('.png')) mimeType = 'image/png';
-                else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
-                else if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                else if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-            }
-
-            const byteCharacters = atob(parts[1]);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: mimeType });
-            finalUrl = URL.createObjectURL(blob);
-        }
-
-        if (downloadBtn) {
-            downloadBtn.href = finalUrl;
-            downloadBtn.download = fileName || 'tai-lieu';
-        }
-
-        const lowerName = (fileName || '').toLowerCase();
-        const isImage = mimeType.startsWith('image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
-        const isOfficeDoc = lowerName.endsWith('.doc') || lowerName.endsWith('.docx') || lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx');
-
-        if (isImage) {
-            // Trường hợp là ảnh: Bật thẻ img, ẩn iframe
-            if (iframe) iframe.style.display = 'none';
-            if (img) {
-                img.style.display = 'block';
-                img.src = finalUrl;
-            }
-        } else if (isOfficeDoc) {
-            // Trường hợp là file Word/Excel: Thông báo trực quan và gợi ý bấm tải xuống vì Office không view trực tiếp trên iframe web được
-            if (img) img.style.display = 'none';
-            if (iframe) {
-                iframe.style.display = 'block';
-                // Sử dụng Google Docs Viewer nhúng để hỗ trợ xem file Office trực tuyến ngay trên web!
-                iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(finalUrl)}&embedded=true`;
-            }
+    // Tạo các tab chuyển đổi nếu có từ 2 file trở lên
+    if (tabsContainer) {
+        if (currentModalFiles.length > 1) {
+            tabsContainer.innerHTML = currentModalFiles.map((f, idx) => `
+                <button type="button" onclick="currentFileIndex = ${idx}; renderCurrentModalFile();" 
+                    style="background: ${idx === currentFileIndex ? '#0d6efd' : '#444'}; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                    File ${idx + 1}: ${f.name}
+                </button>
+            `).join('');
         } else {
-            // Trường hợp là PDF hoặc định dạng khác
-            if (img) img.style.display = 'none';
-            if (iframe) {
-                iframe.style.display = 'block';
-                iframe.src = finalUrl;
-            }
+            tabsContainer.innerHTML = '';
         }
+    }
 
-        // Kích hoạt hiển thị Modal trên giao diện
-        if (modal) {
-            modal.style.display = 'flex';
+    const lowerName = (file.name || '').toLowerCase();
+    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp');
+
+    if (isImage) {
+        if (iframe) iframe.style.display = 'none';
+        if (img) {
+            img.style.display = 'block';
+            img.src = file.data;
         }
-    } catch (err) {
-        console.error('Lỗi hiển thị file:', err);
-        alert('Không thể hiển thị trực tiếp. Đang tiến hành tải về máy...');
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = fileName || 'file-dinh-kem';
-        a.click();
+    } else {
+        if (img) img.style.display = 'none';
+        if (iframe) {
+            iframe.style.display = 'block';
+            iframe.src = file.data;
+        }
     }
 }
 
@@ -2009,21 +1988,25 @@ function closeFilePreviewModal() {
     if (img) img.src = '';
 }
     </script>
-<!-- Modal Xem trước File Đính Kèm -->
-<div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center;">
-    <div style="background: white; width: 85%; height: 85%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-        <!-- Thanh tiêu đề và nút Tải / Đóng -->
-        <div style="padding: 10px 20px; background: #343a40; color: white; display: flex; justify-content: space-between; align-items: center;">
-            <span id="previewModalTitle" style="font-weight: bold; font-size: 14px;">📄 Đang xem tài liệu</span>
+<!-- Modal Xem File Chuyên Nghiệp -->
+<div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
+    <div style="background: #1e1e1e; width: 90%; height: 90%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <!-- Thanh tiêu đề phía trên -->
+        <div style="padding: 12px 20px; background: #2d2d2d; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="previewModalTitle" style="font-weight: bold; font-size: 14px; color: #fff;">📄 Xem tài liệu đính kèm</span>
+                <!-- Khu vực hiển thị các tab file nếu có nhiều file -->
+                <div id="modalFilesTabs" style="display: flex; gap: 8px;"></div>
+            </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <a id="modalDownloadBtn" href="#" download="" style="background: #0d6efd; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;">📥 Tải file về máy</a>
-                <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">✕ Đóng</button>
+                <a id="modalDownloadBtn" href="#" download="" style="background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;">📥 Tải về máy</a>
+                <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">✕ Đóng</button>
             </div>
         </div>
-        <!-- Khung hiển thị nội dung (Ảnh hoặc PDF) -->
-        <div style="flex: 1; background: #e9ecef; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
-            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
-            <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" />
+        <!-- Khung hiển thị nội dung chính -->
+        <div style="flex: 1; background: #262626; display: flex; justify-content: center; align-items: center; overflow: auto; position: relative; padding: 20px;">
+            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none; background: white; display: none; border-radius: 4px;"></iframe>
+            <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; display: none;" />
         </div>
     </div>
 </div>
