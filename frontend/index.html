@@ -1912,39 +1912,76 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
     }
 });
 function openFilePreview(dataUrl, fileName) {
-    if (!dataUrl) return;
-    
+    if (!dataUrl || dataUrl === 'undefined' || dataUrl === '') {
+        alert('Không tìm thấy dữ liệu của file đính kèm này!');
+        return;
+    }
+
     const modal = document.getElementById('filePreviewModal');
     const iframe = document.getElementById('previewIframe');
     const img = document.getElementById('previewImage');
     const title = document.getElementById('previewModalTitle');
     const downloadBtn = document.getElementById('modalDownloadBtn');
-    
+
     if (title) title.innerText = '📄 Đang xem: ' + (fileName || 'Tài liệu đính kèm');
-    if (downloadBtn) {
-        downloadBtn.href = dataUrl;
-        downloadBtn.download = fileName || 'tai-lieu';
-    }
-    
-    // Kiểm tra định dạng file xem là Ảnh hay loại khác (PDF...)
-    const lowerName = (fileName || '').toLowerCase();
-    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
-    
-    if (isImage) {
-        if (iframe) iframe.style.display = 'none';
-        if (img) {
-            img.style.display = 'block';
-            img.src = dataUrl;
+
+    try {
+        let finalUrl = dataUrl;
+        let mimeType = 'application/pdf';
+
+        if (dataUrl.startsWith('data:')) {
+            const parts = dataUrl.split(',');
+            const mimeMatch = parts[0].match(/:(.*?);/);
+            if (mimeMatch) mimeType = mimeMatch[1];
+
+            const lowerName = (fileName || '').toLowerCase();
+            if (mimeType === 'application/octet-stream' || !mimeType) {
+                if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
+                else if (lowerName.endsWith('.png')) mimeType = 'image/png';
+                else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
+            }
+
+            const byteCharacters = atob(parts[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            finalUrl = URL.createObjectURL(blob);
         }
-    } else {
-        if (img) img.style.display = 'none';
-        if (iframe) {
-            iframe.style.display = 'block';
-            iframe.src = dataUrl;
+
+        if (downloadBtn) {
+            downloadBtn.href = finalUrl;
+            downloadBtn.download = fileName || 'tai-lieu';
         }
+
+        const lowerName = (fileName || '').toLowerCase();
+        const isImage = mimeType.startsWith('image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
+
+        if (isImage) {
+            if (iframe) iframe.style.display = 'none';
+            if (img) {
+                img.style.display = 'block';
+                img.src = finalUrl;
+            }
+        } else {
+            if (img) img.style.display = 'none';
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.src = finalUrl;
+            }
+        }
+
+        if (modal) modal.style.display = 'flex';
+    } catch (err) {
+        console.error('Lỗi hiển thị file:', err);
+        alert('Không thể hiển thị trực tiếp. Đang tiến hành tải về máy...');
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = fileName || 'file-dinh-kem';
+        a.click();
     }
-    
-    if (modal) modal.style.display = 'flex';
 }
 
 function closeFilePreviewModal() {
