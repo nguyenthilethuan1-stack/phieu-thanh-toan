@@ -1904,46 +1904,8 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
 });
 function openFilePreview(dataUrl, fileName) {
     if (!dataUrl) return;
-    
-    let win = window.open('', '_blank');
-    if (!win) {
-        alert('Trình duyệt đã chặn cửa sổ pop-up. Vui lòng cho phép pop-up để xem file!');
-        return;
-    }
-
-    const lowerName = (fileName || '').toLowerCase();
-    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif');
-
-    let contentHtml = '';
-    if (isImage) {
-        contentHtml = `<div style="display:flex; justify-content:center; align-items:center; height:calc(100vh - 45px);"><img src="${dataUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" /></div>`;
-    } else {
-        contentHtml = `<embed src="${dataUrl}" type="application/pdf" style="width:100%; height:calc(100vh - 45px); border:none;" />`;
-    }
-
-    win.document.write(`
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <title>${fileName || 'Xem file đính kèm'}</title>
-                <style>
-                    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #333; font-family: sans-serif; }
-                    .header { background: #222; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-bottom: 1px solid #444; }
-                    .header span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
-                    .btn-download { background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; }
-                    .btn-download:hover { background: #0b5ed7; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <span>📄 Đang xem: <b>${fileName || 'Tài liệu'}</b></span>
-                    <a href="${dataUrl}" download="${fileName || 'tai-lieu'}" class="btn-download">📥 Tải xuống máy</a>
-                </div>
-                ${contentHtml}
-            </body>
-        </html>
-    `);
-    win.document.close();
+    // Vì dataUrl giờ đây là đường dẫn URL HTTP chuẩn, mở trực tiếp sẽ xem online 100% không bị tải về
+    window.open(dataUrl, '_blank');
 }
     </script>
     <!-- Modal Xem trước File Đính Kèm -->

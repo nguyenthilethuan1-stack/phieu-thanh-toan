@@ -1,3 +1,29 @@
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Đảm bảo thư mục uploads tồn tại
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Cấu hình nơi lưu và tên file vật lý trên server
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        // Đặt tên file bằng timestamp + tên gốc (được decode tiếng Việt an toàn)
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        cb(null, uniqueSuffix + '-' + originalName);
+    }
+});
+const upload = multer({ storage: storage });
+
+// Cho phép truy cập công khai thư mục uploads qua đường dẫn tĩnh HTTP
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -432,7 +458,28 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
     }
 });
+// API Upload file lẻ trả về đường dẫn URL công khai
+app.post('/api/upload', upload.array('files'), (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return.status(400).json({ error: 'Không có file nào được tải lên!' });
+        }
+        
+        // Trả về danh sách các đường dẫn URL tuyệt đối tới file trên server
+        const fileUrls = req.files.map(file => {
+            const baseUrl = `${req.protocol}://${req.get('host')}`;
+            return {
+                name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+                data: `${baseUrl}/uploads/${file.filename}` // Đây là URL HTTP thực sự thay vì chuỗi base64!
+            };
+        });
 
+        res.json({ success: true, files: fileUrls });
+    } catch (err) {
+        console.error('Lỗi upload file:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 // XÓA PHIẾU
 app.delete('/api/requests/:id', async (req, res) => {
   try {
