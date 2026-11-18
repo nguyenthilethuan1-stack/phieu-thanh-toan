@@ -790,14 +790,14 @@ if (rawStatus.toLowerCase().includes('từ chối')) {
                 let isWaitingPGD = rawStatus.includes('4. Chờ Phó GĐ');
                 let isWaitingGD = rawStatus.includes('4. Chờ Giám đốc');
 
-                // Chỉ cho phép hiển thị nút Duyệt/Từ chối KHI VÀ CHỈ KHI đúng tài khoản VÀ đến ĐÚNG LƯỢT đang chờ
+                // Cho phép hiển thị nút Duyệt/Từ chối nếu là tài khoản quản lý VÀ phiếu đang đứng đúng ở bước chờ tương ứng
                 let canApprove = false;
                 if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien' && roleValue !== 'admin') {
-                    if ((roleValue.includes('truong') && !roleValue.includes('ke_toan')) && isWaitingTBP) canApprove = true;
-                    else if (roleValue.includes('thanhtoan') && isWaitingKTTT) canApprove = true;
-                    else if ((roleValue.includes('truong') && roleValue.includes('ke_toan')) && isWaitingKTT) canApprove = true;
-                    else if (roleValue.includes('pgd') && isWaitingPGD) canApprove = true;
-                    else if ((roleValue.includes('giamdoc') || roleValue.includes('gd')) && isWaitingGD) canApprove = true;
+                    if (isWaitingTBP) canApprove = true;
+                    else if (isWaitingKTTT && (roleValue.includes('thanhtoan') || roleValue.includes('ke_toan') || roleValue.includes('admin'))) canApprove = true;
+                    else if (isWaitingKTT && (roleValue.includes('truong') || roleValue.includes('ke_toan') || roleValue.includes('admin'))) canApprove = true;
+                    else if (isWaitingPGD && (roleValue.includes('pgd') || roleValue.includes('giamdoc') || roleValue.includes('admin'))) canApprove = true;
+                    else if (isWaitingGD && (roleValue.includes('giamdoc') || roleValue.includes('gd') || roleValue.includes('admin'))) canApprove = true;
                 }
 
                 let isReallyPending = isWaitingTBP;
