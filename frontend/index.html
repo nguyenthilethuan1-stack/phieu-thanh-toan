@@ -73,8 +73,7 @@
 
   <!-- PHẦN 2: GIAO DIỆN CHÍNH -->
   <div id="mainSection" class="hidden">
-    
-    <div class="user-info">
+        <div class="user-info">
       <div>👤 Xin chào, <b id="userFullName"></b> (<span id="userRoleBadge" style="color: #007bff;"></span>)[cite: 1]</div>
       <div style="display: flex; gap: 10px;">
         <button type="button" onclick="openChangePasswordModal()" style="background: #ffc107; color: black; padding: 5px 10px; font-size: 12px;">🔑 Đổi mật khẩu</button>
@@ -393,6 +392,7 @@
     let currentUser = JSON.parse(localStorage.getItem('user')) || null;
     let currentRequests = [];
     let currentEditingAttachments = []; 
+    let selectedFiles = [];
     let selectedFilesData = []; 
     let departmentsCache = []; 
     let allUsersCache = [];
@@ -738,316 +738,337 @@
                 let isKyThuat = dept.toLowerCase().includes('kỹ thuật');
 
                 // 🛑 NẾU LÀ TÀI KHOẢN PHÓ GĐ SX, CHỈ CHO PHÉP HIỂN THỊ CÁC PHIẾU THUỘC PHÒNG KỸ THUẬT
-const userRoleCheck = (currentUser.role || '').toLowerCase();
-if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
-    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
-}
+                const userRoleCheck = (currentUser.role || '').toLowerCase();
+                if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
+                    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
+                }
 
-let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
-let rawStatus = req.status || '';
-const lowerStatus = rawStatus.toLowerCase();
+                let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
+                let rawStatus = req.status || '';
+                const lowerStatus = rawStatus.toLowerCase();
 
-let summaryStatus = 'Chờ duyệt';
-let statusColor = '#856404';
-let statusBg = '#fff3cd';
+                let summaryStatus = 'Chờ duyệt';
+                let statusColor = '#856404';
+                let statusBg = '#fff3cd';
 
-if (lowerStatus.includes('từ chối')) {
-    summaryStatus = 'Từ chối';
-    statusColor = '#721c24';
-    statusBg = '#f8d7da';
-} else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
-    if (req.paidStatus === 'Đã thanh toán') {
-        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
-        statusColor = '#155724';
-        statusBg = '#d4edda';
-    } else {
-        summaryStatus = 'Chờ thanh toán';
-        statusColor = '#004085';
-        statusBg = '#cce5ff';
-    }
-} else {
-    summaryStatus = 'Chờ duyệt';
-    statusColor = '#856404';
-    statusBg = '#fff3cd';
-}
+                if (lowerStatus.includes('từ chối')) {
+                    summaryStatus = 'Từ chối';
+                    statusColor = '#721c24';
+                    statusBg = '#f8d7da';
+                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
+                    if (req.paidStatus === 'Đã thanh toán') {
+                        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
+                        statusColor = '#155724';
+                        statusBg = '#d4edda';
+                    } else {
+                        summaryStatus = 'Chờ thanh toán';
+                        statusColor = '#004085';
+                        statusBg = '#cce5ff';
+                    }
+                } else {
+                    summaryStatus = 'Chờ duyệt';
+                    statusColor = '#856404';
+                    statusBg = '#fff3cd';
+                }
 
-let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
+                let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
 
-if (lowerStatus.includes('từ chối')) {
-    s1 = 'duyet';
-    if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('kt thanh toán')) {
-        s2 = 'duyet';
-        s3 = 'tu-choi';
-        s4 = 'cho';
-        s5 = isKyThuat ? 'cho' : 'mien';
-        s6 = 'cho';
-    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
-        s2 = 'duyet';
-        s3 = 'duyet';
-        s4 = 'tu-choi';
-        s5 = isKyThuat ? 'cho' : 'mien';
-        s6 = 'cho';
-    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
-        s2 = 'duyet';
-        s3 = 'duyet';
-        s4 = 'duyet';
-        s5 = 'tu-choi';
-        s6 = 'cho';
-    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
-        s2 = 'duyet';
-        s3 = 'duyet';
-        s4 = 'duyet';
-        s5 = isKyThuat ? 'duyet' : 'mien';
-        s6 = 'tu-choi';
-    } else {
-        s2 = 'tu-choi';
-        s3 = 'cho';
-        s4 = 'cho';
-        s5 = isKyThuat ? 'cho' : 'mien';
-        s6 = 'cho';
-    }
-} else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
-    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
-    if (!isKyThuat) s5 = 'mien';
-} else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
-    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-} else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
-    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-} else if (rawStatus.includes('4. Chờ Phó GĐ')) {
-    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
-} else if (rawStatus.includes('4. Chờ Giám đốc')) {
-    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
-}
+                if (lowerStatus.includes('từ chối')) {
+                    s1 = 'duyet';
+                    if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('kt thanh toán')) {
+                        s2 = 'duyet';
+                        s3 = 'tu-choi';
+                        s4 = 'cho';
+                        s5 = isKyThuat ? 'cho' : 'mien';
+                        s6 = 'cho';
+                    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
+                        s2 = 'duyet';
+                        s3 = 'duyet';
+                        s4 = 'tu-choi';
+                        s5 = isKyThuat ? 'cho' : 'mien';
+                        s6 = 'cho';
+                    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
+                        s2 = 'duyet';
+                        s3 = 'duyet';
+                        s4 = 'duyet';
+                        s5 = 'tu-choi';
+                        s6 = 'cho';
+                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
+                        s2 = 'duyet';
+                        s3 = 'duyet';
+                        s4 = 'duyet';
+                        s5 = isKyThuat ? 'duyet' : 'mien';
+                        s6 = 'tu-choi';
+                    } else {
+                        s2 = 'tu-choi';
+                        s3 = 'cho';
+                        s4 = 'cho';
+                        s5 = isKyThuat ? 'cho' : 'mien';
+                        s6 = 'cho';
+                    }
+                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
+                    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
+                    if (!isKyThuat) s5 = 'mien';
+                } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
+                } else if (rawStatus.includes('4. Chờ Giám đốc')) {
+                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
+                }
 
-let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
-stepsHTML += renderStepBox('Lập Phiếu', s1);
-stepsHTML += renderStepBox('Trưởng BP', s2);
-stepsHTML += renderStepBox('KT Thanh Toán', s3);
-stepsHTML += renderStepBox('KT Trưởng', s4);
-if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
-stepsHTML += renderStepBox('Giám Đốc', s6);
-stepsHTML += `</div>`;
+                let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
+                stepsHTML += renderStepBox('Lập Phiếu', s1);
+                stepsHTML += renderStepBox('Trưởng BP', s2);
+                stepsHTML += renderStepBox('KT Thanh Toán', s3);
+                stepsHTML += renderStepBox('KT Trưởng', s4);
+                if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
+                stepsHTML += renderStepBox('Giám Đốc', s6);
+                stepsHTML += `</div>`;
 
-let maPhieuHienThi = req.requestCode || '';
+                let maPhieuHienThi = req.requestCode || '';
 
-let actionButtonsHTML = '';
-const roleValue = (currentUser.role || '').toLowerCase();
-let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
+                let actionButtonsHTML = '';
+                const roleValue = (currentUser.role || '').toLowerCase();
+                let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
 
-// 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa chuẩn xác từng bước
-const userDept = (currentUser.department || '').toLowerCase();
-const isRejected = rawStatus.toLowerCase().includes('từ chối');
+                // 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa chuẩn xác từng bước
+                const userDept = (currentUser.department || '').toLowerCase();
+                const isRejected = rawStatus.toLowerCase().includes('từ chối');
 
-// Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
-let isWaitingTBP = !isRejected && (
-    rawStatus.includes('1. Chờ Trưởng Bộ phận') ||
-    rawStatus.includes('Chờ Trưởng Bộ phận') ||
-    (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.'))
-);
-let isWaitingKTTT = !isRejected && rawStatus.includes('2. Chờ KT Thanh toán');
-let isWaitingKTT = !isRejected && rawStatus.includes('3. Chờ Kế toán trưởng');
-let isWaitingPGD = !isRejected && rawStatus.includes('4. Chờ Phó GĐ');
-let isWaitingGD = !isRejected && rawStatus.includes('4. Chờ Giám đốc');
+                // Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
+                let isWaitingTBP = !isRejected && (
+                    rawStatus.includes('1. Chờ Trưởng Bộ phận') ||
+                    rawStatus.includes('Chờ Trưởng Bộ phận') ||
+                    (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.'))
+                );
+                let isWaitingKTTT = !isRejected && rawStatus.includes('2. Chờ KT Thanh toán');
+                let isWaitingKTT = !isRejected && rawStatus.includes('3. Chờ Kế toán trưởng');
+                let isWaitingPGD = !isRejected && rawStatus.includes('4. Chờ Phó GĐ');
+                let isWaitingGD = !isRejected && rawStatus.includes('4. Chờ Giám đốc');
 
-// CHẶN NGHIÊM NGẶT: Chỉ cho phép hiển thị nút Duyệt/Từ chối khi ĐÚNG BƯỚC VÀ ĐÚNG ROLE tương ứng
-let canApprove = false;
-if (roleValue === 'admin') {
-    canApprove = true;
-} else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
-    if (isWaitingTBP && roleValue === 'tbp') {
-        canApprove = true;
-    } else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) {
-        canApprove = true;
-    } else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) {
-        canApprove = true;
-    } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
-        canApprove = true;
-    } else if (isWaitingGD && (roleValue === 'gd' || roleValue.includes('giamdoc'))) {
-        canApprove = true;
-    }
-}
+                // CHẶN NGHIÊM NGẶT: Chỉ cho phép hiển thị nút Duyệt/Từ chối khi ĐÚNG BƯỚC VÀ ĐÚNG ROLE tương ứng
+                let canApprove = false;
+                if (roleValue === 'admin') {
+                    canApprove = true;
+                } else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
+                    if (isWaitingTBP && roleValue === 'tbp') {
+                        canApprove = true;
+                    } else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) {
+                        canApprove = true;
+                    } else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) {
+                        canApprove = true;
+                    } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
+                        canApprove = true;
+                    } else if (isWaitingGD && (roleValue === 'gd' || roleValue.includes('giamdoc'))) {
+                        canApprove = true;
+                    }
+                }
 
-let isReallyPending = isWaitingTBP;
+                let isReallyPending = isWaitingTBP;
 
-if (canApprove) {
-    actionButtonsHTML = `
-        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
-            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
-            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
-        </div>
-    `;
-} else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
-    actionButtonsHTML = `
-        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
-            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
-            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-        </div>
-    `;
-} else {
-    actionButtonsHTML = `
-        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-        </div>
-    `;
-}
+                if (canApprove) {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
+                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
+                        </div>
+                    `;
+                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtonsHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+                        </div>
+                    `;
+                }
 
-// --- 2. HÀM LƯU TRẠNG THÁI THANH TOÁN (DÀNH CHO KẾ TOÁN) ---
-async function updatePaidStatusAction(id) {
-    const chkIsPaid = document.getElementById('chkIsPaid');
-    const inputPaidDate = document.getElementById('inputPaidDate');
-    
-    const paidStatus = chkIsPaid && chkIsPaid.checked ? 'Đã thanh toán' : 'Chờ thanh toán';
-    const paidDate = inputPaidDate ? inputPaidDate.value : '';
-
-    try {
-        const response = await fetch(`https://phieu-thanh-toan.onrender.com/api/requests/${id}/paid-status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paidStatus, paidDate })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Cập nhật trạng thái thanh toán thành công!');
-            location.reload();
-        } else {
-            alert('Lỗi: ' + (result.error || 'Không thể cập nhật'));
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold; color: #007bff; cursor: pointer;" onclick="showDetailModal('${req._id || req.id}')">${maPhieuHienThi}</td>
+                    <td style="text-align: center;">${ngayTao}</td>
+                    <td>${req.createdBy || ''}</td>
+                    <td>${req.title || ''}</td>
+                    <td style="text-align: right;">${req.amount ? Number(req.amount).toLocaleString('vi-VN') : '0'}</td>
+                    <td style="width: auto; white-space: nowrap;">${stepsHTML}</td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: ${statusBg}; color: ${statusColor};">
+                            ${summaryStatus}
+                        </span>
+                    </td>
+                    <td style="text-align: center; white-space: nowrap; width: 60px;">${actionButtonsHTML}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Lỗi tải danh sách:', error);
         }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
-}
+    };
 
+    // --- 2. HÀM LƯU TRẠNG THÁI THANH TOÁN (DÀNH CHO KẾ TOÁN) ---
+    window.updatePaidStatusAction = async function(id) {
+        const chkIsPaid = document.getElementById('chkIsPaid');
+        const inputPaidDate = document.getElementById('inputPaidDate');
 
-// --- 3. XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
-window.showDetailModal = function(id) {
-    const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
-    if (!req) return;
+        const paidStatus = chkIsPaid && chkIsPaid.checked ? 'Đã thanh toán' : 'Chờ thanh toán';
+        const paidDate = inputPaidDate ? inputPaidDate.value : '';
 
-    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const userRole = (currentUser.role || '').toLowerCase();
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/requests/${id}/paid-status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paidStatus, paidDate })
+            });
 
-    let detailsRowsHTML = '';
-    const listDetails = req.details || req.items || req.lines || [];
+            const result = await response.json();
+            if (response.ok) {
+                alert('Cập nhật trạng thái thanh toán thành công!');
+                closeDetailModal();
+                loadRequests();
+            } else {
+                alert('Lỗi: ' + (result.error || 'Không thể cập nhật'));
+            }
+        } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến máy chủ server!');
+        }
+    };
 
-    if (listDetails.length > 0) {
-        listDetails.forEach((item, idx) => {
-            const itemDate = item.docDate || item.date || item.ngayChungTu || '';
-            const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
-            const docNo = item.docNo || item.soChungTu || (idx + 1);
-            const desc = item.desc || item.description || item.diengiai || '';
-            const amt = item.amount || item.sotien || 0;
+    // --- 3. XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
+    window.showDetailModal = function(id) {
+        const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
+        if (!req) return;
 
-            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
-let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-if (rowFiles.length > 0) {
-    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
-}
+        currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const userRole = (currentUser.role || '').toLowerCase();
 
-            detailsRowsHTML += `
-                <tr>
-                    <td style="text-align: center;">${idx + 1}</td>
-                    <td>${docNo}</td>
-                    <td>${ngayCT}</td>
-                    <td>${desc}</td>
-                    <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
-                    <td>${fileLinksHtml}</td>
-                </tr>
-            `;
-        });
-    }
+        let detailsRowsHTML = '';
+        const listDetails = req.details || req.items || req.lines || [];
 
-    const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
-    
-    const userRoleStr = (currentUser.role || '').toLowerCase();
-    const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
+        if (listDetails.length > 0) {
+            listDetails.forEach((item, idx) => {
+                const itemDate = item.docDate || item.date || item.ngayChungTu || '';
+                const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
+                const docNo = item.docNo || item.soChungTu || (idx + 1);
+                const desc = item.desc || item.description || item.diengiai || '';
+                const amt = item.amount || item.sotien || 0;
 
-    let todayStr = new Date().toISOString().split('T')[0];
-    let currentPaidDate = req.paidDate || todayStr;
-    let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
+                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
+                let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+                if (rowFiles.length > 0) {
+                    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
+                }
 
-    // Giữ nguyên phần mở rộng dành riêng cho Kế toán thanh toán (checkbox Đã thanh toán + Ngày thanh toán)
-    let paymentCheckboxSection = '';
-    if (isKtOrAdmin) {
-        paymentCheckboxSection = `
-            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
-                    <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
-                </label>
-                <div style="flex: 1;">
-                    <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
-                    <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
-                </div>
-                <div style="align-self: flex-end;">
-                    <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
-                </div>
-            </div>
-        `;
-    }
-
-    let approvalBoxHtml = '';
-    if (canApprove || isKtOrAdmin) {
-        approvalBoxHtml = `
-            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
-                <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
-                
-                <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
-                    <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
-                    <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
-                </div>
-
-                ${paymentCheckboxSection}
-            </div>
-        `;
-    }
-
-    const modalContent = document.getElementById('modalBodyContent');
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
-                <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
-                <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
-                <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
-            </div>
-            <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
-                <thead>
-                    <tr style="background: #0d6efd; color: white;">
-                        <th style="padding: 6px;">STT</th>
-                        <th style="padding: 6px;">Số CT</th>
-                        <th style="padding: 6px;">Ngày CT</th>
-                        <th style="padding: 6px;">Diễn giải</th>
-                        <th style="padding: 6px;">Số tiền</th>
-                        <th style="padding: 6px;">File đính kèm</th>
+                detailsRowsHTML += `
+                    <tr>
+                        <td style="text-align: center;">${idx + 1}</td>
+                        <td>${docNo}</td>
+                        <td>${ngayCT}</td>
+                        <td>${desc}</td>
+                        <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
+                        <td>${fileLinksHtml}</td>
                     </tr>
-                </thead>
-                <tbody>${detailsRowsHTML}</tbody>
-            </table>
-            <div style="text-align: right; margin-top: 10px; font-size: 15px;">
-                <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
-            </div>
-            ${approvalBoxHtml}
-        `;
-    }
+                `;
+            });
+        }
 
-    const modalEl = document.getElementById('detailModal');
-    if (modalEl) {
-        modalEl.classList.remove('hidden');
-        modalEl.style.display = 'flex';
-    }
-};
+        const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
 
-window.closeDetailModal = function() {
-    const modal = document.getElementById('detailModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-    }
-};
+        const userRoleStr = (currentUser.role || '').toLowerCase();
+        const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
+
+        let todayStr = new Date().toISOString().split('T')[0];
+        let currentPaidDate = req.paidDate || todayStr;
+        let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
+
+        let paymentCheckboxSection = '';
+        if (isKtOrAdmin) {
+            paymentCheckboxSection = `
+                <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
+                        <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
+                    </label>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
+                        <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
+                    </div>
+                    <div style="align-self: flex-end;">
+                        <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let approvalBoxHtml = '';
+        if (canApprove || isKtOrAdmin) {
+            approvalBoxHtml = `
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
+                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+                    
+                    <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
+                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
+                    </div>
+
+                    ${paymentCheckboxSection}
+                </div>
+            `;
+        }
+
+        const modalContent = document.getElementById('modalBodyContent');
+        if (modalContent) {
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
+                    <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
+                    <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
+                    <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+                </div>
+                <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
+                    <thead>
+                        <tr style="background: #0d6efd; color: white;">
+                            <th style="padding: 6px;">STT</th>
+                            <th style="padding: 6px;">Số CT</th>
+                            <th style="padding: 6px;">Ngày CT</th>
+                            <th style="padding: 6px;">Diễn giải</th>
+                            <th style="padding: 6px;">Số tiền</th>
+                            <th style="padding: 6px;">File đính kèm</th>
+                        </tr>
+                    </thead>
+                    <tbody>${detailsRowsHTML}</tbody>
+                </table>
+                <div style="text-align: right; margin-top: 10px; font-size: 15px;">
+                    <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+                </div>
+                ${approvalBoxHtml}
+            `;
+        }
+
+        const modalEl = document.getElementById('detailModal');
+        if (modalEl) {
+            modalEl.classList.remove('hidden');
+            modalEl.style.display = 'flex';
+        }
+    };
+
+    window.closeDetailModal = function() {
+        const modal = document.getElementById('detailModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    };
     // --- SỬA PHIẾU ---
     window.editRequest = function(id) {
         const req = currentRequests.find(r => 
@@ -1107,34 +1128,7 @@ window.closeDetailModal = function() {
             .catch(err => console.error('Lỗi xóa:', err));
     };
 
-    // --- HÀM CẬP NHẬT THANH TOÁN (KẾ TOÁN) ---
-    window.updatePaidStatusAction = async function(id) {
-        const isChecked = document.getElementById('chkIsPaid')?.checked;
-        const paidDateVal = document.getElementById('inputPaidDate')?.value;
-        const paidStatus = isChecked ? 'Đã thanh toán' : 'Chờ thanh toán';
-
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/requests/${id}/paid-status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paidStatus, paidDate: paidDateVal })
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                alert('Cập nhật trạng thái thanh toán thành công!');
-                closeDetailModal();
-                loadRequests();
-            } else {
-                alert('Lỗi: ' + (data.error || 'Không thể cập nhật'));
-            }
-        } catch (err) {
-            console.error('Lỗi kết nối:', err);
-            alert('Không thể kết nối đến server!');
-        }
-    };
-
-// --- HÀM IN PHIẾU (NHẬN TRỰC TIẾP MÃ PHIẾU TỪ GIAO DIỆN) ---
+    // --- HÀM IN PHIẾU (NHẬN TRỰC TIẾP MÃ PHIẾU TỪ GIAO DIỆN) ---
     window.printRequest = function(id, passedCode) {
         const req = currentRequests.find(r => (r._id && r._id.toString() === String(id)) || (r.id && r.id.toString() === String(id)));
         if (!req) {
