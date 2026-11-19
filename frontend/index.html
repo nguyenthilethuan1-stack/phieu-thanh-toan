@@ -243,71 +243,75 @@
       </div>
     </div>
 
-    <!-- TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN -->
-    <div id="tabContentUsers" class="hidden">
-      <div class="container">
-        <h3>Quản Lý Tài Khoản & Cây Phân Cấp</h3>
-        <form id="createUserForm" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-          <h4>➕ Thêm Tài Khoản Nhân Sự Mới</h4>
-          <div style="display: flex; gap: 15px;">
-            <div class="form-group" style="flex: 1;">
-              <label>Tên đăng nhập:</label>
-              <input type="text" id="newUsername" required placeholder="nhanvien2">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Mật khẩu:</label>
-              <input type="text" id="newPassword" required placeholder="123">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Họ và tên:</label>
-              <input type="text" id="newFullName" required placeholder="Nguyễn Văn A">
-            </div>
+   <!-- TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN -->
+  <div id="tabContentUsers" class="hidden">
+    <div class="container">
+      <h3>Quản Lý Tài Khoản & Cây Phân Cấp</h3>
+      <form id="createUserForm" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+        <h4>➕ Thêm Tài Khoản Nhân Sự Mới</h4>
+        <div style="display: flex; gap: 15px;">
+          <div class="form-group" style="flex: 1;">
+            <label>Tên đăng nhập:</label>
+            <input type="text" id="newUsername" required placeholder="nhanvien2">
           </div>
-          <div style="display: flex; gap: 15px;">
-            <div class="form-group" style="flex: 1;">
-              <label>Phòng ban:</label>
-              <select id="newDepartment" class="department-select" required>
-                <option value="">-- Đang tải phòng ban... --</option>
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Chức vụ:</label>
-              <select id="newRole" required>
-                <option value="nhanvien">Nhân viên lập phiếu</option>
-                <option value="tbp">Trưởng bộ phận</option>
-                <option value="kt_thanhtoan">Kế toán thanh toán</option>
-                <option value="ktt">Kế toán trưởng</option>
-                <option value="giam_doc">Giám đốc</option>
-                <option value="admin">Admin hệ thống</option>
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Cấp quản lý (Username):</label>
-              <input type="text" id="newManager" placeholder="tbp1">
-            </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Mật khẩu:</label>
+            <input type="text" id="newPassword" required placeholder="123">
           </div>
-          <button type="submit" style="background-color: #28a745;">Tạo Tài Khoản</button>
-        </form>
-        <div id="userMsg"></div>
+          <div class="form-group" style="flex: 1;">
+            <label>Họ và tên:</label>
+            <input type="text" id="newFullName" required placeholder="Nguyễn Văn A">
+          </div>
+        </div>
+        <div style="display: flex; gap: 15px;">
+          <div class="form-group" style="flex: 1;">
+            <label>Phòng ban:</label>
+            <select id="newDepartment" class="department-select" required>
+              <option value="">-- Đang tải phòng ban... --</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Chức vụ:</label>
+            <select id="newRole" required>
+              <option value="nhanvien">Nhân viên lập phiếu</option>
+              <option value="tbp">Trưởng bộ phận</option>
+              <option value="kt_thanhtoan">Kế toán thanh toán</option>
+              <option value="ktt">Kế toán trưởng</option>
+              <option value="giam_doc">Giám đốc</option>
+              <option value="admin">Admin hệ thống</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Cấp quản lý (Username):</label>
+            <input type="text" id="newManager" placeholder="tbp1">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Số điện thoại Zalo:</label>
+            <input type="tel" id="newZaloPhone" placeholder="0912345678">
+          </div>
+        </div>
+        <button type="submit" style="background-color: #28a745;">Tạo Tài Khoản</button>
+      </form>
+      <div id="userMsg"></div>
 
-        <h4>Danh Sách Nhân Sự</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Tên đăng nhập</th>
-              <th>Họ và tên</th>
-              <th>Phòng ban</th>
-              <th>Chức vụ</th>
-              <th style="text-align: center;">Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="userTableBody"></tbody>
-        </table>
-      </div>
+      <h4>Danh Sách Nhân Sự</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên đăng nhập</th>
+            <th>Họ và tên</th>
+            <th>Phòng ban</th>
+            <th>Chức vụ</th>
+            <th>SĐT Zalo</th>
+            <th style="text-align: center;">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
     </div>
-
   </div>
+</div>
 
   <!-- MODAL POPUP HIỂN THỊ CHI TIẾT PHIẾU & DUYỆT -->
   <div id="detailModal" class="modal-overlay hidden">
@@ -1435,6 +1439,7 @@ document.getElementById('createUserForm').addEventListener('submit', async funct
     const departmentInput = document.getElementById('newDepartment');
     const roleInput = document.getElementById('newRole');
     const managerIdInput = document.getElementById('newManager');
+    const zaloPhoneInput = document.getElementById('newZaloPhone');
     const msgDiv = document.getElementById('userMsg');
 
     const userData = {
@@ -1443,7 +1448,8 @@ document.getElementById('createUserForm').addEventListener('submit', async funct
         fullName: fullNameInput ? fullNameInput.value.trim() : '',
         department: departmentInput ? departmentInput.value : '',
         role: roleInput ? roleInput.value : 'nhanvien',
-        managerId: managerIdInput ? managerIdInput.value.trim() : ''
+        managerId: managerIdInput ? managerIdInput.value.trim() : '',
+        zaloPhone: zaloPhoneInput ? zaloPhoneInput.value.trim() : ''
     };
 
     // Kiểm tra dữ liệu cơ bản
@@ -1483,14 +1489,6 @@ document.getElementById('createUserForm').addEventListener('submit', async funct
         alert('Không thể kết nối đến máy chủ server!');
     }
 });
-// --- ĐÓNG MODAL SỬA ---
-function closeEditUserModal() {
-    const modal = document.getElementById('editUserModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-    }
-}
 
 // --- MỞ MODAL SỬA - TÌM KIẾM THEO USERNAME HOẶC ID ---
 window.editUser = async function(identifier) {
