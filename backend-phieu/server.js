@@ -125,7 +125,7 @@ const userSchema = new mongoose.Schema({
   role: { 
     type: String, 
     required: true, 
-    enum: ['nhanvien', 'tbp', 'kt_thanhtoan', 'ktt', 'pgd_sx', 'gd', 'admin'] 
+    enum: ['nhanvien', 'tbp', 'kt_thanhtoan', 'ktt', 'pgd_sx', 'giam_doc', 'admin'] 
   },
   managerId: { type: String, default: '' }
 });
@@ -406,7 +406,7 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                 }
                 reqDoc.status = '4. Chờ Giám đốc';
             } else if (currentStatus.includes('4. Chờ Giám đốc')) {
-                if (roleNorm && roleNorm !== 'gd' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
+                if (roleNorm && roleNorm !== 'giam_doc' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
                 }
                 reqDoc.status = '5. Đã hoàn tất';
@@ -422,7 +422,7 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             else if (roleNorm === 'kt_thanhtoan' || roleNorm.includes('thanhtoan')) roleTitle = 'Kế Toán Thanh Toán';
             else if (roleNorm === 'ktt' || roleNorm === 'kt_truong' || roleNorm.includes('ke_toan_truong')) roleTitle = 'Kế Toán Trưởng';
             else if (roleNorm === 'pgd_sx' || roleNorm.includes('pgd')) roleTitle = 'Phó Giám Đốc';
-            else if (roleNorm === 'gd' || roleNorm.includes('giamdoc')) roleTitle = 'Giám Đốc';
+            else if (roleNorm === 'giam_doc') roleTitle = 'Giám Đốc';
             else if (roleNorm === 'admin') roleTitle = 'Admin';
 
             reqDoc.status = `Đã từ chối (${roleTitle})`;
