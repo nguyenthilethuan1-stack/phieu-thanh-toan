@@ -494,13 +494,7 @@ async function seedUsers() {
   try {
     const defaultUsers = [
       { username: 'admin', password: '123', fullName: 'Quản Trị Hệ Thống', department: 'Ban Giám Đốc', role: 'admin' },
-      { username: 'nhanvien1', password: '123', fullName: 'Nguyễn Văn Nhân Viên', department: 'Phòng Kỹ Thuật', role: 'nhanvien', managerId: 'tbp1' },
-      { username: 'tbp1', password: '123', fullName: 'Trần Văn Trưởng Bộ Phận', department: 'Phòng Kỹ Thuật', role: 'tbp', managerId: 'kt1' },
-      { username: 'kt1', password: '123', fullName: 'Lê Thị Kế Toán Thanh Toán', department: 'Phòng Kế Toán', role: 'kt_thanhtoan', managerId: 'ktt1' },
-      { username: 'ktt1', password: '123', fullName: 'Phạm Văn Kế Toán Trưởng', department: 'Phòng Kế Toán', role: 'ktt', managerId: 'pgdsx1' },
-      { username: 'pgdsx1', password: '123', fullName: 'Nguyễn Văn Phó GĐ Sản Xuất', department: 'Phòng Kỹ Thuật', role: 'pgd_sx', managerId: 'gd1' },
-      { username: 'gd1', password: '123', fullName: 'Hoàng Văn Giám Đốc', department: 'Ban Giám Đốc', role: 'gd', managerId: '' }
-    ];
+          ];
     for (let u of defaultUsers) {
       await User.findOneAndUpdate({ username: u.username }, u, { upsert: true, new: true, setDefaultsOnInsert: true });
     }
