@@ -346,21 +346,27 @@ app.get('/api/requests', async (req, res) => {
 
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { username, fullName, department, role, managerId, password } = req.body;
-    if (username) {
-      const existingUser = await User.findOne({ username, _id: { $ne: req.params.id } });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Tên đăng nhập này đã tồn tại ở tài khoản khác!' });
-      }
-    }
-    let updateData = { username, fullName, department, role, managerId };
-    if (password && password.trim() !== '') {
-      updateData.password = password;
-    }
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const { username, password, fullName, department, role, managerId, zaloPhone } = req.body;
+    const updateData = {};
+
+    if (username !== undefined) updateData.username = username;
+    if (password) updateData.password = password;
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (department !== undefined) updateData.department = department;
+    if (role !== undefined) updateData.role = role;
+    if (managerId !== undefined) updateData.managerId = managerId;
+    if (zaloPhone !== undefined) updateData.zaloPhone = normalizeVnPhone(zaloPhone);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).select('-password');
+
     if (!updatedUser) {
       return res.status(404).json({ error: 'Không tìm thấy tài khoản!' });
     }
+
     res.json({ message: 'Cập nhật tài khoản thành công!', user: updatedUser });
   } catch (err) {
     res.status(500).json({ error: err.message });

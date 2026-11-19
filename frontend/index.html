@@ -1571,12 +1571,16 @@ document.getElementById('editUserForm').addEventListener('submit', async functio
         return;
     }
 
+    const editZaloPhoneEl = document.getElementById('editZaloPhone');
+    const zaloPhoneVal = editZaloPhoneEl ? editZaloPhoneEl.value.trim() : '';
+
     const userData = {
         username: document.getElementById('editUsername').value.trim(),
         fullName: document.getElementById('editFullName').value.trim(),
         department: document.getElementById('editDepartment').value,
         role: document.getElementById('editRole').value,
-        managerId: document.getElementById('editManager').value.trim()
+        managerId: document.getElementById('editManager').value.trim(),
+        zaloPhone: zaloPhoneVal
     };
 
     // Chỉ gửi mật khẩu nếu người dùng có nhập mật khẩu mới
