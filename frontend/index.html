@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hệ Thống Phê Duyệt Thanh Toán - BVN Quảng Bình</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
     .company-header { max-width: 1050px; margin: 0 auto 20px auto; background: #ffffff; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 20px; }
@@ -217,6 +218,7 @@
         </div>
         <div style="align-self: flex-end;">
           <button type="button" onclick="resetFilters()" style="background: #6c757d; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 Đặt lại</button>
+          <button type="button" id="btnExportExcel" onclick="exportRequestsToExcel()" style="padding: 6px 12px; background-color: #1d6f42; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📊 Xuất Excel</button>
         </div>
       </div>
 
@@ -1274,7 +1276,7 @@ const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
 
         let foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
         let foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
-        let foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
+        let foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd_sx') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
         let foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giam_doc'));
 
         const nameNV = createdBy;
@@ -2138,6 +2140,75 @@ function closeFilePreviewModal() {
         renderDetailsTable(); // Vẽ lại bảng chi tiết
     }
 };
+function exportRequestsToExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert('Không tải được thư viện xuất Excel. Vui lòng kiểm tra kết nối mạng!');
+        return;
+    }
+
+    // Ưu tiên lấy mảng dữ liệu phiếu nếu bạn lưu ra biến toàn cục (ví dụ window.allRequests)
+    const rows = [];
+    const table = document.querySelector('table');
+
+    if (Array.isArray(window.allRequests) && window.allRequests.length > 0) {
+        window.allRequests.forEach((item, index) => {
+            rows.push({
+                'STT': index + 1,
+                'Số phiếu': item.requestCode || item.code || '',
+                'Ngày tháng': item.createdAt ? String(item.createdAt).slice(0, 10) : (item.date || ''),
+                'Người tạo': item.createdByName || item.creator || item.userName || '',
+                'Bộ phận': item.department || '',
+                'Nội dung': item.title || item.content || item.description || '',
+                'Số tiền (VNĐ)': Number(item.totalAmount || item.amount || 0),
+                'Trạng thái / Kết quả': item.status || ''
+            });
+        });
+    } else if (table) {
+        // Phương án dự phòng: đọc trực tiếp từ các dòng <tr> của bảng đang hiển thị
+        const trList = table.querySelectorAll('tbody tr');
+        trList.forEach((tr, idx) => {
+            const cells = tr.querySelectorAll('td');
+            if (cells.length >= 7) {
+                const rawAmount = cells[4].innerText.replace(/[^\d-]/g, '');
+                rows.push({
+                    'STT': idx + 1,
+                    'Số phiếu': cells[0].innerText.trim(),
+                    'Ngày tháng': cells[1].innerText.trim(),
+                    'Người tạo': cells[2].innerText.trim(),
+                    'Nội dung': cells[3].innerText.trim(),
+                    'Số tiền (VNĐ)': Number(rawAmount || 0),
+                    'Tiến trình thanh toán': cells[5].innerText.replace(/\s+/g, ' ').trim(),
+                    'Kết quả': cells[6].innerText.trim()
+                });
+            }
+        });
+    }
+
+    if (rows.length === 0) {
+        alert('Không có dữ liệu phiếu để xuất Excel!');
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+
+    // Tự động căn độ rộng cột tương đối dễ nhìn
+    worksheet['!cols'] = [
+        { wch: 6 },
+        { wch: 16 },
+        { wch: 14 },
+        { wch: 22 },
+        { wch: 40 },
+        { wch: 18 },
+        { wch: 45 },
+        { wch: 24 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'DanhSachPhieu');
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `Danh_sach_phieu_thanh_toan_${today}.xlsx`);
+}
     </script>
 <!-- Modal Xem File Chuyên Nghiệp -->
 <div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
