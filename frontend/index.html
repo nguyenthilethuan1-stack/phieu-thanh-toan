@@ -690,35 +690,39 @@
         }
     };
 
-    // --- TẢI DANH SÁCH PHIẾU ---
-    window.loadRequests = async function() {
-        const tableBody = document.getElementById('requestsTableBody');
-        if (!tableBody || !currentUser) return;
+// --- TẢI DANH SÁCH PHIẾU ---
+window.loadRequests = async function() {
+    const tableBody = document.getElementById('requestsTableBody');
+    if (!tableBody || !currentUser) return;
 
-        try {
-            const startDate = document.getElementById('filterStartDate')?.value || '';
-            const endDate = document.getElementById('filterEndDate')?.value || '';
-            const statusFilter = document.getElementById('filterStatus')?.value || '';
-            const deptFilter = document.getElementById('filterDepartment')?.value || '';
+    try {
+        const startDate = document.getElementById('filterStartDate')?.value || '';
+        const endDate = document.getElementById('filterEndDate')?.value || '';
+        const statusFilter = document.getElementById('filterStatus')?.value || '';
+        const deptFilter = document.getElementById('filterDepartment')?.value || '';
 
-            const queryParams = new URLSearchParams({
-                role: currentUser.role,
-                department: currentUser.department || '',
-                username: currentUser.username || '',
-                startDate: startDate,
-                endDate: endDate,
-                status: statusFilter,
-                departmentFilter: deptFilter
-            });
+        const queryParams = new URLSearchParams({
+            role: currentUser.role,
+            department: currentUser.department || '',
+            username: currentUser.username || '',
+            startDate: startDate,
+            endDate: endDate,
+            status: statusFilter,
+            departmentFilter: deptFilter
+        });
 
-            const response = await fetch(`${API_BASE_URL}/api/requests?${queryParams}`);
-            currentRequests = await response.json();
-            tableBody.innerHTML = '';
+        const response = await fetch(`${API_BASE_URL}/api/requests?${queryParams}`);
+        const data = await response.json();
+        currentRequests = Array.isArray(data) ? data : (data.requests || data.data || []);
+        window.allRequests = currentRequests;
 
-            if (!currentRequests || currentRequests.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Không tìm thấy phiếu nào phù hợp với bộ lọc.</td></tr>`;
-                return;
-            }  
+        tableBody.innerHTML = '';
+
+        if (!currentRequests || currentRequests.length === 0) {
+            window.allRequests = [];
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Không tìm thấy phiếu nào phù hợp với bộ lọc.</td></tr>`;
+            return;
+        }  
 
             function renderStepBox(stepLabel, state) {
                 let bg = '#e9ecef', color = '#495057', border = '#ced4da', icon = '➖', text = 'Miễn';
