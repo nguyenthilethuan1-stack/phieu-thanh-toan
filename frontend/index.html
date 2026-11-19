@@ -275,7 +275,7 @@
                 <option value="tbp">Trưởng bộ phận</option>
                 <option value="kt_thanhtoan">Kế toán thanh toán</option>
                 <option value="ktt">Kế toán trưởng</option>
-                <option value="gd">Giám đốc</option>
+                <option value="giam_doc">Giám đốc</option>
                 <option value="admin">Admin hệ thống</option>
               </select>
             </div>
@@ -371,7 +371,7 @@
                 <option value="tbp">Trưởng bộ phận</option>
                 <option value="kt_thanhtoan">Kế toán thanh toán</option>
                 <option value="ktt">Kế toán trưởng</option>
-                <option value="gd">Giám đốc</option>
+                <option value="giam_doc">Giám đốc</option>
                 <option value="admin">Admin</option>
             </select>
         </div>
@@ -793,7 +793,7 @@
                         s4 = 'duyet';
                         s5 = 'tu-choi';
                         s6 = 'cho';
-                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
+                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('giam_doc')) {
                         s2 = 'duyet';
                         s3 = 'duyet';
                         s4 = 'duyet';
@@ -862,7 +862,7 @@
                         canApprove = true;
                     } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
                         canApprove = true;
-                    } else if (isWaitingGD && (roleValue === 'gd' || roleValue.includes('giamdoc'))) {
+                    } else if (isWaitingGD && (roleValue === 'giam_doc' || roleValue.includes('giamdoc'))) {
                         canApprove = true;
                     }
                 }
@@ -1007,7 +1007,7 @@ window.showDetailModal = function(id) {
             else if (isWaitingKTTT && (userRole === 'kt_thanhtoan' || userRole.includes('thanhtoan'))) canApprove = true;
             else if (isWaitingKTT && (userRole === 'ktt' || userRole.includes('truong'))) canApprove = true;
             else if (isWaitingPGD && (userRole === 'pgd_sx' || userRole.includes('pgd'))) canApprove = true;
-            else if (isWaitingGD && (userRole === 'gd' || userRole.includes('giamdoc'))) canApprove = true;
+            else if (isWaitingGD && (userRole === 'giam_doc' || userRole.includes('giamdoc'))) canApprove = true;
         }
     }
 
@@ -1275,7 +1275,7 @@ const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
         let foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
         let foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
         let foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
-        let foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('gd') || String(u.role || '').toLowerCase().includes('giam_doc'));
+        let foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giam_doc'));
 
         const nameNV = createdBy;
         const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
