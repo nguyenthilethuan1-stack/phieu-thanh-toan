@@ -382,30 +382,32 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         let currentStatus = reqDoc.status || '';
         let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
 
+        const roleNorm = String(userRole || req.body.role || '').trim().toLowerCase();
+
         if (action === 'approve') {
             // Kiểm tra nghiêm ngặt phân quyền tuần tự chống vượt cấp
             if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || !currentStatus) {
-                if (userRole && userRole !== 'tbp' && userRole !== 'admin') {
+                if (roleNorm && roleNorm !== 'tbp' && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Phiếu chưa được Trưởng Bộ phận duyệt, bạn không có quyền duyệt bước này!' });
                 }
                 reqDoc.status = '2. Chờ KT Thanh toán';
             } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
-                if (userRole && userRole !== 'kt_thanhtoan' && userRole !== 'admin') {
+                if (roleNorm && roleNorm !== 'kt_thanhtoan' && !roleNorm.includes('thanhtoan') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Kế toán thanh toán duyệt!' });
                 }
                 reqDoc.status = '3. Chờ Kế toán trưởng';
             } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
-                if (userRole && userRole !== 'ktt' && userRole !== 'admin') {
+                if (roleNorm && roleNorm !== 'ktt' && roleNorm !== 'kt_truong' && !roleNorm.includes('ke_toan_truong') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Kế toán trưởng duyệt!' });
                 }
                 reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
             } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
-                if (userRole && userRole !== 'pgd_sx' && userRole !== 'admin') {
+                if (roleNorm && roleNorm !== 'pgd_sx' && roleNorm !== 'pgdsx' && !roleNorm.includes('pgd') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Phó GĐ sản xuất duyệt!' });
                 }
                 reqDoc.status = '4. Chờ Giám đốc';
             } else if (currentStatus.includes('4. Chờ Giám đốc')) {
-                if (userRole && userRole !== 'gd' && userRole !== 'admin') {
+                if (roleNorm && roleNorm !== 'gd' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
                 }
                 reqDoc.status = '5. Đã hoàn tất';
@@ -414,25 +416,17 @@ app.put('/api/requests/:id/approve', async (req, res) => {
         } else if (action === 'reject') {
             // Nhận diện chức vụ người từ chối để lưu trạng thái minh bạch
             let roleTitle = 'Người duyệt';
-            if (userRole === 'tbp') roleTitle = 'Trưởng Bộ Phận';
-            else if (userRole === 'kt_thanhtoan') roleTitle = 'Kế Toán Thanh Toán';
-            else if (userRole === 'ktt') roleTitle = 'Kế Toán Trưởng';
-            else if (userRole === 'pgd_sx') roleTitle = 'Phó Giám Đốc';
-            else if (userRole === 'gd') roleTitle = 'Giám Đốc';
-            else if (userRole === 'admin') roleTitle = 'Admin';
+            if (roleNorm === 'tbp' || roleNorm.includes('truong_bo_phan')) roleTitle = 'Trưởng Bộ Phận';
+            else if (roleNorm === 'kt_thanhtoan' || roleNorm.includes('thanhtoan')) roleTitle = 'Kế Toán Thanh Toán';
+            else if (roleNorm === 'ktt' || roleNorm === 'kt_truong' || roleNorm.includes('ke_toan_truong')) roleTitle = 'Kế Toán Trưởng';
+            else if (roleNorm === 'pgd_sx' || roleNorm.includes('pgd')) roleTitle = 'Phó Giám Đốc';
+            else if (roleNorm === 'gd' || roleNorm.includes('giamdoc')) roleTitle = 'Giám Đốc';
+            else if (roleNorm === 'admin') roleTitle = 'Admin';
 
             reqDoc.status = `Đã từ chối (${roleTitle})`;
             reqDoc.rejectReason = comment;
             if (comment) reqDoc.comment = comment;
         }
-
-        await reqDoc.save();
-        res.json({ message: 'Phê duyệt thành công bước hiện tại!', request: reqDoc });
-    } catch (err) {
-        console.error('Lỗi server khi duyệt:', err);
-        res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
-    }
-});
 
 // API Upload file lẻ trả về đường dẫn URL công khai
 app.post('/api/upload', upload.array('files'), (req, res) => {
