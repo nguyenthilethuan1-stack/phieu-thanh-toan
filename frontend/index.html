@@ -2146,39 +2146,85 @@ function exportRequestsToExcel() {
         return;
     }
 
-    // Ưu tiên lấy mảng dữ liệu phiếu nếu bạn lưu ra biến toàn cục (ví dụ window.allRequests)
     const rows = [];
-    const table = document.querySelector('table');
+    const sourceData =
+        (Array.isArray(window.allRequests) && window.allRequests.length > 0 && window.allRequests) ||
+        (Array.isArray(window.currentRequests) && window.currentRequests.length > 0 && window.currentRequests) ||
+        (Array.isArray(window.requests) && window.requests.length > 0 && window.requests) ||
+        null;
 
-    if (Array.isArray(window.allRequests) && window.allRequests.length > 0) {
-        window.allRequests.forEach((item, index) => {
+    // Đối chiếu tiền tố mã phiếu nếu dữ liệu chưa có sẵn trường department
+    const inferDepartmentFromCode = (code = '') => {
+        const prefix = String(code).split('-')[0].trim().toUpperCase();
+        if (prefix === 'KT') return 'Phòng Kế Toán';
+        if (prefix === 'HC') return 'Phòng Hành Chính - Nhân Sự';
+        if (prefix === 'KD') return 'Phòng Kinh Doanh';
+        if (prefix === 'KTH' || prefix === 'KTN' || prefix === 'SX') return 'Phòng Kỹ Thuật';
+        return '';
+    };
+
+    const parseAmount = (val) => {
+        if (typeof val === 'number' && !Number.isNaN(val)) return val;
+        const cleaned = String(val ?? '0').replace(/[^\d-]/g, '');
+        return Number(cleaned || 0);
+    };
+
+    if (sourceData) {
+        sourceData.forEach((item) => {
+            const code = String(item.requestCode || item.code || item.soPhieu || '').trim();
+            const rawDate = item.createdAt || item.date || item.ngayThang || '';
+            const formattedDate = rawDate ? String(rawDate).slice(0, 10) : '';
+
             rows.push({
-                'STT': index + 1,
-                'Số phiếu': item.requestCode || item.code || '',
-                'Ngày tháng': item.createdAt ? String(item.createdAt).slice(0, 10) : (item.date || ''),
-                'Người tạo': item.createdByName || item.creator || item.userName || '',
-                'Bộ phận': item.department || '',
-                'Nội dung': item.title || item.content || item.description || '',
-                'Số tiền (VNĐ)': Number(item.totalAmount || item.amount || 0),
-                'Trạng thái / Kết quả': item.status || ''
+                'Số phiếu': code,
+                'ngày tháng': formattedDate,
+                'người đề nghị': String(
+                    item.createdByName ||
+                    item.requesterName ||
+                    item.creatorName ||
+                    item.creator ||
+                    item.userName ||
+                    item.nguoiDeNghi ||
+                    ''
+                ).trim(),
+                'bộ phận': String(
+                    item.department ||
+                    item.departmentName ||
+                    item.boPhan ||
+                    inferDepartmentFromCode(code)
+                ).trim(),
+                'nội dung': String(
+                    item.title ||
+                    item.content ||
+                    item.description ||
+                    item.noiDung ||
+                    ''
+                ).trim(),
+                'số tiền': parseAmount(item.totalAmount ?? item.amount ?? item.soTien ?? 0),
+                'loại chi phí': String(
+                    item.costType ||
+                    item.expenseType ||
+                    item.category ||
+                    item.loaiChiPhi ||
+                    ''
+                ).trim()
             });
         });
-    } else if (table) {
-        // Phương án dự phòng: đọc trực tiếp từ các dòng <tr> của bảng đang hiển thị
-        const trList = table.querySelectorAll('tbody tr');
-        trList.forEach((tr, idx) => {
+    } else {
+        // Đọc dự phòng trực tiếp từ bảng danh sách phiếu trên giao diện
+        const trList = document.querySelectorAll('table tbody tr');
+        trList.forEach((tr) => {
             const cells = tr.querySelectorAll('td');
-            if (cells.length >= 7) {
-                const rawAmount = cells[4].innerText.replace(/[^\d-]/g, '');
+            if (cells.length >= 5) {
+                const code = (cells[0]?.innerText || '').replace(/\s+/g, ' ').trim();
                 rows.push({
-                    'STT': idx + 1,
-                    'Số phiếu': cells[0].innerText.trim(),
-                    'Ngày tháng': cells[1].innerText.trim(),
-                    'Người tạo': cells[2].innerText.trim(),
-                    'Nội dung': cells[3].innerText.trim(),
-                    'Số tiền (VNĐ)': Number(rawAmount || 0),
-                    'Tiến trình thanh toán': cells[5].innerText.replace(/\s+/g, ' ').trim(),
-                    'Kết quả': cells[6].innerText.trim()
+                    'Số phiếu': code,
+                    'ngày tháng': (cells[1]?.innerText || '').replace(/\s+/g, ' ').trim(),
+                    'người đề nghị': (cells[2]?.innerText || '').replace(/\s+/g, ' ').trim(),
+                    'bộ phận': inferDepartmentFromCode(code),
+                    'nội dung': (cells[3]?.innerText || '').replace(/\s+/g, ' ').trim(),
+                    'số tiền': parseAmount(cells[4]?.innerText || '0'),
+                    'loại chi phí': ''
                 });
             }
         });
@@ -2190,24 +2236,21 @@ function exportRequestsToExcel() {
     }
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
-
-    // Tự động căn độ rộng cột tương đối dễ nhìn
     worksheet['!cols'] = [
-        { wch: 6 },
-        { wch: 16 },
-        { wch: 14 },
-        { wch: 22 },
-        { wch: 40 },
-        { wch: 18 },
-        { wch: 45 },
-        { wch: 24 }
+        { wch: 16 }, // Số phiếu
+        { wch: 14 }, // ngày tháng
+        { wch: 24 }, // người đề nghị
+        { wch: 28 }, // bộ phận
+        { wch: 42 }, // nội dung
+        { wch: 18 }, // số tiền
+        { wch: 30 }  // loại chi phí
     ];
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'DanhSachPhieu');
 
     const today = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(workbook, `Danh_sach_phieu_thanh_toan_${today}.xlsx`);
+    XLSX.writeFile(workbook, `Danh_sach_phieu_${today}.xlsx`);
 }
     </script>
 <!-- Modal Xem File Chuyên Nghiệp -->
