@@ -945,128 +945,210 @@
     };
 
     // --- 3. XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
-    window.showDetailModal = function(id) {
-        const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
-        if (!req) return;
+window.showDetailModal = function(id) {
+    const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
+    if (!req) return;
 
-        currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const userRole = (currentUser.role || '').toLowerCase();
+    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const userRole = (currentUser.role || '').toLowerCase();
+    const statusStr = String(req.status || '');
+    const statusLower = statusStr.toLowerCase();
 
-        let detailsRowsHTML = '';
-        const listDetails = req.details || req.items || req.lines || [];
+    let detailsRowsHTML = '';
+    const listDetails = req.details || req.items || req.lines || [];
 
-        if (listDetails.length > 0) {
-            listDetails.forEach((item, idx) => {
-                const itemDate = item.docDate || item.date || item.ngayChungTu || '';
-                const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
-                const docNo = item.docNo || item.soChungTu || (idx + 1);
-                const desc = item.desc || item.description || item.diengiai || '';
-                const amt = item.amount || item.sotien || 0;
+    if (listDetails.length > 0) {
+        listDetails.forEach((item, idx) => {
+            const itemDate = item.docDate || item.date || item.ngayChungTu || '';
+            const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
+            const docNo = item.docNo || item.soChungTu || (idx + 1);
+            const desc = item.desc || item.description || item.diengiai || '';
+            const amt = item.amount || item.sotien || 0;
 
-                const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
-                let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-                if (rowFiles.length > 0) {
-                    fileLinksHtml = `<button type="button" onclick='openFilePreview(${JSON.stringify(rowFiles)})' style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
-                }
+            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
+            let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+            if (rowFiles.length > 0) {
+                const encodedFiles = encodeURIComponent(JSON.stringify(rowFiles));
+                fileLinksHtml = `<button type="button" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encodedFiles}')))" style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
+            }
 
-                detailsRowsHTML += `
-                    <tr>
-                        <td style="text-align: center;">${idx + 1}</td>
-                        <td>${docNo}</td>
-                        <td>${ngayCT}</td>
-                        <td>${desc}</td>
-                        <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
-                        <td>${fileLinksHtml}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        const canApprove = userRole !== 'nhanvien' && userRole !== 'nhan_vien' && !String(req.status || '').includes('Từ chối') && !String(req.status || '').includes('Hoàn tất');
-
-        const userRoleStr = (currentUser.role || '').toLowerCase();
-        const isKtOrAdmin = userRoleStr.includes('kt') || userRoleStr.includes('thanh_toan') || userRoleStr.includes('thanhtoan') || userRoleStr.includes('admin');
-
-        let todayStr = new Date().toISOString().split('T')[0];
-        let currentPaidDate = req.paidDate || todayStr;
-        let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
-
-        let paymentCheckboxSection = '';
-        if (isKtOrAdmin) {
-            paymentCheckboxSection = `
-                <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
-                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
-                        <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
-                    </label>
-                    <div style="flex: 1;">
-                        <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
-                        <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
-                    </div>
-                    <div style="align-self: flex-end;">
-                        <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
-                    </div>
-                </div>
+            detailsRowsHTML += `
+                <tr>
+                    <td style="text-align: center;">${idx + 1}</td>
+                    <td>${docNo}</td>
+                    <td>${ngayCT}</td>
+                    <td>${desc}</td>
+                    <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
+                    <td>${fileLinksHtml}</td>
+                </tr>
             `;
-        }
+        });
+    }
 
-        let approvalBoxHtml = '';
-        if (canApprove || isKtOrAdmin) {
-            approvalBoxHtml = `
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+    const isRejected = statusLower.includes('từ chối');
+    const isCompleted = statusLower.includes('hoàn tất') || statusLower.includes('đã thanh toán');
+
+    const isWaitingTBP = !isRejected && (
+        statusStr.includes('1. Chờ Trưởng Bộ phận') ||
+        statusStr.includes('Chờ Trưởng Bộ phận') ||
+        (!statusStr.includes('2.') && !statusStr.includes('3.') && !statusStr.includes('4.') && !statusStr.includes('5.') && !isCompleted)
+    );
+    const isWaitingKTTT = !isRejected && statusStr.includes('2. Chờ KT Thanh toán');
+    const isWaitingKTT = !isRejected && statusStr.includes('3. Chờ Kế toán trưởng');
+    const isWaitingPGD = !isRejected && statusStr.includes('4. Chờ Phó GĐ');
+    const isWaitingGD = !isRejected && statusStr.includes('4. Chờ Giám đốc');
+
+    let canApprove = false;
+    if (!isRejected && !isCompleted) {
+        if (userRole === 'admin') {
+            canApprove = true;
+        } else if (userRole !== 'nhanvien' && userRole !== 'nhan_vien') {
+            if (isWaitingTBP && userRole === 'tbp') canApprove = true;
+            else if (isWaitingKTTT && (userRole === 'kt_thanhtoan' || userRole.includes('thanhtoan'))) canApprove = true;
+            else if (isWaitingKTT && (userRole === 'ktt' || userRole.includes('truong'))) canApprove = true;
+            else if (isWaitingPGD && (userRole === 'pgd_sx' || userRole.includes('pgd'))) canApprove = true;
+            else if (isWaitingGD && (userRole === 'gd' || userRole.includes('giamdoc'))) canApprove = true;
+        }
+    }
+
+    const isKtOrAdmin = userRole.includes('kt') || userRole.includes('thanh_toan') || userRole.includes('thanhtoan') || userRole === 'admin';
+
+    let todayStr = new Date().toISOString().split('T')[0];
+    let currentPaidDate = req.paidDate || todayStr;
+    let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
+
+    let paymentCheckboxSection = '';
+    if (isKtOrAdmin) {
+        paymentCheckboxSection = `
+            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
+                    <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
+                </label>
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
+                    <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
+                </div>
+                <div style="align-self: flex-end;">
+                    <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
+                </div>
+            </div>
+        `;
+    }
+
+    const savedNote = req.rejectReason || req.comment || '';
+    const noteDisplayHtml = savedNote
+        ? `<div style="margin-bottom: 10px; padding: 8px 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 12px; color: #664d03;">
+               <strong>Ghi chú / Lý do đã lưu:</strong> ${savedNote}
+           </div>`
+        : '';
+
+    const approveButtonsHtml = canApprove
+        ? `<div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+               <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
+               <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
+           </div>`
+        : '';
+
+    let approvalBoxHtml = '';
+    if (canApprove || isKtOrAdmin || savedNote) {
+        approvalBoxHtml = `
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                ${noteDisplayHtml}
+                ${canApprove ? `
                     <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
-                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
-                    
-                    <div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
-                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
-                        <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
-                    </div>
+                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">${savedNote}</textarea>
+                ` : ''}
+                ${approveButtonsHtml}
+                ${paymentCheckboxSection}
+            </div>
+        `;
+    }
 
-                    ${paymentCheckboxSection}
-                </div>
-            `;
+    const modalContent = document.getElementById('modalBodyContent');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
+                <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
+                <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
+                <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+                <p style="margin: 4px 0;"><strong>Trạng thái hiện tại:</strong> ${req.status || ''}</p>
+            </div>
+            <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
+                <thead>
+                    <tr style="background: #0d6efd; color: white;">
+                        <th style="padding: 6px;">STT</th>
+                        <th style="padding: 6px;">Số CT</th>
+                        <th style="padding: 6px;">Ngày CT</th>
+                        <th style="padding: 6px;">Diễn giải</th>
+                        <th style="padding: 6px;">Số tiền</th>
+                        <th style="padding: 6px;">File đính kèm</th>
+                    </tr>
+                </thead>
+                <tbody>${detailsRowsHTML}</tbody>
+            </table>
+            <div style="text-align: right; margin-top: 10px; font-size: 15px;">
+                <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+            </div>
+            ${approvalBoxHtml}
+        `;
+    }
+
+    const modalEl = document.getElementById('detailModal');
+    if (modalEl) {
+        modalEl.classList.remove('hidden');
+        modalEl.style.display = 'flex';
+    }
+};
+
+window.closeDetailModal = function() {
+    const modal = document.getElementById('detailModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+};
+// --- HÀM XỬ LÝ PHÊ DUYỆT / TỪ CHỐI CÓ LẤY Ý KIẾN ---
+    window.handleApproveAction = async function(id, action = 'approve') {
+        const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
+
+        const commentInput = document.getElementById('approvalCommentInput');
+        let userComment = commentInput ? commentInput.value.trim() : '';
+
+        if (action === 'reject' && !userComment) {
+            alert('Vui lòng nhập lý do từ chối vào ô ý kiến trước khi bấm Từ chối phiếu!');
+            if (commentInput) commentInput.focus();
+            return;
         }
 
-        const modalContent = document.getElementById('modalBodyContent');
-        if (modalContent) {
-            modalContent.innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
-                    <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
-                    <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
-                    <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
-                </div>
-                <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
-                    <thead>
-                        <tr style="background: #0d6efd; color: white;">
-                            <th style="padding: 6px;">STT</th>
-                            <th style="padding: 6px;">Số CT</th>
-                            <th style="padding: 6px;">Ngày CT</th>
-                            <th style="padding: 6px;">Diễn giải</th>
-                            <th style="padding: 6px;">Số tiền</th>
-                            <th style="padding: 6px;">File đính kèm</th>
-                        </tr>
-                    </thead>
-                    <tbody>${detailsRowsHTML}</tbody>
-                </table>
-                <div style="text-align: right; margin-top: 10px; font-size: 15px;">
-                    <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
-                </div>
-                ${approvalBoxHtml}
-            `;
+        if (!confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`)) {
+            return;
         }
 
-        const modalEl = document.getElementById('detailModal');
-        if (modalEl) {
-            modalEl.classList.remove('hidden');
-            modalEl.style.display = 'flex';
-        }
-    };
+        const activeUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
 
-    window.closeDetailModal = function() {
-        const modal = document.getElementById('detailModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: action,
+                    comment: userComment,
+                    userRole: activeUser.role || ''
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Thực hiện ${actionName} thành công!`);
+                closeDetailModal();
+                loadRequests();
+            } else {
+                alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
+            }
+        } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến máy chủ server!');
         }
     };
     // --- SỬA PHIẾU ---
