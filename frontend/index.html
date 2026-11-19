@@ -738,236 +738,159 @@
                 let isKyThuat = dept.toLowerCase().includes('kỹ thuật');
 
                 // 🛑 NẾU LÀ TÀI KHOẢN PHÓ GĐ SX, CHỈ CHO PHÉP HIỂN THỊ CÁC PHIẾU THUỘC PHÒNG KỸ THUẬT
-                const userRoleCheck = (currentUser.role || '').toLowerCase();
-                if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
-                    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
-                }
+const userRoleCheck = (currentUser.role || '').toLowerCase();
+if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
+    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
+}
 
-                let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
-                let rawStatus = req.status || '';
+let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
+let rawStatus = req.status || '';
+const lowerStatus = rawStatus.toLowerCase();
 
-                let summaryStatus = 'Chờ duyệt';
-                let statusColor = '#856404';
-                let statusBg = '#fff3cd';
+let summaryStatus = 'Chờ duyệt';
+let statusColor = '#856404';
+let statusBg = '#fff3cd';
 
-                if (rawStatus.includes('từ chối')) {
-                    summaryStatus = 'Từ chối'; 
-                    statusColor = '#721c24'; 
-                    statusBg = '#f8d7da';
-                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
-                    if (req.paidStatus === 'Đã thanh toán') {
-                        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
-                        statusColor = '#155724'; 
-                        statusBg = '#d4edda';
-                    } else {
-                        summaryStatus = 'Chờ thanh toán';
-                        statusColor = '#004085'; 
-                        statusBg = '#cce5ff';
-                    }
-                } else {
-                    summaryStatus = 'Chờ duyệt'; 
-                    statusColor = '#856404'; 
-                    statusBg = '#fff3cd';
-                }
+if (lowerStatus.includes('từ chối')) {
+    summaryStatus = 'Từ chối';
+    statusColor = '#721c24';
+    statusBg = '#f8d7da';
+} else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
+    if (req.paidStatus === 'Đã thanh toán') {
+        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
+        statusColor = '#155724';
+        statusBg = '#d4edda';
+    } else {
+        summaryStatus = 'Chờ thanh toán';
+        statusColor = '#004085';
+        statusBg = '#cce5ff';
+    }
+} else {
+    summaryStatus = 'Chờ duyệt';
+    statusColor = '#856404';
+    statusBg = '#fff3cd';
+}
 
-                let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
+let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
 
-                if (rawStatus.toLowerCase().includes('từ chối')) {
-                    s1 = 'duyet';
-                    // Sử dụng phương pháp kiểm tra linh hoạt không phân biệt hoa thường để bắt chính xác người từ chối
-                    let lowerStatus = rawStatus.toLowerCase();
-                    
-                    if (lowerStatus.includes('trưởng bộ phận') || lowerStatus.includes('tbp')) {
-                        s2 = 'tu-choi';
-                        s3 = s4 = s5 = s6 = 'cho';
-                    } else if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('thanh toán')) {
-                        s2 = 'duyet'; 
-                        s3 = 'tu-choi';
-                        s4 = s5 = s6 = 'cho';
-                    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
-                        s2 = 'duyet'; 
-                        s3 = 'duyet'; 
-                        s4 = 'tu-choi';
-                        s5 = s6 = 'cho';
-                    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
-                        s2 = 'duyet'; 
-                        s3 = 'duyet'; 
-                        s4 = 'duyet'; 
-                        s5 = 'tu-choi';
-                        s6 = 'cho';
-                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
-                        s2 = 'duyet'; 
-                        s3 = 'duyet'; 
-                        s4 = 'duyet'; 
-                        s5 = isKyThuat ? 'duyet' : 'mien'; 
-                        s6 = 'tu-choi';
-                    } else {
-                        // Trường hợp tổng quát nếu chỉ chứa chuỗi "từ chối" chung chung
-                        s2 = 'tu-choi'; 
-                        s3 = s4 = s5 = s6 = 'cho';
-                    }
-                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
-                    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
-                    if (!isKyThuat) s5 = 'mien';
-                } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Giám đốc')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
-                }
+if (lowerStatus.includes('từ chối')) {
+    s1 = 'duyet';
+    if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('kt thanh toán')) {
+        s2 = 'duyet';
+        s3 = 'tu-choi';
+        s4 = 'cho';
+        s5 = isKyThuat ? 'cho' : 'mien';
+        s6 = 'cho';
+    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
+        s2 = 'duyet';
+        s3 = 'duyet';
+        s4 = 'tu-choi';
+        s5 = isKyThuat ? 'cho' : 'mien';
+        s6 = 'cho';
+    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
+        s2 = 'duyet';
+        s3 = 'duyet';
+        s4 = 'duyet';
+        s5 = 'tu-choi';
+        s6 = 'cho';
+    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('gd')) {
+        s2 = 'duyet';
+        s3 = 'duyet';
+        s4 = 'duyet';
+        s5 = isKyThuat ? 'duyet' : 'mien';
+        s6 = 'tu-choi';
+    } else {
+        s2 = 'tu-choi';
+        s3 = 'cho';
+        s4 = 'cho';
+        s5 = isKyThuat ? 'cho' : 'mien';
+        s6 = 'cho';
+    }
+} else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
+    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
+    if (!isKyThuat) s5 = 'mien';
+} else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
+} else if (rawStatus.includes('4. Chờ Giám đốc')) {
+    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
+}
 
-                let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
-                stepsHTML += renderStepBox('Lập Phiếu', s1);
-                stepsHTML += renderStepBox('Trưởng BP', s2);
-                stepsHTML += renderStepBox('KT Thanh Toán', s3);
-                stepsHTML += renderStepBox('KT Trưởng', s4);
-                if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
-                stepsHTML += renderStepBox('Giám Đốc', s6);
-                stepsHTML += `</div>`;
+let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
+stepsHTML += renderStepBox('Lập Phiếu', s1);
+stepsHTML += renderStepBox('Trưởng BP', s2);
+stepsHTML += renderStepBox('KT Thanh Toán', s3);
+stepsHTML += renderStepBox('KT Trưởng', s4);
+if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
+stepsHTML += renderStepBox('Giám Đốc', s6);
+stepsHTML += `</div>`;
 
-                let maPhieuHienThi = req.requestCode || '';
+let maPhieuHienThi = req.requestCode || '';
 
-                let actionButtonsHTML = '';
-                const roleValue = (currentUser.role || '').toLowerCase();
-                let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
+let actionButtonsHTML = '';
+const roleValue = (currentUser.role || '').toLowerCase();
+let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
 
 // 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa chuẩn xác từng bước
-                const userDept = (currentUser.department || '').toLowerCase();
-                
-                // Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
-                let isWaitingTBP = rawStatus.includes('1. Chờ Trưởng Bộ phận') || rawStatus.includes('Chờ Trưởng Bộ phận') || (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.') && !rawStatus.includes('từ chối'));
-                let isWaitingKTTT = rawStatus.includes('2. Chờ KT Thanh toán');
-                let isWaitingKTT = rawStatus.includes('3. Chờ Kế toán trưởng');
-                let isWaitingPGD = rawStatus.includes('4. Chờ Phó GĐ');
-                let isWaitingGD = rawStatus.includes('4. Chờ Giám đốc');
+const userDept = (currentUser.department || '').toLowerCase();
+const isRejected = rawStatus.toLowerCase().includes('từ chối');
 
-                // CHẶN NGHIÊM NGẶT: Chỉ cho phép hiển thị nút Duyệt/Từ chối khi ĐÚNG BƯỚC VÀ ĐÚNG ROLE tương ứng
-                let canApprove = false;
-                if (roleValue === 'admin') {
-                    canApprove = true; // Admin có toàn quyền xử lý
-                } else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
-                    if (isWaitingTBP && roleValue === 'tbp') {
-                        canApprove = true;
-                    } else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) {
-                        canApprove = true;
-                    } else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) {
-                        canApprove = true;
-                    } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
-                        canApprove = true;
-                    } else if (isWaitingGD && (roleValue === 'gd' || roleValue.includes('giamdoc'))) {
-                        canApprove = true;
-                    }
-                }
+// Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
+let isWaitingTBP = !isRejected && (
+    rawStatus.includes('1. Chờ Trưởng Bộ phận') ||
+    rawStatus.includes('Chờ Trưởng Bộ phận') ||
+    (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.'))
+);
+let isWaitingKTTT = !isRejected && rawStatus.includes('2. Chờ KT Thanh toán');
+let isWaitingKTT = !isRejected && rawStatus.includes('3. Chờ Kế toán trưởng');
+let isWaitingPGD = !isRejected && rawStatus.includes('4. Chờ Phó GĐ');
+let isWaitingGD = !isRejected && rawStatus.includes('4. Chờ Giám đốc');
 
-                let isReallyPending = isWaitingTBP;
-
-                if (canApprove) {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
-                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
-                        </div>
-                    `;
-                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
-                            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-                        </div>
-                    `;
-                } else {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-                        </div>
-                    `;
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align: center; font-weight: bold; color: #007bff; cursor: pointer;" onclick="showDetailModal('${req._id || req.id}')">${maPhieuHienThi}</td>
-                    <td style="text-align: center;">${ngayTao}</td>
-                    <td>${req.createdBy || ''}</td>
-                    <td>${req.title || ''}</td>
-                    <td style="text-align: right;">${req.amount ? Number(req.amount).toLocaleString('vi-VN') : '0'}</td>
-                    <td style="width: auto; white-space: nowrap;">${stepsHTML}</td>
-                    <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: ${statusBg}; color: ${statusColor};">
-                            ${summaryStatus}
-                        </span>
-                    </td>
-                    <td style="text-align: center; white-space: nowrap; width: 60px;">${actionButtonsHTML}</td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error('Lỗi tải danh sách:', error);
-        }
-    };
-
-    window.resetFilters = function() {
-        if(document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = '';
-        if(document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = '';
-        if(document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
-        if(document.getElementById('filterDepartment')) document.getElementById('filterDepartment').value = '';
-        loadRequests();
-    };
-
-// --- 1. HÀM XỬ LÝ PHÊ DUYỆT / TỪ CHỐI CÓ LẤY Ý KIẾN & CHỐNG VƯỢT CẤP ---
-async function handleApproveAction(id, action = 'approve') {
-    const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
-
-    // 1. Lấy ý kiến/lý do từ ô textarea trong Modal
-    let userComment = '';
-    const commentInput = document.getElementById('approvalCommentInput');
-    
-    // Kiểm tra xem có lấy được giá trị từ textarea hay không
-    if (commentInput) {
-        userComment = commentInput.value.trim();
+// CHẶN NGHIÊM NGẶT: Chỉ cho phép hiển thị nút Duyệt/Từ chối khi ĐÚNG BƯỚC VÀ ĐÚNG ROLE tương ứng
+let canApprove = false;
+if (roleValue === 'admin') {
+    canApprove = true;
+} else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
+    if (isWaitingTBP && roleValue === 'tbp') {
+        canApprove = true;
+    } else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) {
+        canApprove = true;
+    } else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) {
+        canApprove = true;
+    } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
+        canApprove = true;
+    } else if (isWaitingGD && (roleValue === 'gd' || roleValue.includes('giamdoc'))) {
+        canApprove = true;
     }
+}
 
-    // Nếu bấm từ chối mà người dùng chưa nhập gì vào textarea, mới bắt buộc hỏi hoặc báo lỗi
-    if (action === 'reject' && !userComment) {
-        userComment = prompt('Vui lòng nhập lý do từ chối phiếu này:') || '';
-        if (!userComment.trim()) {
-            alert('Bạn bắt buộc phải nhập lý do từ chối phiếu!');
-            return; 
-        }
-    }
+let isReallyPending = isWaitingTBP;
 
-    // 2. Hộp thoại xác nhận lần cuối
-    const isConfirmed = confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`);
-    if (!isConfirmed) return;
-
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: action, 
-                comment: userComment, // Truyền thẳng nội dung trong textarea lên server
-                userRole: currentUser.role 
-            })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert(`Thực hiện ${actionName} thành công!`);
-            location.reload(); 
-        } else {
-            alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
-        }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
+if (canApprove) {
+    actionButtonsHTML = `
+        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
+            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
+            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
+        </div>
+    `;
+} else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
+    actionButtonsHTML = `
+        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+        </div>
+    `;
+} else {
+    actionButtonsHTML = `
+        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+        </div>
+    `;
 }
 
 // --- 2. HÀM LƯU TRẠNG THÁI THANH TOÁN (DÀNH CHO KẾ TOÁN) ---
