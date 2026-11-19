@@ -373,15 +373,14 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
 app.put('/api/requests/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
-        const { action, comment, userRole } = req.body; 
-        const reqDoc = await PaymentRequest.findById(id); 
+        const { action, comment, userRole } = req.body;
+        const reqDoc = await PaymentRequest.findById(id);
         if (!reqDoc) {
             return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
         }
 
         let currentStatus = reqDoc.status || '';
         let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
-
         const roleNorm = String(userRole || req.body.role || '').trim().toLowerCase();
 
         if (action === 'approve') {
@@ -411,7 +410,10 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                     return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
                 }
                 reqDoc.status = '5. Đã hoàn tất';
+            } else {
+                return res.status(400).json({ error: 'Phiếu không ở trạng thái chờ duyệt hợp lệ!' });
             }
+
             if (comment) reqDoc.comment = comment;
         } else if (action === 'reject') {
             // Nhận diện chức vụ người từ chối để lưu trạng thái minh bạch
@@ -424,9 +426,19 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             else if (roleNorm === 'admin') roleTitle = 'Admin';
 
             reqDoc.status = `Đã từ chối (${roleTitle})`;
-            reqDoc.rejectReason = comment;
+            reqDoc.rejectReason = comment || '';
             if (comment) reqDoc.comment = comment;
+        } else {
+            return res.status(400).json({ error: 'Hành động phê duyệt không hợp lệ!' });
         }
+
+        await reqDoc.save();
+        res.json({ message: 'Xử lý phiếu thành công!', request: reqDoc });
+    } catch (err) {
+        console.error('Lỗi server khi duyệt:', err);
+        res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
+    }
+});
 
 // API Upload file lẻ trả về đường dẫn URL công khai
 app.post('/api/upload', upload.array('files'), (req, res) => {
