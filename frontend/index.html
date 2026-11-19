@@ -2153,7 +2153,6 @@ function exportRequestsToExcel() {
         (Array.isArray(window.requests) && window.requests.length > 0 && window.requests) ||
         null;
 
-    // Đối chiếu tiền tố mã phiếu nếu dữ liệu chưa có sẵn trường department
     const inferDepartmentFromCode = (code = '') => {
         const prefix = String(code).split('-')[0].trim().toUpperCase();
         if (prefix === 'KT') return 'Phòng Kế Toán';
@@ -2172,13 +2171,14 @@ function exportRequestsToExcel() {
     if (sourceData) {
         sourceData.forEach((item) => {
             const code = String(item.requestCode || item.code || item.soPhieu || '').trim();
-            const rawDate = item.createdAt || item.date || item.ngayThang || '';
+            const rawDate = item.submittedAt || item.createdAt || item.date || item.ngayThang || '';
             const formattedDate = rawDate ? String(rawDate).slice(0, 10) : '';
 
             rows.push({
                 'Số phiếu': code,
                 'ngày tháng': formattedDate,
                 'người đề nghị': String(
+                    item.createdBy ||
                     item.createdByName ||
                     item.requesterName ||
                     item.creatorName ||
@@ -2203,15 +2203,17 @@ function exportRequestsToExcel() {
                 'số tiền': parseAmount(item.totalAmount ?? item.amount ?? item.soTien ?? 0),
                 'loại chi phí': String(
                     item.costType ||
+                    item.cost_type ||
                     item.expenseType ||
+                    item.expense_type ||
                     item.category ||
+                    item.type ||
                     item.loaiChiPhi ||
                     ''
                 ).trim()
             });
         });
     } else {
-        // Đọc dự phòng trực tiếp từ bảng danh sách phiếu trên giao diện
         const trList = document.querySelectorAll('table tbody tr');
         trList.forEach((tr) => {
             const cells = tr.querySelectorAll('td');
@@ -2237,13 +2239,13 @@ function exportRequestsToExcel() {
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
     worksheet['!cols'] = [
-        { wch: 16 }, // Số phiếu
-        { wch: 14 }, // ngày tháng
-        { wch: 24 }, // người đề nghị
-        { wch: 28 }, // bộ phận
-        { wch: 42 }, // nội dung
-        { wch: 18 }, // số tiền
-        { wch: 30 }  // loại chi phí
+        { wch: 16 },
+        { wch: 14 },
+        { wch: 24 },
+        { wch: 28 },
+        { wch: 42 },
+        { wch: 18 },
+        { wch: 30 }
     ];
 
     const workbook = XLSX.utils.book_new();
