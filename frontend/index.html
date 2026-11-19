@@ -1537,7 +1537,11 @@ window.editUser = async function(identifier) {
         document.getElementById('editDepartment').value = user.department || '';
         document.getElementById('editRole').value = user.role || 'nhanvien';
         document.getElementById('editManager').value = user.managerId || '';
-        document.getElementById('editZaloPhone').value = user.zaloPhone || '';
+
+        const editZaloPhoneEl = document.getElementById('editZaloPhone');
+        if (editZaloPhoneEl) {
+            editZaloPhoneEl.value = user.zaloPhone || '';
+        }
 
         // Hiển thị modal lên màn hình
         const modal = document.getElementById('editUserModal');
