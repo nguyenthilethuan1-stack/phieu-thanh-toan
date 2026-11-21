@@ -459,27 +459,41 @@
     }
 
     // --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
-    window.generateRequestCode = function(departmentName) {
-        let prefix = "PT";
-        let deptLower = (departmentName || "").toLowerCase();
+   window.generateRequestCode = async function(departmentName) {
+  let prefix = "PT";
+  let deptLower = (departmentName || "").toLowerCase();
 
-        if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
-        else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
-        else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
-        else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
-        else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
+  if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+  else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+  else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+  else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+  else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
 
-        let today = new Date();
-        let yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
-        let max = 0;
-        (currentRequests || []).forEach(req => {
-            const code = String(req.requestCode || '');
-            if (!code.startsWith(`${prefix}-${yyyyMM}-`)) return;
-            const seq = parseInt(code.split('-').pop(), 10);
-            if (!isNaN(seq)) max = Math.max(max, seq);
-        });
-        return `${prefix}-${yyyyMM}-${String(max + 1).padStart(2, '0')}`;
-    };
+  let today = new Date();
+  let yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+  try {
+    const baseUrl = window.API_BASE_URL || "";
+    const response = await fetch(`${baseUrl}/api/next-request-code?department=${encodeURIComponent(departmentName || "")}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.requestCode) {
+        return data.requestCode;
+      }
+    }
+  } catch (err) {
+    console.warn("Không lấy được số phiếu từ server, dùng danh sách hiện tại tạm thời:", err);
+  }
+
+  let max = 0;
+  (currentRequests || []).forEach(req => {
+    const code = String(req.requestCode || '');
+    if (!code.startsWith(`${prefix}-${yyyyMM}-`)) return;
+    const seq = parseInt(code.split('-').pop(), 10);
+    if (!isNaN(seq)) max = Math.max(max, seq);
+  });
+  return `${prefix}-${yyyyMM}-${String(max + 1).padStart(2, '0')}`;
+};
 
     // --- ĐỔI SỐ THÀNH CHỮ ---
     window.numberToWords = function(number) {

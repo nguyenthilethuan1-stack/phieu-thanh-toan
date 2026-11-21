@@ -258,20 +258,40 @@ app.put('/api/users/:username/change-password', async (req, res) => {
 
 app.post('/api/requests', async (req, res) => {
   try {
-    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments, createdBy, requestCode: preferredCode } = req.body;
-    const requestCode = await resolveRequestCode(department, preferredCode);
+    const {
+      title, amount, costType, department, supplierName, bankAccount,
+      description, details, attachments, createdBy, requestCode: preferredCode
+    } = req.body;
 
-    const newRequest = new PaymentRequest({
-      requestCode, 
-      title, amount, costType, department, supplierName, bankAccount, description,
-      details: details || [],
-      attachments: attachments || [],
-      createdBy,
-      status: '1. Chờ Trưởng Bộ phận duyệt'
-    });
-    
-    await newRequest.save();
-    res.status(201).json({ message: 'Tạo phiếu thành công!', request: newRequest });
+    let requestCode = await resolveRequestCode(department, preferredCode);
+    let savedRequest = null;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        const newRequest = new PaymentRequest({
+          requestCode,
+          title, amount, costType, department, supplierName, bankAccount, description,
+          details: details || [],
+          attachments: attachments || [],
+          createdBy,
+          status: '1. Chờ Trưởng Bộ phận duyệt'
+        });
+        savedRequest = await newRequest.save();
+        break;
+      } catch (saveErr) {
+        if (saveErr && saveErr.code === 11000) {
+          requestCode = await allocateNextRequestCode(department);
+          continue;
+        }
+        throw saveErr;
+      }
+    }
+
+    if (!savedRequest) {
+      return res.status(409).json({ error: 'Không thể cấp số phiếu duy nhất, vui lòng thử lại!' });
+    }
+
+    res.status(201).json({ message: 'Tạo phiếu thành công!', request: savedRequest });
   } catch (err) {
     console.error('Lỗi khi tạo phiếu:', err);
     res.status(500).json({ error: err.message });
@@ -388,6 +408,17 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
     res.json({ message: 'Cập nhật trạng thái thanh toán thành công!', request: updatedRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+// Lấy số phiếu tiếp theo theo phòng ban + tháng hiện tại trên toàn bộ database (không lọc theo user)
+app.get('/api/next-request-code', async (req, res) => {
+  try {
+    const department = String(req.query.department || '').trim();
+    const nextCode = await allocateNextRequestCode(department);
+    res.json({ requestCode: nextCode });
+  } catch (err) {
+    console.error('Lỗi lấy số phiếu kế tiếp:', err);
+    res.status(500).json({ error: 'Không thể lấy số phiếu kế tiếp!' });
   }
 });
 
