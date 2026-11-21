@@ -29,7 +29,7 @@
     .user-info { background: #e9ecef; padding: 10px 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .detail-table th, .detail-table td { padding: 6px; }
     .detail-table input { padding: 6px; font-size: 13px; }
-    
+
     /* Tabs */
     .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab-btn { background: #6c757d; }
@@ -74,8 +74,8 @@
 
   <!-- PHẦN 2: GIAO DIỆN CHÍNH -->
   <div id="mainSection" class="hidden">
-        <div class="user-info">
-      <div>👤 Xin chào, <b id="userFullName"></b> (<span id="userRoleBadge" style="color: #007bff;"></span>)[cite: 1]</div>
+    <div class="user-info">
+      <div>👤 Xin chào, <b id="userFullName"></b> (<span id="userRoleBadge" style="color: #007bff;"></span>)</div>
       <div style="display: flex; gap: 10px;">
         <button type="button" onclick="openChangePasswordModal()" style="background: #ffc107; color: black; padding: 5px 10px; font-size: 12px;">🔑 Đổi mật khẩu</button>
         <button type="button" onclick="logout()" style="background: #dc3545; padding: 5px 10px; font-size: 12px;">Đăng xuất</button>
@@ -111,7 +111,7 @@
                 <option value="Chi phí bán hàng">Chi phí bán hàng</option>
                 <option value="Chi khác cho BPSX">Chi khác cho BPSX</option>
                 <option value="Sửa chữa, bảo trì, bảo dưỡng">Sửa chữa, bảo trì, bảo dưỡng</option>
-                <option value="Mua vật tư, CCDC, MMTB">Mua vật tư, CCDC,MMTB</option>
+                <option value="Mua vật tư, CCDC, MMTB">Mua vật tư, CCDC, MMTB</option>
                 <option value="Thanh toán nhà cung cấp">Thanh toán nhà cung cấp</option>
                 <option value="Hoàn ứng">Hoàn ứng</option>
                 <option value="Chi phí hành chính">Chi phí hành chính</option>
@@ -244,76 +244,76 @@
       </div>
     </div>
 
-   <!-- TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN -->
-  <div id="tabContentUsers" class="hidden">
-    <div class="container">
-      <h3>Quản Lý Tài Khoản & Cây Phân Cấp</h3>
-      <form id="createUserForm" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-        <h4>➕ Thêm Tài Khoản Nhân Sự Mới</h4>
-        <div style="display: flex; gap: 15px;">
-          <div class="form-group" style="flex: 1;">
-            <label>Tên đăng nhập:</label>
-            <input type="text" id="newUsername" required placeholder="nhanvien2">
+    <!-- TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN -->
+    <div id="tabContentUsers" class="hidden">
+      <div class="container">
+        <h3>Quản Lý Tài Khoản & Cây Phân Cấp</h3>
+        <form id="createUserForm" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+          <h4>➕ Thêm Tài Khoản Nhân Sự Mới</h4>
+          <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="newUsername">Tên đăng nhập:</label>
+              <input type="text" id="newUsername" required placeholder="nhanvien2">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="newPassword">Mật khẩu:</label>
+              <input type="text" id="newPassword" required placeholder="123">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="newFullName">Họ và tên:</label>
+              <input type="text" id="newFullName" required placeholder="Nguyễn Văn A">
+            </div>
           </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Mật khẩu:</label>
-            <input type="text" id="newPassword" required placeholder="123">
+          <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="newDepartment">Phòng ban:</label>
+              <select id="newDepartment" class="department-select" required>
+                <option value="">-- Đang tải phòng ban... --</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="newRole">Chức vụ:</label>
+              <select id="newRole" required>
+                <option value="nhanvien">Nhân viên lập phiếu</option>
+                <option value="tbp">Trưởng bộ phận</option>
+                <option value="kt_thanhtoan">Kế toán thanh toán</option>
+                <option value="ktt">Kế toán trưởng</option>
+                <option value="pgd_sx">Phó giám đốc sản xuất</option>
+                <option value="giam_doc">Giám đốc</option>
+                <option value="admin">Admin hệ thống</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="newManager">Cấp quản lý (Username):</label>
+              <input type="text" id="newManager" placeholder="tbp1">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="newZaloPhone">Số điện thoại Zalo:</label>
+              <input type="tel" id="newZaloPhone" placeholder="0912345678">
+            </div>
           </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Họ và tên:</label>
-            <input type="text" id="newFullName" required placeholder="Nguyễn Văn A">
-          </div>
-        </div>
-        <div style="display: flex; gap: 15px;">
-          <div class="form-group" style="flex: 1;">
-            <label>Phòng ban:</label>
-            <select id="newDepartment" class="department-select" required>
-              <option value="">-- Đang tải phòng ban... --</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Chức vụ:</label>
-            <select id="newRole" required>
-              <option value="nhanvien">Nhân viên lập phiếu</option>
-              <option value="tbp">Trưởng bộ phận</option>
-              <option value="kt_thanhtoan">Kế toán thanh toán</option>
-              <option value="ktt">Kế toán trưởng</option>
-              <option value="pgd_sx">Phó giám đốc sản xuất</option>
-              <option value="giam_doc">Giám đốc</option>
-              <option value="admin">Admin hệ thống</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Cấp quản lý (Username):</label>
-            <input type="text" id="newManager" placeholder="tbp1">
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Số điện thoại Zalo:</label>
-            <input type="tel" id="newZaloPhone" placeholder="0912345678">
-          </div>
-        </div>
-        <button type="submit" style="background-color: #28a745;">Tạo Tài Khoản</button>
-      </form>
-      <div id="userMsg"></div>
+          <button type="submit" style="background-color: #28a745;">Tạo Tài Khoản</button>
+        </form>
+        <div id="userMsg"></div>
 
-      <h4>Danh Sách Nhân Sự</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Tên đăng nhập</th>
-            <th>Họ và tên</th>
-            <th>Phòng ban</th>
-            <th>Chức vụ</th>
-            <th>SĐT Zalo</th>
-            <th style="text-align: center;">Hành động</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-      </table>
+        <h4>Danh Sách Nhân Sự</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Tên đăng nhập</th>
+              <th>Họ và tên</th>
+              <th>Phòng ban</th>
+              <th>Chức vụ</th>
+              <th>SĐT Zalo</th>
+              <th style="text-align: center;">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- MODAL POPUP HIỂN THỊ CHI TIẾT PHIẾU & DUYỆT -->
   <div id="detailModal" class="modal-overlay hidden">
@@ -330,16 +330,16 @@
       <h3 style="margin-top: 0; color: #007bff;">🔑 Đổi Mật Khẩu Cá Nhân</h3>
       <form id="changePasswordForm">
         <div class="form-group">
-          <label>Mật khẩu cũ:</label>
-          <input type="password" id="oldPassword" required placeholder="Nhập mật khẩu cũ">
+          <label for="cpOldPassword">Mật khẩu cũ:</label>
+          <input type="password" id="cpOldPassword" required placeholder="Nhập mật khẩu cũ">
         </div>
         <div class="form-group">
-          <label>Mật khẩu mới:</label>
-          <input type="password" id="newPassword" required placeholder="Nhập mật khẩu mới">
+          <label for="cpNewPassword">Mật khẩu mới:</label>
+          <input type="password" id="cpNewPassword" required placeholder="Nhập mật khẩu mới">
         </div>
         <div class="form-group">
-          <label>Xác nhận mật khẩu mới:</label>
-          <input type="password" id="confirmPassword" required placeholder="Nhập lại mật khẩu mới">
+          <label for="cpConfirmPassword">Xác nhận mật khẩu mới:</label>
+          <input type="password" id="cpConfirmPassword" required placeholder="Nhập lại mật khẩu mới">
         </div>
         <button type="submit" style="width: 100%; background-color: #28a745; padding: 10px;">Xác Nhận Đổi</button>
       </form>
@@ -347,7 +347,7 @@
     </div>
   </div>
 
-<!-- MODAL SỬA TÀI KHOẢN (DÀNH CHO ADMIN) -->
+  <!-- MODAL SỬA TÀI KHOẢN (DÀNH CHO ADMIN) -->
   <div id="editUserModal" class="modal-overlay hidden">
     <div class="modal-content" style="width: 500px;">
       <button type="button" class="modal-close" onclick="closeEditUserModal()">✕ Đóng</button>
@@ -355,41 +355,41 @@
       <form id="editUserForm">
         <input type="hidden" id="editUserId">
         <div class="form-group">
-          <label>Tên đăng nhập:</label>
+          <label for="editUsername">Tên đăng nhập:</label>
           <input type="text" id="editUsername" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
         </div>
         <div class="form-group">
-          <label>Mật khẩu mới (Bỏ trống nếu không đổi):</label>
+          <label for="editPassword">Mật khẩu mới (Bỏ trống nếu không đổi):</label>
           <input type="text" id="editPassword" placeholder="Nhập mật khẩu mới nếu muốn đổi">
         </div>
         <div class="form-group">
-          <label>Họ và tên:</label>
+          <label for="editFullName">Họ và tên:</label>
           <input type="text" id="editFullName" required>
         </div>
         <div class="form-group">
-          <label>Phòng ban:</label>
+          <label for="editDepartment">Phòng ban:</label>
           <select id="editDepartment" class="department-select" required>
             <option value="">-- Đang tải phòng ban... --</option>
           </select>
         </div>
         <div class="form-group">
-            <label>Chức vụ / Quyền hạn (Role):</label>
-            <select id="editRole" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                <option value="nhanvien">Nhân viên</option>
-                <option value="tbp">Trưởng bộ phận</option>
-                <option value="kt_thanhtoan">Kế toán thanh toán</option>
-                <option value="ktt">Kế toán trưởng</option>
-                <option value="pgd_sx">Phó giám đốc sản xuất</option>
-                <option value="giam_doc">Giám đốc</option>
-                <option value="admin">Admin</option>
-            </select>
+          <label for="editRole">Chức vụ / Quyền hạn (Role):</label>
+          <select id="editRole" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="nhanvien">Nhân viên</option>
+            <option value="tbp">Trưởng bộ phận</option>
+            <option value="kt_thanhtoan">Kế toán thanh toán</option>
+            <option value="ktt">Kế toán trưởng</option>
+            <option value="pgd_sx">Phó giám đốc sản xuất</option>
+            <option value="giam_doc">Giám đốc</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>Cấp quản lý (Username):</label>
+          <label for="editManager">Cấp quản lý (Username):</label>
           <input type="text" id="editManager">
         </div>
         <div class="form-group">
-          <label>Số điện thoại Zalo:</label>
+          <label for="editZaloPhone">Số điện thoại Zalo:</label>
           <input type="tel" id="editZaloPhone" placeholder="0912345678" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
         </div>
         <button type="submit" style="width: 100%; background-color: #ffc107; color: black; padding: 10px;">Lưu Thay Đổi</button>
@@ -399,359 +399,391 @@
   </div>
 
   <script>
-   const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-    ? 'http://localhost:5000'
-    : 'https://phieu-thanh-toan.onrender.com'; // ⚠️ Nhớ thay link này bằng đúng URL Backend trên Render của bạn nếu khác nhé
+    const API_BASE_URL = (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.protocol === 'file:'
+    )
+      ? 'http://localhost:5000'
+      : 'https://phieu-thanh-toan.onrender.com';
+
+    window.API_BASE_URL = API_BASE_URL;
+
     let currentUser = JSON.parse(localStorage.getItem('user')) || null;
     let currentRequests = [];
-    let currentEditingAttachments = []; 
-    let selectedFiles = [];
-    let selectedFilesData = []; 
-    let departmentsCache = []; 
+    let currentEditingAttachments = [];
+    let selectedFilesData = [];
+    let departmentsCache = [];
     let allUsersCache = [];
+    let __codeGenSeq = 0;
 
-    // --- HÀM ĐĂNG XUẤT ---
-    window.logout = function() {
-        currentUser = null;
-        localStorage.removeItem('user');
-        localStorage.clear();
-        location.reload();
+    window.logout = function () {
+      currentUser = null;
+      localStorage.clear();
+      location.reload();
     };
 
-    // --- CHUYỂN TAB ---
-    window.switchTab = function(tabName) {
-        const reqTab = document.getElementById('tabContentRequests');
-        const userTab = document.getElementById('tabContentUsers');
-        const btnReq = document.getElementById('tabBtnRequests');
-        const btnUser = document.getElementById('tabBtnUsers');
+    window.switchTab = function (tabName) {
+      const reqTab = document.getElementById('tabContentRequests');
+      const userTab = document.getElementById('tabContentUsers');
+      const btnReq = document.getElementById('tabBtnRequests');
+      const btnUser = document.getElementById('tabBtnUsers');
 
-        if (tabName === 'requests') {
-            if (reqTab) reqTab.classList.remove('hidden');
-            if (userTab) userTab.classList.add('hidden');
-            if (btnReq) btnReq.classList.add('active');
-            if (btnUser) btnUser.classList.remove('active');
-        } else {
-            if (reqTab) reqTab.classList.add('hidden');
-            if (userTab) userTab.classList.remove('hidden');
-            if (btnReq) btnReq.classList.remove('active');
-            if (btnUser) btnUser.classList.add('active');
-            loadUsersList();
-        }
+      if (tabName === 'requests') {
+        reqTab?.classList.remove('hidden');
+        userTab?.classList.add('hidden');
+        btnReq?.classList.add('active');
+        btnUser?.classList.remove('active');
+      } else {
+        reqTab?.classList.add('hidden');
+        userTab?.classList.remove('hidden');
+        btnReq?.classList.remove('active');
+        btnUser?.classList.add('active');
+        loadUsersList();
+      }
     };
 
-    // --- TẢI DANH MỤC PHÒNG BAN ---
     async function loadDepartments() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/departments`);
-            if (res.ok) {
-                departmentsCache = await res.json();
-                const selects = document.querySelectorAll('.department-select');
-                selects.forEach(sel => {
-                    sel.innerHTML = '<option value="">-- Chọn phòng ban --</option>';
-                    departmentsCache.forEach(dept => {
-                        sel.innerHTML += `<option value="${dept}">${dept}</option>`;
-                    });
-                });
-            }
-        } catch (err) {
-            console.error('Không thể tải danh mục phòng ban:', err);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/departments`);
+        if (res.ok) {
+          departmentsCache = await res.json();
+          document.querySelectorAll('.department-select').forEach(sel => {
+            const currentVal = sel.value;
+            sel.innerHTML = '<option value="">-- Chọn phòng ban --</option>';
+            departmentsCache.forEach(dept => {
+              sel.innerHTML += `<option value="${dept}">${dept}</option>`;
+            });
+            if (currentVal) sel.value = currentVal;
+          });
         }
-    }
-
-    window.API_BASE_URL = "https://phieu-thanh-toan.onrender.com";
-
-// --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
-window.generateRequestCode = async function(departmentName) {
-  let prefix = "PT";
-  let deptLower = (departmentName || "").toLowerCase();
-
-  if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
-  else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
-  else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
-  else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
-  else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
-
-  const today = new Date();
-  const yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
-
-  try {
-    const baseUrl = String(window.API_BASE_URL || "").replace(/\/+$/, "");
-    const response = await fetch(`${baseUrl}/api/next-request-code?department=${encodeURIComponent(departmentName || "")}`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data && typeof data.requestCode === "string" && data.requestCode.trim()) {
-        return data.requestCode.trim();
+      } catch (err) {
+        console.error('Không thể tải danh mục phòng ban:', err);
       }
     }
-  } catch (err) {
-    console.warn("Không lấy được số phiếu từ server, dùng danh sách hiện tại tạm thời:", err);
-  }
 
-  let max = 0;
-  (currentRequests || []).forEach(req => {
-    const code = String(req.requestCode || "");
-    if (!code.startsWith(`${prefix}-${yyyyMM}-`)) return;
-    const seq = parseInt(code.split("-").pop(), 10);
-    if (!isNaN(seq)) max = Math.max(max, seq);
-  });
-  return `${prefix}-${yyyyMM}-${String(max + 1).padStart(2, "0")}`;
-};
+    // --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
+    window.generateRequestCode = async function (departmentName) {
+      let prefix = "PT";
+      const deptLower = (departmentName || "").toLowerCase();
 
-// --- HÀM GÁN SỐ PHIẾU VÀO Ô INPUT (CÓ AWAIT ĐỂ KHÔNG BAO GIỜ RA [object Promise]) ---
-let __codeGenSeq = 0;
-window.applyGeneratedRequestCode = async function(departmentName) {
-  const inputEl = document.getElementById("requestCode");
-  if (!inputEl) return "";
+      if (deptLower.includes("hành chính") || deptLower.includes("hc")) prefix = "HC";
+      else if (deptLower.includes("kỹ thuật") || deptLower.includes("kt")) prefix = "KT";
+      else if (deptLower.includes("kế toán") || deptLower.includes("tckt")) prefix = "TCKT";
+      else if (deptLower.includes("kinh doanh") || deptLower.includes("kd")) prefix = "KD";
+      else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ") || deptLower.includes("bgd")) prefix = "BGD";
 
-  const currentSeq = ++__codeGenSeq;
-  const deptVal = departmentName ?? (document.getElementById("department")?.value || "");
-  const code = await window.generateRequestCode(deptVal);
+      const today = new Date();
+      const yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
 
-  if (currentSeq === __codeGenSeq && typeof code === "string") {
-    inputEl.value = code;
-  }
-  return code;
-};
+      try {
+        const baseUrl = String(API_BASE_URL || "").replace(/\/+$/, "");
+        const response = await fetch(`${baseUrl}/api/next-request-code?department=${encodeURIComponent(departmentName || "")}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && typeof data.requestCode === "string" && data.requestCode.trim()) {
+            return data.requestCode.trim();
+          }
+        }
+      } catch (err) {
+        console.warn("Không lấy được số phiếu từ server, dùng danh sách hiện tại tạm thời:", err);
+      }
+
+      let max = 0;
+      (currentRequests || []).forEach(req => {
+        const code = String(req.requestCode || "");
+        if (!code.startsWith(`${prefix}-${yyyyMM}-`)) return;
+        const seq = parseInt(code.split("-").pop(), 10);
+        if (!isNaN(seq)) max = Math.max(max, seq);
+      });
+      return `${prefix}-${yyyyMM}-${String(max + 1).padStart(2, "0")}`;
+    };
+
+    // --- HÀM GÁN SỐ PHIẾU VÀO Ô INPUT (CÓ AWAIT ĐỂ KHÔNG BAO GIỜ RA [object Promise]) ---
+    window.applyGeneratedRequestCode = async function (departmentName) {
+      const inputEl = document.getElementById("requestCode");
+      if (!inputEl) return "";
+
+      const currentSeq = ++__codeGenSeq;
+      const deptVal = departmentName ?? (document.getElementById("department")?.value || "");
+      const code = await window.generateRequestCode(deptVal);
+
+      if (currentSeq === __codeGenSeq && typeof code === "string") {
+        inputEl.value = code;
+      }
+      return code;
+    };
 
     // --- ĐỔI SỐ THÀNH CHỮ ---
-    window.numberToWords = function(number) {
-        if (!number || isNaN(number) || Number(number) === 0) return "Không đồng";
-        const chuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-        const tien = ["", " nghìn", " triệu", " tỷ", " nghìn tỷ", " triệu tỷ"];
+    window.numberToWords = function (number) {
+      if (!number || isNaN(number) || Number(number) === 0) return "Không đồng";
+      const chuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+      const tien = ["", " nghìn", " triệu", " tỷ", " nghìn tỷ", " triệu tỷ"];
 
-        function docBlock(so, dayDu) {
-            let chuoi = "";
-            let tram = Math.floor(so / 100);
-            let chuc = Math.floor((so % 100) / 10);
-            let donVi = so % 10;
-            if (dayDu || tram > 0) {
-                chuoi += " " + chuSo[tram] + " trăm";
-                chuoi += docChuc(chuc, donVi);
-            } else {
-                chuoi += docChuc(chuc, donVi);
-            }
-            return chuoi;
+      function docBlock(so, dayDu) {
+        let chuoi = "";
+        let tram = Math.floor(so / 100);
+        let chuc = Math.floor((so % 100) / 10);
+        let donVi = so % 10;
+        if (dayDu || tram > 0) {
+          chuoi += " " + chuSo[tram] + " trăm";
+          chuoi += docChuc(chuc, donVi);
+        } else {
+          chuoi += docChuc(chuc, donVi);
         }
+        return chuoi;
+      }
 
-        function docChuc(chuc, donVi) {
-            let chuoi = "";
-            if (chuc > 1) {
-                chuoi += " " + chuSo[chuc] + " mươi";
-                if (donVi === 1) chuoi += " mốt";
-                else if (donVi === 5) chuoi += " lăm";
-                else if (donVi > 0) chuoi += " " + chuSo[donVi];
-            } else if (chuc === 1) {
-                chuoi += " mười";
-                if (donVi === 5) chuoi += " lăm";
-                else if (donVi > 0) chuoi += " " + chuSo[donVi];
-            } else if (donVi > 0) {
-                if (chuoi !== "") chuoi += " lẻ";
-                else chuoi += " ";
-                chuoi += chuSo[donVi];
-            }
-            return chuoi;
+      function docChuc(chuc, donVi) {
+        let chuoi = "";
+        if (chuc > 1) {
+          chuoi += " " + chuSo[chuc] + " mươi";
+          if (donVi === 1) chuoi += " mốt";
+          else if (donVi === 5) chuoi += " lăm";
+          else if (donVi > 0) chuoi += " " + chuSo[donVi];
+        } else if (chuc === 1) {
+          chuoi += " mười";
+          if (donVi === 5) chuoi += " lăm";
+          else if (donVi > 0) chuoi += " " + chuSo[donVi];
+        } else if (donVi > 0) {
+          if (chuoi !== "") chuoi += " lẻ";
+          else chuoi += " ";
+          chuoi += chuSo[donVi];
         }
+        return chuoi;
+      }
 
-        let n = Math.abs(Math.round(number));
-        let viTri = [];
-        while (n > 0) {
-            viTri.push(n % 1000);
-            n = Math.floor(n / 1000);
+      let n = Math.abs(Math.round(number));
+      let viTri = [];
+      while (n > 0) {
+        viTri.push(n % 1000);
+        n = Math.floor(n / 1000);
+      }
+
+      let ketQua = "";
+      for (let i = viTri.length - 1; i >= 0; i--) {
+        if (viTri[i] > 0) {
+          let doc = docBlock(viTri[i], i < viTri.length - 1);
+          ketQua += doc + tien[i];
         }
-
-        let ketQua = "";
-        for (let i = viTri.length - 1; i >= 0; i--) {
-            if (viTri[i] > 0) {
-                let doc = docBlock(viTri[i], i < viTri.length - 1);
-                ketQua += doc + tien[i];
-            }
-        }
-        ketQua = ketQua.trim();
-        if (ketQua.length === 0) return "Không đồng";
-        return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + " đồng chẵn.";
-    };
-// --- QUẢN LÝ DÒNG CHI TIẾT ---
-    window.addRow = function(data = {}) {
-        const tbody = document.getElementById('detailRows');
-        if (!tbody) return;
-        const tr = document.createElement('tr');
-        
-        const todayStr = new Date().toISOString().split('T')[0];
-        const docNo = data.docNo || '';
-        const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
-        const desc = data.desc || '';
-        const amount = data.amount !== undefined ? data.amount : '';
-        
-        const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
-        
-        // Lưu trữ danh sách file vào dataset của dòng để quản lý
-        tr.dataset.filesJson = JSON.stringify(rowFiles);
-
-        tr.innerHTML = `
-            <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
-            <td><input type="date" class="row-docDate" value="${docDate}" required></td>
-            <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
-            <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
-            <td style="text-align: center; vertical-align: middle;">
-                <label style="background: #e2e8f0; color: #1e293b; padding: 5px 8px; border-radius: 4px; cursor: pointer; display: inline-block; font-size: 11px; font-weight: 550; margin-bottom: 2px;">
-                    📎 Chọn file
-                    <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
-                </label>
-                <div class="row-file-names" style="margin-top: 4px; text-align: left;"></div>
-            </td>
-            <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
-        `;
-        tbody.appendChild(tr);
-        
-        // Cập nhật hiển thị danh sách file ban đầu (nếu có dữ liệu cũ lúc sửa phiếu)
-        updateRowFilesUI(tr, rowFiles);
-        calculateTotal();
+      }
+      ketQua = ketQua.trim();
+      if (ketQua.length === 0) return "Không đồng";
+      return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + " đồng chẵn.";
     };
 
-    // Hàm cập nhật giao diện hiển thị danh sách file có kèm nút ❌ xóa từng file
+    // --- QUẢN LÝ DÒNG CHI TIẾT ---
+    window.addRow = function (data = {}) {
+      const tbody = document.getElementById('detailRows');
+      if (!tbody) return;
+      const tr = document.createElement('tr');
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const docNo = data.docNo || '';
+      const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
+      const desc = data.desc || '';
+      const amount = data.amount !== undefined ? data.amount : '';
+
+      const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
+      tr.dataset.filesJson = JSON.stringify(rowFiles);
+
+      tr.innerHTML = `
+        <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
+        <td><input type="date" class="row-docDate" value="${docDate}" required></td>
+        <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
+        <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
+        <td style="text-align: center; vertical-align: middle;">
+          <label style="background: #e2e8f0; color: #1e293b; padding: 5px 8px; border-radius: 4px; cursor: pointer; display: inline-block; font-size: 11px; font-weight: 550; margin-bottom: 2px;">
+            📎 Chọn file
+            <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
+          </label>
+          <div class="row-file-names" style="margin-top: 4px; text-align: left;"></div>
+        </td>
+        <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
+      `;
+      tbody.appendChild(tr);
+
+      updateRowFilesUI(tr, rowFiles);
+      calculateTotal();
+    };
+
     function updateRowFilesUI(tr, filesArray) {
-        const nameDiv = tr.querySelector('.row-file-names');
-        if (!nameDiv) return;
+      const nameDiv = tr.querySelector('.row-file-names');
+      if (!nameDiv) return;
 
-        if (!filesArray || filesArray.length === 0) {
-            nameDiv.innerHTML = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-            return;
-        }
+      if (!filesArray || filesArray.length === 0) {
+        nameDiv.innerHTML = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+        return;
+      }
 
-        nameDiv.innerHTML = filesArray.map((f, index) => `
-            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 2px; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
-                <a href="javascript:void(0);" onclick="openFilePreview('${f.data}', '${f.name}')" style="color: #0d6efd; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="Bấm để xem: ${f.name}">
-                    📎 ${f.name}
-                </a>
-                <button type="button" onclick="removeRowFile(this, ${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; padding: 0 3px; font-size: 12px;" title="Xóa file này">×</button>
-            </div>
+      nameDiv.innerHTML = filesArray.map((f, index) => {
+        const encoded = encodeURIComponent(JSON.stringify([f]));
+        return `
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 2px; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
+            <a href="javascript:void(0);" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encoded}')))" style="color: #0d6efd; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="Bấm để xem: ${f.name}">
+              📎 ${f.name}
+            </a>
+            <button type="button" onclick="removeRowFile(this, ${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; padding: 0 3px; font-size: 12px;" title="Xóa file này">×</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.handleRowFiles = function (input) {
+      const tr = input.closest('tr');
+      const files = input.files;
+      if (!files || files.length === 0 || !tr) return;
+
+      let existingFiles = [];
+      try {
+        if (tr.dataset.filesJson) existingFiles = JSON.parse(tr.dataset.filesJson);
+      } catch (e) {
+        existingFiles = [];
+      }
+
+      const promises = Array.from(files).map(file => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          resolve({ name: file.name, data: e.target.result });
+        };
+        reader.readAsDataURL(file);
+      }));
+
+      Promise.all(promises).then(newlyLoadedFiles => {
+        const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
+        tr.dataset.filesJson = JSON.stringify(combinedFiles);
+        updateRowFilesUI(tr, combinedFiles);
+        input.value = '';
+      });
+    };
+
+    window.removeRowFile = function (btn, fileIndex) {
+      const tr = btn.closest('tr');
+      if (!tr) return;
+
+      let existingFiles = [];
+      try {
+        if (tr.dataset.filesJson) existingFiles = JSON.parse(tr.dataset.filesJson);
+      } catch (e) {
+        existingFiles = [];
+      }
+
+      existingFiles.splice(fileIndex, 1);
+      tr.dataset.filesJson = JSON.stringify(existingFiles);
+      updateRowFilesUI(tr, existingFiles);
+    };
+
+    window.removeRow = function (btn) {
+      const row = btn.closest('tr');
+      if (document.querySelectorAll('#detailRows tr').length > 1) {
+        row.remove();
+        calculateTotal();
+      } else {
+        alert('Phiếu phải có ít nhất một khoản mục chi phí!');
+      }
+    };
+
+    window.calculateTotal = function () {
+      const amountInputs = document.querySelectorAll('.row-amount');
+      let total = 0;
+      amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
+      const lblTotal = document.getElementById('lblTotalAmount');
+      const lblWords = document.getElementById('lblAmountInWords');
+      if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
+      if (lblWords) lblWords.innerText = numberToWords(total);
+    };
+
+    function renderSelectedGeneralFilesUI() {
+      const container = document.getElementById('fileNamesList');
+      if (!container) return;
+
+      if (!selectedFilesData.length) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML =
+        '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">File đã chọn:</div>' +
+        selectedFilesData.map((file, index) => `
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #ced4da; border-radius: 4px;">
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
+            <button type="button" onclick="removeAttachedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
+          </div>
         `).join('');
     }
 
-    window.handleRowFiles = function(input) {
-        const td = input.closest('td');
-        const tr = input.closest('tr');
-        const files = input.files;
-
-        if (!files || files.length === 0) return;
-
-        let existingFiles = [];
-        try {
-            if (tr.dataset.filesJson) {
-                existingFiles = JSON.parse(tr.dataset.filesJson);
-            }
-        } catch (e) {
-            existingFiles = [];
-        }
-
-        let promises = Array.from(files).map(file => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    resolve({ name: file.name, data: e.target.result });
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        Promise.all(promises).then(newlyLoadedFiles => {
-            const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
-            tr.dataset.filesJson = JSON.stringify(combinedFiles);
-            updateRowFilesUI(tr, combinedFiles);
-            input.value = ''; // Reset input để có thể chọn lại chính file đó nếu cần
-        });
+    window.removeAttachedFile = function (index) {
+      selectedFilesData.splice(index, 1);
+      renderSelectedGeneralFilesUI();
+      const fileInput = document.getElementById('attachmentFiles');
+      if (fileInput) fileInput.value = '';
     };
 
-    // Hàm thực hiện xóa một file cụ thể khỏi dòng khi bấm dấu ×
-    window.removeRowFile = function(btn, fileIndex) {
-        const tr = btn.closest('tr');
-        if (!tr) return;
+    window.resetFormToCreateMode = function () {
+      document.getElementById('editingRequestId').value = '';
+      document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
+      document.getElementById('btnSubmitForm').innerText = 'Gửi Phiếu Đề Xuất Thanh Toán';
+      document.getElementById('btnSubmitForm').style.backgroundColor = '#28a745';
+      document.getElementById('btnSubmitForm').style.color = 'white';
+      document.getElementById('btnCancelEdit').classList.add('hidden');
 
-        let existingFiles = [];
-        try {
-            if (tr.dataset.filesJson) {
-                existingFiles = JSON.parse(tr.dataset.filesJson);
-            }
-        } catch (e) {
-            existingFiles = [];
-        }
+      currentEditingAttachments = [];
+      selectedFilesData = [];
 
-        // Xóa file tại vị trí fileIndex
-        existingFiles.splice(fileIndex, 1);
-        tr.dataset.filesJson = JSON.stringify(existingFiles);
-        updateRowFilesUI(tr, existingFiles);
+      const existingBox = document.getElementById('existingAttachmentsBox');
+      if (existingBox) existingBox.classList.add('hidden');
+      const existingList = document.getElementById('existingFilesList');
+      if (existingList) existingList.innerHTML = '';
+      renderSelectedGeneralFilesUI();
+
+      const paymentForm = document.getElementById('paymentForm');
+      if (paymentForm) paymentForm.reset();
+
+      const tbody = document.getElementById('detailRows');
+      if (tbody) tbody.innerHTML = '';
+      addRow();
+
+      const deptSelect = document.getElementById('department');
+      const codeInput = document.getElementById('requestCode');
+      const targetDept = (deptSelect && deptSelect.value) ? deptSelect.value : (currentUser?.department || '');
+      if (targetDept) {
+        window.applyGeneratedRequestCode(targetDept);
+      } else if (codeInput) {
+        codeInput.value = '';
+      }
     };
 
-    window.removeRow = function(btn) {
-        const row = btn.closest('tr');
-        if (document.querySelectorAll('#detailRows tr').length > 1) {
-            row.remove();
-            calculateTotal();
-        } else {
-            alert('Phiếu phải có ít nhất một khoản mục chi phí!');
-        }
+    window.resetFilters = function () {
+      const startEl = document.getElementById('filterStartDate');
+      const endEl = document.getElementById('filterEndDate');
+      const statusEl = document.getElementById('filterStatus');
+      const deptEl = document.getElementById('filterDepartment');
+      if (startEl) startEl.value = '';
+      if (endEl) endEl.value = '';
+      if (statusEl) statusEl.value = '';
+      if (deptEl) deptEl.value = '';
+      loadRequests();
     };
 
-    window.calculateTotal = function() {
-        const amountInputs = document.querySelectorAll('.row-amount');
-        let total = 0;
-        amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
-        const lblTotal = document.getElementById('lblTotalAmount');
-        const lblWords = document.getElementById('lblAmountInWords');
-        if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
-        if (lblWords) lblWords.innerText = numberToWords(total);
-    };
+    // --- TẢI DANH SÁCH PHIẾU ---
+    window.loadRequests = async function () {
+      const tableBody = document.getElementById('requestsTableBody');
+      if (!tableBody || !currentUser) return;
 
-    window.resetFormToCreateMode = function() {
-        document.getElementById('editingRequestId').value = '';
-        document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
-        document.getElementById('btnSubmitForm').innerText = 'Gửi Phiếu Đề Xuất Thanh Toán';
-        document.getElementById('btnSubmitForm').style.backgroundColor = '#28a745';
-        document.getElementById('btnSubmitForm').style.color = 'white';
-        document.getElementById('btnCancelEdit').classList.add('hidden');
-        
-        currentEditingAttachments = [];
-        selectedFilesData = [];
-        
-        const existingBox = document.getElementById('existingAttachmentsBox');
-        if (existingBox) existingBox.classList.add('hidden');
-        const existingList = document.getElementById('existingFilesList');
-        if (existingList) existingList.innerHTML = '';
-        const fileNamesList = document.getElementById('fileNamesList');
-        if (fileNamesList) fileNamesList.innerText = '';
-        
-        const paymentForm = document.getElementById('paymentForm');
-        if (paymentForm) paymentForm.reset();
-        
-        const tbody = document.getElementById('detailRows');
-        if (tbody) tbody.innerHTML = '';
-        addRow();
-
-        const codeInput = document.getElementById('requestCode');
-        if (codeInput && currentUser && currentUser.department) {
-            codeInput.value = generateRequestCode(currentUser.department);
-        }
-    };
-
-// --- TẢI DANH SÁCH PHIẾU ---
-window.loadRequests = async function() {
-    const tableBody = document.getElementById('requestsTableBody');
-    if (!tableBody || !currentUser) return;
-
-    try {
+      try {
         const startDate = document.getElementById('filterStartDate')?.value || '';
         const endDate = document.getElementById('filterEndDate')?.value || '';
         const statusFilter = document.getElementById('filterStatus')?.value || '';
         const deptFilter = document.getElementById('filterDepartment')?.value || '';
 
         const queryParams = new URLSearchParams({
-            role: currentUser.role,
-            department: currentUser.department || '',
-            username: currentUser.username || '',
-            startDate: startDate,
-            endDate: endDate,
-            status: statusFilter,
-            departmentFilter: deptFilter
+          role: currentUser.role,
+          department: currentUser.department || '',
+          username: currentUser.username || '',
+          startDate,
+          endDate,
+          status: statusFilter,
+          departmentFilter: deptFilter
         });
 
         const response = await fetch(`${API_BASE_URL}/api/requests?${queryParams}`);
@@ -762,1534 +794,929 @@ window.loadRequests = async function() {
         tableBody.innerHTML = '';
 
         if (!currentRequests || currentRequests.length === 0) {
-            window.allRequests = [];
-            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Không tìm thấy phiếu nào phù hợp với bộ lọc.</td></tr>`;
+          window.allRequests = [];
+          tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Không tìm thấy phiếu nào phù hợp với bộ lọc.</td></tr>`;
+          return;
+        }
+
+        function renderStepBox(stepLabel, state) {
+          let bg = '#e9ecef', color = '#495057', border = '#ced4da', icon = '➖', text = 'Miễn';
+          if (state === 'duyet') { bg = '#d4edda'; color = '#155724'; border = '#c3e6cb'; icon = '✅'; text = 'Đã duyệt'; }
+          else if (state === 'cho') { bg = '#fff3cd'; color = '#856404'; border = '#ffeeba'; icon = '⏳'; text = 'Đang chờ'; }
+          else if (state === 'tu-choi') { bg = '#f8d7da'; color = '#721c24'; border = '#f5c6cb'; icon = '❌'; text = 'Từ chối'; }
+          else if (state === 'mien') { bg = '#f1f3f5'; color = '#adb5bd'; border = '#dee2e6'; icon = '➖'; text = 'Miễn'; }
+
+          return `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px 4px; background: ${bg}; color: ${color}; border: 1px solid ${border}; border-radius: 4px; min-width: 60px; text-align: center;">
+              <span style="font-size: 8px; font-weight: bold; margin-bottom: 1px; white-space: nowrap;">${stepLabel}</span>
+              <span style="font-size: 10px; font-weight: 600; white-space: nowrap;">${icon} ${text}</span>
+            </div>
+          `;
+        }
+
+        currentRequests.forEach((req) => {
+          const dept = req.department || '';
+          const isKyThuat = dept.toLowerCase().includes('kỹ thuật');
+
+          const userRoleCheck = (currentUser.role || '').toLowerCase();
+          if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
             return;
-        }  
+          }
 
-            function renderStepBox(stepLabel, state) {
-                let bg = '#e9ecef', color = '#495057', border = '#ced4da', icon = '➖', text = 'Miễn';
-                if (state === 'duyet') { bg = '#d4edda'; color = '#155724'; border = '#c3e6cb'; icon = '✅'; text = 'Đã duyệt'; }
-                else if (state === 'cho') { bg = '#fff3cd'; color = '#856404'; border = '#ffeeba'; icon = '⏳'; text = 'Đang chờ'; }
-                else if (state === 'tu-choi') { bg = '#f8d7da'; color = '#721c24'; border = '#f5c6cb'; icon = '❌'; text = 'Từ chối'; }
-                else if (state === 'mien') { bg = '#f1f3f5'; color = '#adb5bd'; border = '#dee2e6'; icon = '➖'; text = 'Miễn'; }
+          const ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
+          const rawStatus = req.status || '';
+          const lowerStatus = rawStatus.toLowerCase();
 
-                return `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px 4px; background: ${bg}; color: ${color}; border: 1px solid ${border}; border-radius: 4px; min-width: 60px; text-align: center;">
-                        <span style="font-size: 8px; font-weight: bold; margin-bottom: 1px; white-space: nowrap;">${stepLabel}</span>
-                        <span style="font-size: 10px; font-weight: 600; white-space: nowrap;">${icon} ${text}</span>
-                    </div>
-                `;
-            }
+          let summaryStatus = 'Chờ duyệt';
+          let statusColor = '#856404';
+          let statusBg = '#fff3cd';
 
-            currentRequests.forEach((req, index) => {
-                let dept = req.department || '';
-                let isKyThuat = dept.toLowerCase().includes('kỹ thuật');
-
-                // 🛑 NẾU LÀ TÀI KHOẢN PHÓ GĐ SX, CHỈ CHO PHÉP HIỂN THỊ CÁC PHIẾU THUỘC PHÒNG KỸ THUẬT
-                const userRoleCheck = (currentUser.role || '').toLowerCase();
-                if ((userRoleCheck === 'pgd_sx' || userRoleCheck === 'pgdsx') && !isKyThuat) {
-                    return; // Bỏ qua không hiển thị các phiếu ngoài phòng Kỹ thuật
-                }
-
-                let ngayTao = req.submittedAt ? req.submittedAt.split('T')[0] : (req.createdAt ? req.createdAt.split('T')[0] : '');
-                let rawStatus = req.status || '';
-                const lowerStatus = rawStatus.toLowerCase();
-
-                let summaryStatus = 'Chờ duyệt';
-                let statusColor = '#856404';
-                let statusBg = '#fff3cd';
-
-                if (lowerStatus.includes('từ chối')) {
-                    summaryStatus = 'Từ chối';
-                    statusColor = '#721c24';
-                    statusBg = '#f8d7da';
-                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
-                    if (req.paidStatus === 'Đã thanh toán') {
-                        summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
-                        statusColor = '#155724';
-                        statusBg = '#d4edda';
-                    } else {
-                        summaryStatus = 'Chờ thanh toán';
-                        statusColor = '#004085';
-                        statusBg = '#cce5ff';
-                    }
-                } else {
-                    summaryStatus = 'Chờ duyệt';
-                    statusColor = '#856404';
-                    statusBg = '#fff3cd';
-                }
-
-                let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
-
-                if (lowerStatus.includes('từ chối')) {
-                    s1 = 'duyet';
-                    if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('kt thanh toán')) {
-                        s2 = 'duyet';
-                        s3 = 'tu-choi';
-                        s4 = 'cho';
-                        s5 = isKyThuat ? 'cho' : 'mien';
-                        s6 = 'cho';
-                    } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
-                        s2 = 'duyet';
-                        s3 = 'duyet';
-                        s4 = 'tu-choi';
-                        s5 = isKyThuat ? 'cho' : 'mien';
-                        s6 = 'cho';
-                    } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
-                        s2 = 'duyet';
-                        s3 = 'duyet';
-                        s4 = 'duyet';
-                        s5 = 'tu-choi';
-                        s6 = 'cho';
-                    } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('giam_doc')) {
-                        s2 = 'duyet';
-                        s3 = 'duyet';
-                        s4 = 'duyet';
-                        s5 = isKyThuat ? 'duyet' : 'mien';
-                        s6 = 'tu-choi';
-                    } else {
-                        s2 = 'tu-choi';
-                        s3 = 'cho';
-                        s4 = 'cho';
-                        s5 = isKyThuat ? 'cho' : 'mien';
-                        s6 = 'cho';
-                    }
-                } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
-                    s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
-                    if (!isKyThuat) s5 = 'mien';
-                } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
-                } else if (rawStatus.includes('4. Chờ Giám đốc')) {
-                    s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
-                }
-
-                let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
-                stepsHTML += renderStepBox('Lập Phiếu', s1);
-                stepsHTML += renderStepBox('Trưởng BP', s2);
-                stepsHTML += renderStepBox('KT Thanh Toán', s3);
-                stepsHTML += renderStepBox('KT Trưởng', s4);
-                if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
-                stepsHTML += renderStepBox('Giám Đốc', s6);
-                stepsHTML += `</div>`;
-
-                let maPhieuHienThi = req.requestCode || '';
-
-                let actionButtonsHTML = '';
-                const roleValue = (currentUser.role || '').toLowerCase();
-                let isPending = rawStatus.includes('Chờ') || rawStatus.includes('chờ');
-
-                // 🛑 Kiểm tra phân quyền hiển thị nút Duyệt / Từ chối / In / Sửa / Xóa chuẩn xác từng bước
-                const userDept = (currentUser.department || '').toLowerCase();
-                const isRejected = rawStatus.toLowerCase().includes('từ chối');
-
-                // Xác định chính xác phiếu đang nằm ở bước nào dựa vào rawStatus
-                let isWaitingTBP = !isRejected && (
-                    rawStatus.includes('1. Chờ Trưởng Bộ phận') ||
-                    rawStatus.includes('Chờ Trưởng Bộ phận') ||
-                    (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.'))
-                );
-                let isWaitingKTTT = !isRejected && rawStatus.includes('2. Chờ KT Thanh toán');
-                let isWaitingKTT = !isRejected && rawStatus.includes('3. Chờ Kế toán trưởng');
-                let isWaitingPGD = !isRejected && rawStatus.includes('4. Chờ Phó GĐ');
-                let isWaitingGD = !isRejected && rawStatus.includes('4. Chờ Giám đốc');
-
-                // CHẶN NGHIÊM NGẶT: Chỉ cho phép hiển thị nút Duyệt/Từ chối khi ĐÚNG BƯỚC VÀ ĐÚNG ROLE tương ứng
-                let canApprove = false;
-                if (roleValue === 'admin') {
-                    canApprove = true;
-                } else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
-                    if (isWaitingTBP && roleValue === 'tbp') {
-                        canApprove = true;
-                    } else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) {
-                        canApprove = true;
-                    } else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) {
-                        canApprove = true;
-                    } else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) {
-                        canApprove = true;
-                    } else if (isWaitingGD && (roleValue === 'giam_doc' || roleValue.includes('giamdoc'))) {
-                        canApprove = true;
-                    }
-                }
-
-                let isReallyPending = isWaitingTBP;
-
-                if (canApprove) {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
-                            <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
-                        </div>
-                    `;
-                } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isReallyPending) {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
-                            <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-                        </div>
-                    `;
-                } else {
-                    actionButtonsHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
-                            <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
-                        </div>
-                    `;
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align: center; font-weight: bold; color: #007bff; cursor: pointer;" onclick="showDetailModal('${req._id || req.id}')">${maPhieuHienThi}</td>
-                    <td style="text-align: center;">${ngayTao}</td>
-                    <td>${req.createdBy || ''}</td>
-                    <td>${req.title || ''}</td>
-                    <td style="text-align: right;">${req.amount ? Number(req.amount).toLocaleString('vi-VN') : '0'}</td>
-                    <td style="width: auto; white-space: nowrap;">${stepsHTML}</td>
-                    <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: ${statusBg}; color: ${statusColor};">
-                            ${summaryStatus}
-                        </span>
-                    </td>
-                    <td style="text-align: center; white-space: nowrap; width: 60px;">${actionButtonsHTML}</td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error('Lỗi tải danh sách:', error);
-        }
-    };
-
-    // --- 2. HÀM LƯU TRẠNG THÁI THANH TOÁN (DÀNH CHO KẾ TOÁN) ---
-    window.updatePaidStatusAction = async function(id) {
-        const chkIsPaid = document.getElementById('chkIsPaid');
-        const inputPaidDate = document.getElementById('inputPaidDate');
-
-        const paidStatus = chkIsPaid && chkIsPaid.checked ? 'Đã thanh toán' : 'Chờ thanh toán';
-        const paidDate = inputPaidDate ? inputPaidDate.value : '';
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/requests/${id}/paid-status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paidStatus, paidDate })
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert('Cập nhật trạng thái thanh toán thành công!');
-                closeDetailModal();
-                loadRequests();
+          if (lowerStatus.includes('từ chối')) {
+            summaryStatus = 'Từ chối';
+            statusColor = '#721c24';
+            statusBg = '#f8d7da';
+          } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán') || rawStatus.includes('hoàn tất')) {
+            if (req.paidStatus === 'Đã thanh toán') {
+              summaryStatus = `Đã thanh toán (${req.paidDate || 'N/a'})`;
+              statusColor = '#155724';
+              statusBg = '#d4edda';
             } else {
-                alert('Lỗi: ' + (result.error || 'Không thể cập nhật'));
+              summaryStatus = 'Chờ thanh toán';
+              statusColor = '#004085';
+              statusBg = '#cce5ff';
             }
-        } catch (err) {
-            console.error('Lỗi kết nối:', err);
-            alert('Không thể kết nối đến máy chủ server!');
-        }
+          }
+
+          let s1 = 'duyet', s2 = 'cho', s3 = 'cho', s4 = 'cho', s5 = isKyThuat ? 'cho' : 'mien', s6 = 'cho';
+
+          if (lowerStatus.includes('từ chối')) {
+            s1 = 'duyet';
+            if (lowerStatus.includes('kế toán thanh toán') || lowerStatus.includes('kt thanh toán')) {
+              s2 = 'duyet'; s3 = 'tu-choi'; s4 = 'cho'; s5 = isKyThuat ? 'cho' : 'mien'; s6 = 'cho';
+            } else if (lowerStatus.includes('kế toán trưởng') || lowerStatus.includes('ktt')) {
+              s2 = 'duyet'; s3 = 'duyet'; s4 = 'tu-choi'; s5 = isKyThuat ? 'cho' : 'mien'; s6 = 'cho';
+            } else if (lowerStatus.includes('phó giám đốc') || lowerStatus.includes('pgd')) {
+              s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'tu-choi'; s6 = 'cho';
+            } else if (lowerStatus.includes('giám đốc') || lowerStatus.includes('giam_doc')) {
+              s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'tu-choi';
+            } else {
+              s2 = 'tu-choi'; s3 = 'cho'; s4 = 'cho'; s5 = isKyThuat ? 'cho' : 'mien'; s6 = 'cho';
+            }
+          } else if (rawStatus.includes('5. Đã hoàn tất') || rawStatus.includes('Đã thanh toán')) {
+            s1 = s2 = s3 = s4 = s5 = s6 = 'duyet';
+            if (!isKyThuat) s5 = 'mien';
+          } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+            s1 = 'duyet'; s2 = 'duyet'; s3 = 'cho'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+          } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+            s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'cho'; s5 = 'cho'; s6 = 'cho';
+          } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+            s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = 'cho'; s6 = 'cho';
+          } else if (rawStatus.includes('4. Chờ Giám đốc')) {
+            s1 = 'duyet'; s2 = 'duyet'; s3 = 'duyet'; s4 = 'duyet'; s5 = isKyThuat ? 'duyet' : 'mien'; s6 = 'cho';
+          }
+
+          let stepsHTML = `<div style="display: flex; gap: 3px; justify-content: flex-start; align-items: center; flex-wrap: nowrap;">`;
+          stepsHTML += renderStepBox('Lập Phiếu', s1);
+          stepsHTML += renderStepBox('Trưởng BP', s2);
+          stepsHTML += renderStepBox('KT Thanh Toán', s3);
+          stepsHTML += renderStepBox('KT Trưởng', s4);
+          if (isKyThuat) stepsHTML += renderStepBox('PGĐ SX', s5);
+          stepsHTML += renderStepBox('Giám Đốc', s6);
+          stepsHTML += `</div>`;
+
+          const maPhieuHienThi = req.requestCode || '';
+          const roleValue = (currentUser.role || '').toLowerCase();
+          const isRejected = rawStatus.toLowerCase().includes('từ chối');
+
+          const isWaitingTBP = !isRejected && (
+            rawStatus.includes('1. Chờ Trưởng Bộ phận') ||
+            rawStatus.includes('Chờ Trưởng Bộ phận') ||
+            (!rawStatus.includes('2.') && !rawStatus.includes('3.') && !rawStatus.includes('4.') && !rawStatus.includes('5.'))
+          );
+          const isWaitingKTTT = !isRejected && rawStatus.includes('2. Chờ KT Thanh toán');
+          const isWaitingKTT = !isRejected && rawStatus.includes('3. Chờ Kế toán trưởng');
+          const isWaitingPGD = !isRejected && rawStatus.includes('4. Chờ Phó GĐ');
+          const isWaitingGD = !isRejected && rawStatus.includes('4. Chờ Giám đốc');
+
+          let canApprove = false;
+          if (roleValue === 'admin') {
+            canApprove = true;
+          } else if (roleValue !== 'nhanvien' && roleValue !== 'nhan_vien') {
+            if (isWaitingTBP && roleValue === 'tbp') canApprove = true;
+            else if (isWaitingKTTT && (roleValue === 'kt_thanhtoan' || roleValue.includes('thanhtoan'))) canApprove = true;
+            else if (isWaitingKTT && (roleValue === 'ktt' || roleValue.includes('truong'))) canApprove = true;
+            else if (isWaitingPGD && (roleValue === 'pgd_sx' || roleValue.includes('pgd'))) canApprove = true;
+            else if (isWaitingGD && (roleValue === 'giam_doc' || roleValue.includes('giamdoc'))) canApprove = true;
+          }
+
+          let actionButtonsHTML = '';
+          if (canApprove) {
+            actionButtonsHTML = `
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #198754; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Duyệt">✅ Duyệt</button>
+                <button type="button" class="btn btn-sm" onclick="showDetailModal('${req._id || req.id}')" style="background-color: #dc3545; color: white; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="Từ chối">❌ Từ chối</button>
+                <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #0dcaf0; color: #000; border: none; font-size: 10px; padding: 2px 4px; border-radius: 3px;" title="In phiếu">🖨️ In</button>
+              </div>
+            `;
+          } else if ((roleValue === 'nhanvien' || roleValue === 'nhan_vien' || roleValue === 'admin') && isWaitingTBP) {
+            actionButtonsHTML = `
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                <button type="button" class="btn btn-sm" onclick="editRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                <button type="button" class="btn btn-sm" onclick="deleteRequest('${req._id || req.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+                <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+              </div>
+            `;
+          } else {
+            actionButtonsHTML = `
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: stretch;">
+                <button type="button" class="btn btn-sm" onclick="printRequest('${req._id || req.id}', '${maPhieuHienThi}')" style="background-color: #f1f5f9; color: #0284c7; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 4px; border-radius: 3px;" title="In">🖨️ In</button>
+              </div>
+            `;
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="text-align: center; font-weight: bold; color: #007bff; cursor: pointer;" onclick="showDetailModal('${req._id || req.id}')">${maPhieuHienThi}</td>
+            <td style="text-align: center;">${ngayTao}</td>
+            <td>${req.createdBy || ''}</td>
+            <td>${req.title || ''}</td>
+            <td style="text-align: right;">${req.amount ? Number(req.amount).toLocaleString('vi-VN') : '0'}</td>
+            <td style="width: auto; white-space: nowrap;">${stepsHTML}</td>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 10px; background: ${statusBg}; color: ${statusColor};">
+                ${summaryStatus}
+              </span>
+            </td>
+            <td style="text-align: center; white-space: nowrap; width: 60px;">${actionButtonsHTML}</td>
+          `;
+          tableBody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('Lỗi tải danh sách:', error);
+      }
     };
 
-    // --- 3. XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
-window.showDetailModal = function(id) {
-    const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
-    if (!req) return;
+    // --- LƯU TRẠNG THÁI THANH TOÁN ---
+    window.updatePaidStatusAction = async function (id) {
+      const chkIsPaid = document.getElementById('chkIsPaid');
+      const inputPaidDate = document.getElementById('inputPaidDate');
 
-    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const userRole = (currentUser.role || '').toLowerCase();
-    const statusStr = String(req.status || '');
-    const statusLower = statusStr.toLowerCase();
+      const paidStatus = chkIsPaid && chkIsPaid.checked ? 'Đã thanh toán' : 'Chờ thanh toán';
+      const paidDate = inputPaidDate ? inputPaidDate.value : '';
 
-    let detailsRowsHTML = '';
-    const listDetails = req.details || req.items || req.lines || [];
-
-    if (listDetails.length > 0) {
-        listDetails.forEach((item, idx) => {
-            const itemDate = item.docDate || item.date || item.ngayChungTu || '';
-            const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
-            const docNo = item.docNo || item.soChungTu || (idx + 1);
-            const desc = item.desc || item.description || item.diengiai || '';
-            const amt = item.amount || item.sotien || 0;
-
-            const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
-            let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-            if (rowFiles.length > 0) {
-                const encodedFiles = encodeURIComponent(JSON.stringify(rowFiles));
-                fileLinksHtml = `<button type="button" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encodedFiles}')))" style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
-            }
-
-            detailsRowsHTML += `
-                <tr>
-                    <td style="text-align: center;">${idx + 1}</td>
-                    <td>${docNo}</td>
-                    <td>${ngayCT}</td>
-                    <td>${desc}</td>
-                    <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
-                    <td>${fileLinksHtml}</td>
-                </tr>
-            `;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/requests/${id}/paid-status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paidStatus, paidDate })
         });
-    }
 
-    const isRejected = statusLower.includes('từ chối');
-    const isCompleted = statusLower.includes('hoàn tất') || statusLower.includes('đã thanh toán');
+        const result = await response.json();
+        if (response.ok) {
+          alert('Cập nhật trạng thái thanh toán thành công!');
+          closeDetailModal();
+          loadRequests();
+        } else {
+          alert('Lỗi: ' + (result.error || 'Không thể cập nhật'));
+        }
+      } catch (err) {
+        console.error('Lỗi kết nối:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+      }
+    };
 
-    const isWaitingTBP = !isRejected && (
+    // --- XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
+    window.showDetailModal = function (id) {
+      const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
+      if (!req) return;
+
+      currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const userRole = (currentUser.role || '').toLowerCase();
+      const statusStr = String(req.status || '');
+      const statusLower = statusStr.toLowerCase();
+
+      let detailsRowsHTML = '';
+      const listDetails = req.details || req.items || req.lines || [];
+
+      if (listDetails.length > 0) {
+        listDetails.forEach((item, idx) => {
+          const itemDate = item.docDate || item.date || item.ngayChungTu || '';
+          const ngayCT = itemDate ? String(itemDate).split('T')[0] : '';
+          const docNo = item.docNo || item.soChungTu || (idx + 1);
+          const desc = item.desc || item.description || item.diengiai || '';
+          const amt = item.amount || item.sotien || 0;
+
+          const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
+          let fileLinksHtml = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+          if (rowFiles.length > 0) {
+            const encodedFiles = encodeURIComponent(JSON.stringify(rowFiles));
+            fileLinksHtml = `<button type="button" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encodedFiles}')))" style="background: #e9ecef; border: 1px solid #ced4da; padding: 3px 8px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; color: #0d6efd;">📎 ${rowFiles.length} file</button>`;
+          }
+
+          detailsRowsHTML += `
+            <tr>
+              <td style="text-align: center;">${idx + 1}</td>
+              <td>${docNo}</td>
+              <td>${ngayCT}</td>
+              <td>${desc}</td>
+              <td style="text-align: right; font-weight: 500;">${Number(amt).toLocaleString('vi-VN')}</td>
+              <td>${fileLinksHtml}</td>
+            </tr>
+          `;
+        });
+      }
+
+      const isRejected = statusLower.includes('từ chối');
+      const isCompleted = statusLower.includes('hoàn tất') || statusLower.includes('đã thanh toán');
+
+      const isWaitingTBP = !isRejected && (
         statusStr.includes('1. Chờ Trưởng Bộ phận') ||
         statusStr.includes('Chờ Trưởng Bộ phận') ||
         (!statusStr.includes('2.') && !statusStr.includes('3.') && !statusStr.includes('4.') && !statusStr.includes('5.') && !isCompleted)
-    );
-    const isWaitingKTTT = !isRejected && statusStr.includes('2. Chờ KT Thanh toán');
-    const isWaitingKTT = !isRejected && statusStr.includes('3. Chờ Kế toán trưởng');
-    const isWaitingPGD = !isRejected && statusStr.includes('4. Chờ Phó GĐ');
-    const isWaitingGD = !isRejected && statusStr.includes('4. Chờ Giám đốc');
+      );
+      const isWaitingKTTT = !isRejected && statusStr.includes('2. Chờ KT Thanh toán');
+      const isWaitingKTT = !isRejected && statusStr.includes('3. Chờ Kế toán trưởng');
+      const isWaitingPGD = !isRejected && statusStr.includes('4. Chờ Phó GĐ');
+      const isWaitingGD = !isRejected && statusStr.includes('4. Chờ Giám đốc');
 
-    let canApprove = false;
-    if (!isRejected && !isCompleted) {
+      let canApprove = false;
+      if (!isRejected && !isCompleted) {
         if (userRole === 'admin') {
-            canApprove = true;
+          canApprove = true;
         } else if (userRole !== 'nhanvien' && userRole !== 'nhan_vien') {
-            if (isWaitingTBP && userRole === 'tbp') canApprove = true;
-            else if (isWaitingKTTT && (userRole === 'kt_thanhtoan' || userRole.includes('thanhtoan'))) canApprove = true;
-            else if (isWaitingKTT && (userRole === 'ktt' || userRole.includes('truong'))) canApprove = true;
-            else if (isWaitingPGD && (userRole === 'pgd_sx' || userRole.includes('pgd'))) canApprove = true;
-            else if (isWaitingGD && (userRole === 'giam_doc' || userRole.includes('giamdoc'))) canApprove = true;
+          if (isWaitingTBP && userRole === 'tbp') canApprove = true;
+          else if (isWaitingKTTT && (userRole === 'kt_thanhtoan' || userRole.includes('thanhtoan'))) canApprove = true;
+          else if (isWaitingKTT && (userRole === 'ktt' || userRole.includes('truong'))) canApprove = true;
+          else if (isWaitingPGD && (userRole === 'pgd_sx' || userRole.includes('pgd'))) canApprove = true;
+          else if (isWaitingGD && (userRole === 'giam_doc' || userRole.includes('giamdoc'))) canApprove = true;
         }
-    }
+      }
 
-    const isKtOrAdmin = userRole.includes('kt') || userRole.includes('thanh_toan') || userRole.includes('thanhtoan') || userRole === 'admin';
+      const isKtOrAdmin = userRole.includes('kt') || userRole.includes('thanh_toan') || userRole.includes('thanhtoan') || userRole === 'admin';
 
-    let todayStr = new Date().toISOString().split('T')[0];
-    let currentPaidDate = req.paidDate || todayStr;
-    let isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
+      const todayStr = new Date().toISOString().split('T')[0];
+      const currentPaidDate = req.paidDate || todayStr;
+      const isPaidChecked = req.paidStatus === 'Đã thanh toán' ? 'checked' : '';
 
-    let paymentCheckboxSection = '';
-    if (isKtOrAdmin) {
+      let paymentCheckboxSection = '';
+      if (isKtOrAdmin) {
         paymentCheckboxSection = `
-            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
-                    <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
-                </label>
-                <div style="flex: 1;">
-                    <label style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
-                    <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
-                </div>
-                <div style="align-self: flex-end;">
-                    <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
-                </div>
+          <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; display: flex; gap: 15px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; color: #084298;">
+              <input type="checkbox" id="chkIsPaid" ${isPaidChecked} style="width: 18px; height: 18px;"> <b>Đã thanh toán tiền</b>
+            </label>
+            <div style="flex: 1;">
+              <label for="inputPaidDate" style="font-size: 12px; margin-bottom: 2px; color: #333;">Ngày thanh toán:</label>
+              <input type="date" id="inputPaidDate" value="${currentPaidDate}" style="padding: 6px; font-size: 13px;">
             </div>
+            <div style="align-self: flex-end;">
+              <button type="button" onclick="updatePaidStatusAction('${req._id || req.id}')" style="background: #0dcaf0; color: #000; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Lưu TT</button>
+            </div>
+          </div>
         `;
-    }
+      }
 
-    const savedNote = req.rejectReason || req.comment || '';
-    const noteDisplayHtml = savedNote
+      const savedNote = req.rejectReason || req.comment || '';
+      const noteDisplayHtml = savedNote
         ? `<div style="margin-bottom: 10px; padding: 8px 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 12px; color: #664d03;">
-               <strong>Ghi chú / Lý do đã lưu:</strong> ${savedNote}
+             <strong>Ghi chú / Lý do đã lưu:</strong> ${savedNote}
            </div>`
         : '';
 
-    const approveButtonsHtml = canApprove
+      const approveButtonsHtml = canApprove
         ? `<div style="margin-top: 12px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
-               <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
-               <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
+             <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'reject')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Từ chối phiếu</button>
+             <button type="button" onclick="handleApproveAction('${req._id || req.id}', 'approve')" style="background: #198754; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">✅ Phê duyệt</button>
            </div>`
         : '';
 
-    let approvalBoxHtml = '';
-    if (canApprove || isKtOrAdmin || savedNote) {
+      let approvalBoxHtml = '';
+      if (canApprove || isKtOrAdmin || savedNote) {
         approvalBoxHtml = `
-            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                ${noteDisplayHtml}
-                ${canApprove ? `
-                    <label style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
-                    <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">${savedNote}</textarea>
-                ` : ''}
-                ${approveButtonsHtml}
-                ${paymentCheckboxSection}
-            </div>
+          <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+            ${noteDisplayHtml}
+            ${canApprove ? `
+              <label for="approvalCommentInput" style="font-weight: bold; display: block; margin-bottom: 6px; color: #333;">💬 Ý kiến phê duyệt / Lý do từ chối:</label>
+              <textarea id="approvalCommentInput" rows="2" placeholder="Nhập ghi chú hoặc lý do từ chối (nếu có)..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">${savedNote}</textarea>
+            ` : ''}
+            ${approveButtonsHtml}
+            ${paymentCheckboxSection}
+          </div>
         `;
-    }
+      }
 
-    const modalContent = document.getElementById('modalBodyContent');
-    if (modalContent) {
+      const modalContent = document.getElementById('modalBodyContent');
+      if (modalContent) {
         modalContent.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
-                <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
-                <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
-                <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
-                <p style="margin: 4px 0;"><strong>Trạng thái hiện tại:</strong> ${req.status || ''}</p>
-            </div>
-            <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
-                <thead>
-                    <tr style="background: #0d6efd; color: white;">
-                        <th style="padding: 6px;">STT</th>
-                        <th style="padding: 6px;">Số CT</th>
-                        <th style="padding: 6px;">Ngày CT</th>
-                        <th style="padding: 6px;">Diễn giải</th>
-                        <th style="padding: 6px;">Số tiền</th>
-                        <th style="padding: 6px;">File đính kèm</th>
-                    </tr>
-                </thead>
-                <tbody>${detailsRowsHTML}</tbody>
-            </table>
-            <div style="text-align: right; margin-top: 10px; font-size: 15px;">
-                <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
-            </div>
-            ${approvalBoxHtml}
+          <div style="margin-bottom: 15px;">
+            <h3 style="margin-top: 0; color: #007bff;">Chi Tiết Phiếu</h3>
+            <p style="margin: 4px 0;"><strong>Số phiếu:</strong> ${req.requestCode || ''}</p>
+            <p style="margin: 4px 0;"><strong>Tiêu đề:</strong> ${req.title || ''}</p>
+            <p style="margin: 4px 0;"><strong>Người tạo:</strong> ${req.createdBy || ''} | <strong>Bộ phận:</strong> ${req.department || ''}</p>
+            <p style="margin: 4px 0;"><strong>Nhà cung cấp:</strong> ${req.supplierName || ''} - <strong>TK:</strong> ${req.bankAccount || ''}</p>
+            <p style="margin: 4px 0;"><strong>Trạng thái hiện tại:</strong> ${req.status || ''}</p>
+          </div>
+          <table class="detail-table" style="width: 100%; border-collapse: collapse;" border="1">
+            <thead>
+              <tr style="background: #0d6efd; color: white;">
+                <th style="padding: 6px;">STT</th>
+                <th style="padding: 6px;">Số CT</th>
+                <th style="padding: 6px;">Ngày CT</th>
+                <th style="padding: 6px;">Diễn giải</th>
+                <th style="padding: 6px;">Số tiền</th>
+                <th style="padding: 6px;">File đính kèm</th>
+              </tr>
+            </thead>
+            <tbody>${detailsRowsHTML}</tbody>
+          </table>
+          <div style="text-align: right; margin-top: 10px; font-size: 15px;">
+            <strong>Tổng tiền:</strong> <span style="color: #dc3545; font-weight: bold;">${Number(req.amount || 0).toLocaleString('vi-VN')} VNĐ</span>
+          </div>
+          ${approvalBoxHtml}
         `;
-    }
+      }
 
-    const modalEl = document.getElementById('detailModal');
-    if (modalEl) {
+      const modalEl = document.getElementById('detailModal');
+      if (modalEl) {
         modalEl.classList.remove('hidden');
         modalEl.style.display = 'flex';
-    }
-};
+      }
+    };
 
-window.closeDetailModal = function() {
-    const modal = document.getElementById('detailModal');
-    if (modal) {
+    window.closeDetailModal = function () {
+      const modal = document.getElementById('detailModal');
+      if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
-    }
-};
-// --- HÀM XỬ LÝ PHÊ DUYỆT / TỪ CHỐI CÓ LẤY Ý KIẾN ---
-    window.handleApproveAction = async function(id, action = 'approve') {
-        const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
-
-        const commentInput = document.getElementById('approvalCommentInput');
-        let userComment = commentInput ? commentInput.value.trim() : '';
-
-        if (action === 'reject' && !userComment) {
-            alert('Vui lòng nhập lý do từ chối vào ô ý kiến trước khi bấm Từ chối phiếu!');
-            if (commentInput) commentInput.focus();
-            return;
-        }
-
-        if (!confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`)) {
-            return;
-        }
-
-        const activeUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: action,
-                    comment: userComment,
-                    userRole: activeUser.role || ''
-                })
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert(`Thực hiện ${actionName} thành công!`);
-                closeDetailModal();
-                loadRequests();
-            } else {
-                alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
-            }
-        } catch (err) {
-            console.error('Lỗi kết nối:', err);
-            alert('Không thể kết nối đến máy chủ server!');
-        }
+      }
     };
-    // --- SỬA PHIẾU ---
-    window.editRequest = function(id) {
-        const req = currentRequests.find(r => 
-            (r._id && r._id.toString() === String(id)) || 
-            (r.id && r.id.toString() === String(id))
-        );
 
-        if (!req) {
-            alert('Không tìm thấy thông tin phiếu để sửa!');
-            return;
+    // --- XỬ LÝ PHÊ DUYỆT / TỪ CHỐI ---
+    window.handleApproveAction = async function (id, action = 'approve') {
+      const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
+      const commentInput = document.getElementById('approvalCommentInput');
+      const userComment = commentInput ? commentInput.value.trim() : '';
+
+      if (action === 'reject' && !userComment) {
+        alert('Vui lòng nhập lý do từ chối vào ô ý kiến trước khi bấm Từ chối phiếu!');
+        if (commentInput) commentInput.focus();
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`)) {
+        return;
+      }
+
+      const activeUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action,
+            comment: userComment,
+            userRole: activeUser.role || ''
+          })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert(`Thực hiện ${actionName} thành công!`);
+          closeDetailModal();
+          loadRequests();
+        } else {
+          alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
         }
+      } catch (err) {
+        console.error('Lỗi kết nối:', err);
+        alert('Không thể kết nối đến máy chủ server!');
+      }
+    };
 
-        document.getElementById('editingRequestId').value = req._id || req.id || '';
-        document.getElementById('formTitleText').innerText = 'Chỉnh Sửa Phiếu Đề Xuất Thanh Toán';
-        document.getElementById('btnSubmitForm').innerText = 'Lưu Thay Đổi';
-        document.getElementById('btnSubmitForm').style.backgroundColor = '#ffc107';
-        document.getElementById('btnSubmitForm').style.color = 'black';
-        document.getElementById('btnCancelEdit').classList.remove('hidden');
+    // --- SỬA PHIẾU ---
+    window.editRequest = function (id) {
+      const req = currentRequests.find(r =>
+        (r._id && r._id.toString() === String(id)) ||
+        (r.id && r.id.toString() === String(id))
+      );
 
-        const codeInput = document.getElementById('requestCode');
-        if (codeInput) codeInput.value = req.requestCode || '';
+      if (!req) {
+        alert('Không tìm thấy thông tin phiếu để sửa!');
+        return;
+      }
 
-        document.getElementById('title').value = req.title || '';
-        document.getElementById('costType').value = req.costType || '';
-        document.getElementById('department').value = req.department || '';
-        document.getElementById('supplierName').value = req.supplierName || '';
-        document.getElementById('bankAccount').value = req.bankAccount || '';
+      document.getElementById('editingRequestId').value = req._id || req.id || '';
+      document.getElementById('formTitleText').innerText = 'Chỉnh Sửa Phiếu Đề Xuất Thanh Toán';
+      document.getElementById('btnSubmitForm').innerText = 'Lưu Thay Đổi';
+      document.getElementById('btnSubmitForm').style.backgroundColor = '#ffc107';
+      document.getElementById('btnSubmitForm').style.color = 'black';
+      document.getElementById('btnCancelEdit').classList.remove('hidden');
 
-        const tbody = document.getElementById('detailRows');
-        if (tbody) tbody.innerHTML = '';
+      const codeInput = document.getElementById('requestCode');
+      if (codeInput) codeInput.value = req.requestCode || '';
 
-        const generalAttachments = req.attachments || [];
+      document.getElementById('title').value = req.title || '';
+      document.getElementById('costType').value = req.costType || '';
+      document.getElementById('department').value = req.department || '';
+      document.getElementById('supplierName').value = req.supplierName || '';
+      document.getElementById('bankAccount').value = req.bankAccount || '';
 
-        if (req.details && req.details.length > 0) {
-                req.details.forEach(item => {
-                    const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
-                    addRow({
-                        docNo: item.docNo,
-                        docDate: item.docDate,
-                        desc: item.desc,
-                        amount: item.amount,
-                        attachments: rowFiles
-                    });
-                });
-            } else {
-                addRow();
-            }
+      currentEditingAttachments = Array.isArray(req.attachments) ? [...req.attachments] : [];
+      selectedFilesData = [];
+      renderSelectedGeneralFilesUI();
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      const tbody = document.getElementById('detailRows');
+      if (tbody) tbody.innerHTML = '';
+
+      if (req.details && req.details.length > 0) {
+        req.details.forEach(item => {
+          const rowFiles = (item.attachments && item.attachments.length > 0) ? item.attachments : [];
+          addRow({
+            docNo: item.docNo,
+            docDate: item.docDate,
+            desc: item.desc,
+            amount: item.amount,
+            attachments: rowFiles
+          });
+        });
+      } else {
+        addRow();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // --- XÓA PHIẾU ---
-    window.deleteRequest = function(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa phiếu này không?')) return;
-        fetch(`${API_BASE_URL}/api/requests/${id}`, { method: 'DELETE' })
-            .then(res => { if (res.ok) loadRequests(); else alert('Xóa thất bại!'); })
-            .catch(err => console.error('Lỗi xóa:', err));
+    window.deleteRequest = function (id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa phiếu này không?')) return;
+      fetch(`${API_BASE_URL}/api/requests/${id}`, { method: 'DELETE' })
+        .then(res => { if (res.ok) loadRequests(); else alert('Xóa thất bại!'); })
+        .catch(err => console.error('Lỗi xóa:', err));
     };
 
-    // --- HÀM IN PHIẾU (NHẬN TRỰC TIẾP MÃ PHIẾU TỪ GIAO DIỆN) ---
-    window.printRequest = function(id, passedCode) {
-        const req = currentRequests.find(r => (r._id && r._id.toString() === String(id)) || (r.id && r.id.toString() === String(id)));
-        if (!req) {
-            alert('Không tìm thấy thông tin phiếu để in!');
-            return;
-        }
-
-        let detailsRowsHTML = '';
-        const listDetails = req.details || req.items || req.lines || [];
-        if (Array.isArray(listDetails) && listDetails.length > 0) {
-            listDetails.forEach((item, idx) => {
-                const ngayCT = item.docDate ? String(item.docDate).split('T')[0] : '';
-                detailsRowsHTML += `<tr>
-                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.docNo || (idx + 1)}</td>
-                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${ngayCT}</td>
-                    <td style="border: 1px solid #000; padding: 6px;">${item.desc || ''}</td>
-                    <td style="border: 1px solid #000; padding: 6px; text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
-                    <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.note || ''}</td>
-                </tr>`;
-            });
-        }
-
-        const submittedDate = req.submittedAt ? String(req.submittedAt).split('T')[0] : (req.createdAt ? String(req.createdAt).split('T')[0] : '');
-        const createdBy = req.createdBy || 'Nhân viên';
-        const department = req.department || '';
-        const title = req.title || '';
-        const supplierName = req.supplierName || '';
-        const bankAccount = req.bankAccount || '';
-        const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
-        const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
-        
-        // Số phiếu in ra là mã đã lưu lúc lập phiếu
-        let maPhieuHienThi = req.requestCode || req.code || req.soPhieu || req.requestNo || req.maPhieu || '';
-
-        const rawStatus = req.status || '';
-        const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
-        // Thay vì gán cứng 08:30, hãy lấy thời gian thực hoặc định dạng ngày tháng linh hoạt
-const now = new Date();
-const timeString = now.toTimeString().substring(0, 5); // Lấy HH:mm hiện tại
-const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
-
-        const isKyThuat = String(department).toLowerCase().includes('kỹ thuật') || String(department).toLowerCase().includes('ky thuat');
-
-        let usersList = (typeof allUsersCache !== 'undefined' && Array.isArray(allUsersCache)) ? allUsersCache : [];
-
-        let foundTBP = usersList.find(u => {
-            let roleStr = String(u.role || '').toLowerCase();
-            let uDept = String(u.department || '').toLowerCase();
-            let reqDept = String(department).toLowerCase();
-            let isTbp = roleStr === 'tbp' || roleStr === 'truong_bo_phan';
-            let deptMatch = uDept && reqDept && (uDept.includes(reqDept) || reqDept.includes(uDept));
-            return isTbp && deptMatch;
-        });
-
-        if (!foundTBP) {
-            foundTBP = usersList.find(u => {
-                let roleStr = String(u.role || '').toLowerCase();
-                return roleStr === 'tbp' || roleStr === 'truong_bo_phan';
-            });
-        }
-
-        let foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
-        let foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
-        let foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd_sx') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
-        let foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giam_doc'));
-
-        const nameNV = createdBy;
-        const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
-        const nameKT = foundKT ? foundKT.fullName : 'Nguyễn Thị Lệ Thuần';
-        const nameKTT = foundKTT ? foundKTT.fullName : 'Phạm Văn Tuấn';
-        const namePGD = foundPGD ? foundPGD.fullName : 'Đỗ Công Thịnh';
-        const nameGD = foundGD ? foundGD.fullName : 'Vũ Quang Sáng';
-
-        let s1Sign = `✅ Đã lập<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>`;
-        let s2Sign = (isCompleted || rawStatus.includes('Trưởng') || rawStatus.includes('KT') || rawStatus.includes('Giám đốc') || rawStatus.includes('2.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-        let s3Sign = (isCompleted || req.paidStatus === 'Đã thanh toán') ? `✅ Đã kiểm tra<br><span style="font-size:10px; color:#555;">${req.paidDate || defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ kiểm tra</span>`;
-        let s4Sign = (isCompleted || rawStatus.includes('Kế toán trưởng') || rawStatus.includes('Giám đốc') || rawStatus.includes('4.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-        let s5Sign = (isCompleted || rawStatus.includes('PGD') || rawStatus.includes('Phó')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-        let s6Sign = (isCompleted) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-
-        let footerSignaturesHTML = `
-            <div>
-                <div class="signature-title">Người lập phiếu</div>
-                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-                <div class="signature-status"><b style="font-size: 11px;">${nameNV}</b><br>${s1Sign}</div>
-            </div>
-            <div>
-                <div class="signature-title">Trưởng Bộ Phận</div>
-                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-                <div class="signature-status"><b style="font-size: 11px;">${nameTBP}</b><br>${s2Sign}</div>
-            </div>
-            <div>
-                <div class="signature-title">Kế Toán Thanh Toán</div>
-                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-                <div class="signature-status"><b style="font-size: 11px;">${nameKT}</b><br>${s3Sign}</div>
-            </div>
-            <div>
-                <div class="signature-title">Kế Toán Trưởng</div>
-                <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-                <div class="signature-status"><b style="font-size: 11px;">${nameKTT}</b><br>${s4Sign}</div>
-            </div>
-        `;
-
-        if (isKyThuat) {
-            footerSignaturesHTML += `
-                <div>
-                    <div class="signature-title">Phó Giám Đốc</div>
-                    <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-                    <div class="signature-status"><b style="font-size: 11px;">${namePGD}</b><br>${s5Sign}</div>
-                </div>
-            `;
-        }
-
-        footerSignaturesHTML += `
-            <div>
-                <div class="signature-title">Giám Đốc</div>
-                <div style="font-size: 10px;">(Ký, đóng dấu)</div>
-                <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
-            </div>
-        `;
-
-        const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
-            <style>
-                body { font-family: "Times New Roman", Times, serif; font-size: 13px; margin: 25px; color: #000; }
-                .company-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
-                .header { text-align: center; margin-bottom: 15px; }
-                .header h2 { margin: 3px 0; font-size: 17px; }
-                .meta-info { margin-bottom: 15px; line-height: 1.5; }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
-                th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
-                th { background-color: #f2f2f2; text-align: center; }
-                .amount-section { font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
-                .footer { display: flex; justify-content: space-between; text-align: center; font-size: 11px; margin-top: 25px; page-break-inside: avoid; }
-                .footer div { flex: 1; padding: 0 3px; }
-                .signature-title { font-weight: bold; margin-bottom: 3px; font-size: 11.5px; }
-                .signature-status { margin-top: 25px; font-size: 10.5px; }
-            </style></head><body>
-            <div class="company-header">
-                <span>CÔNG TY CỔ PHẦN ĐẦU TƯ BVN QUẢNG BÌNH</span>
-                <span>Mẫu số: TT-200</span>
-            </div>
-            <div class="header">
-                <h2>PHIẾU ĐỀ NGHỊ THANH TOÁN</h2>
-                <div style="font-size: 12px; margin-top: 4px;">Số phiếu: <b>${maPhieuHienThi}</b> | Ngày đề nghị: ${submittedDate}</div>
-            </div>
-            <div class="meta-info">
-                <div><b>Người đề nghị:</b> ${createdBy}</div>
-                <div><b>Bộ phận:</b> ${department}</div>
-                <div><b>Nội dung đề xuất:</b> ${title}</div>
-                <div><b>Nhà cung cấp / Thụ hưởng:</b> ${supplierName} ${bankAccount ? ' - <b>TK:</b> ' + bankAccount : ''}</div>
-            </div>
-            <table><thead><tr><th>Số CT</th><th>Ngày</th><th>Diễn giải nội dung</th><th>Số tiền (VNĐ)</th><th>Ghi chú</th></tr></thead>
-            <tbody>${detailsRowsHTML}</tbody></table>
-            <div class="amount-section">
-                <b>Tổng cộng tiền thanh toán:</b> <span style="color: #d9534f; font-weight: bold;">${totalAmount} VNĐ</span><br>
-                <b>Bằng chữ:</b> <i>${amountInWords}</i>
-            </div>
-
-            <div class="footer">
-                ${footerSignaturesHTML}
-            </div>
-
-            <script>window.onload = function() { window.print(); window.close(); };<\/script>
-            </body></html>`;
-
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-            printWindow.document.write(htmlContent);
-            printWindow.document.close();
-        }
-    };
-// --- QUẢN LÝ NHÂN SỰ (ADMIN) ---
-    async function loadUsersList() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/users`);
-            const users = await response.json();
-            allUsersCache = users;
-            const userTableBody = document.getElementById('userTableBody');
-            if (!userTableBody) return;
-            
-            userTableBody.innerHTML = '';
-            if (!users || users.length === 0) {
-                userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Chưa có nhân sự nào.</td></tr>`;
-                return;
-            }
-
-            users.forEach((user, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align: center;">${index + 1}</td>
-                    <td>${user.username || ''}</td>
-                    <td>${user.fullName || ''}</td>
-                    <td>${user.department || ''}</td>
-                    <td style="text-align: center;">${user.role || ''}</td>
-                    <td style="text-align: center;">${user.zaloPhone || ''}</td>
-                    <td style="text-align: center; white-space: nowrap; width: 60px;">
-                        <div style="display: flex; gap: 4px; justify-content: center;">
-                            <button type="button" class="btn btn-sm" onclick="editUser('${user.username}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
-                            <button type="button" class="btn btn-sm" onclick="deleteUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
-                        </div>
-                    </td>
-                `;
-                userTableBody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error('Lỗi tải nhân sự:', error);
-        }
-    }
-
-// --- XỬ LÝ TẠO MỚI TÀI KHOẢN NHÂN SỰ ---
-document.getElementById('createUserForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Chặn load lại trang mặc định của form
-
-    const usernameInput = document.getElementById('newUsername');
-    const passwordInput = document.getElementById('newPassword');
-    const fullNameInput = document.getElementById('newFullName');
-    const departmentInput = document.getElementById('newDepartment');
-    const roleInput = document.getElementById('newRole');
-    const managerIdInput = document.getElementById('newManager');
-    const zaloPhoneInput = document.getElementById('newZaloPhone');
-    const msgDiv = document.getElementById('userMsg');
-
-    const userData = {
-        username: usernameInput ? usernameInput.value.trim() : '',
-        password: passwordInput ? passwordInput.value.trim() : '',
-        fullName: fullNameInput ? fullNameInput.value.trim() : '',
-        department: departmentInput ? departmentInput.value : '',
-        role: roleInput ? roleInput.value : 'nhanvien',
-        managerId: managerIdInput ? managerIdInput.value.trim() : '',
-        zaloPhone: zaloPhoneInput ? zaloPhoneInput.value.trim() : ''
-    };
-
-    // Kiểm tra dữ liệu cơ bản
-    if (!userData.username || !userData.password || !userData.fullName) {
-        if (msgDiv) msgDiv.innerHTML = `<span style="color: red;">Vui lòng điền đầy đủ thông tin bắt buộc!</span>`;
-        alert('Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!');
+    // --- HÀM IN PHIẾU ---
+    window.printRequest = function (id) {
+      const req = currentRequests.find(r => (r._id && r._id.toString() === String(id)) || (r.id && r.id.toString() === String(id)));
+      if (!req) {
+        alert('Không tìm thấy thông tin phiếu để in!');
         return;
-    }
+      }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
+      let detailsRowsHTML = '';
+      const listDetails = req.details || req.items || req.lines || [];
+      if (Array.isArray(listDetails) && listDetails.length > 0) {
+        listDetails.forEach((item, idx) => {
+          const ngayCT = item.docDate ? String(item.docDate).split('T')[0] : '';
+          detailsRowsHTML += `<tr>
+            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.docNo || (idx + 1)}</td>
+            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${ngayCT}</td>
+            <td style="border: 1px solid #000; padding: 6px;">${item.desc || ''}</td>
+            <td style="border: 1px solid #000; padding: 6px; text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
+            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.note || ''}</td>
+          </tr>`;
         });
-        
-        const result = await response.json();
-        if (response.ok) {
-            if (msgDiv) msgDiv.innerHTML = `<span style="color: green;">${result.message || 'Tạo tài khoản thành công!'}</span>`;
-            alert('Tạo tài khoản thành công!');
-            
-            // Xóa sạch form sau khi tạo thành công
-            document.getElementById('createUserForm').reset();
+      }
 
-            // Tải lại danh sách từ MongoDB lên bảng hiển thị
-            if (typeof loadUsersList === 'function') {
-                loadUsersList();
-            } else {
-                location.reload();
-            }
-        } else {
-            if (msgDiv) msgDiv.innerHTML = `<span style="color: red;">Lỗi: ${result.error}</span>`;
-            alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
+      const submittedDate = req.submittedAt ? String(req.submittedAt).split('T')[0] : (req.createdAt ? String(req.createdAt).split('T')[0] : '');
+      const createdBy = req.createdBy || 'Nhân viên';
+      const department = req.department || '';
+      const title = req.title || '';
+      const supplierName = req.supplierName || '';
+      const bankAccount = req.bankAccount || '';
+      const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
+      const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
+      const maPhieuHienThi = req.requestCode || req.code || req.soPhieu || req.requestNo || req.maPhieu || '';
+
+      const rawStatus = req.status || '';
+      const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
+      const now = new Date();
+      const timeString = now.toTimeString().substring(0, 5);
+      const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
+      const isKyThuat = String(department).toLowerCase().includes('kỹ thuật') || String(department).toLowerCase().includes('ky thuat');
+
+      const usersList = (typeof allUsersCache !== 'undefined' && Array.isArray(allUsersCache)) ? allUsersCache : [];
+
+      let foundTBP = usersList.find(u => {
+        const roleStr = String(u.role || '').toLowerCase();
+        const uDept = String(u.department || '').toLowerCase();
+        const reqDept = String(department).toLowerCase();
+        const isTbp = roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+        const deptMatch = uDept && reqDept && (uDept.includes(reqDept) || reqDept.includes(uDept));
+        return isTbp && deptMatch;
+      });
+
+      if (!foundTBP) {
+        foundTBP = usersList.find(u => {
+          const roleStr = String(u.role || '').toLowerCase();
+          return roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+        });
+      }
+
+      const foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
+      const foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
+      const foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd_sx') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
+      const foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giamdoc'));
+
+      const nameNV = createdBy;
+      const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
+      const nameKT = foundKT ? foundKT.fullName : 'Nguyễn Thị Lệ Thuần';
+      const nameKTT = foundKTT ? foundKTT.fullName : 'Phạm Văn Tuấn';
+      const namePGD = foundPGD ? foundPGD.fullName : 'Đỗ Công Thịnh';
+      const nameGD = foundGD ? foundGD.fullName : 'Vũ Quang Sáng';
+
+      const s1Sign = `✅ Đã lập<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>`;
+      const s2Sign = (isCompleted || rawStatus.includes('Trưởng') || rawStatus.includes('KT') || rawStatus.includes('Giám đốc') || rawStatus.includes('2.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+      const s3Sign = (isCompleted || req.paidStatus === 'Đã thanh toán') ? `✅ Đã kiểm tra<br><span style="font-size:10px; color:#555;">${req.paidDate || defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ kiểm tra</span>`;
+      const s4Sign = (isCompleted || rawStatus.includes('Kế toán trưởng') || rawStatus.includes('Giám đốc') || rawStatus.includes('4.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+      const s5Sign = (isCompleted || rawStatus.includes('PGD') || rawStatus.includes('Phó')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+      const s6Sign = (isCompleted) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+
+      let footerSignaturesHTML = `
+        <div>
+          <div class="signature-title">Người lập phiếu</div>
+          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+          <div class="signature-status"><b style="font-size: 11px;">${nameNV}</b><br>${s1Sign}</div>
+        </div>
+        <div>
+          <div class="signature-title">Trưởng Bộ Phận</div>
+          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+          <div class="signature-status"><b style="font-size: 11px;">${nameTBP}</b><br>${s2Sign}</div>
+        </div>
+        <div>
+          <div class="signature-title">Kế Toán Thanh Toán</div>
+          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+          <div class="signature-status"><b style="font-size: 11px;">${nameKT}</b><br>${s3Sign}</div>
+        </div>
+        <div>
+          <div class="signature-title">Kế Toán Trưởng</div>
+          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+          <div class="signature-status"><b style="font-size: 11px;">${nameKTT}</b><br>${s4Sign}</div>
+        </div>
+      `;
+
+      if (isKyThuat) {
+        footerSignaturesHTML += `
+          <div>
+            <div class="signature-title">Phó Giám Đốc</div>
+            <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+            <div class="signature-status"><b style="font-size: 11px;">${namePGD}</b><br>${s5Sign}</div>
+          </div>
+        `;
+      }
+
+      footerSignaturesHTML += `
+        <div>
+          <div class="signature-title">Giám Đốc</div>
+          <div style="font-size: 10px;">(Ký, đóng dấu)</div>
+          <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
+        </div>
+      `;
+
+      const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
+        <style>
+          body { font-family: "Times New Roman", Times, serif; font-size: 13px; margin: 25px; color: #000; }
+          .company-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+          .header { text-align: center; margin-bottom: 15px; }
+          .header h2 { margin: 3px 0; font-size: 17px; }
+          .meta-info { margin-bottom: 15px; line-height: 1.5; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
+          th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
+          th { background-color: #f2f2f2; text-align: center; }
+          .amount-section { font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+          .footer { display: flex; justify-content: space-between; text-align: center; font-size: 11px; margin-top: 25px; page-break-inside: avoid; }
+          .footer div { flex: 1; padding: 0 3px; }
+          .signature-title { font-weight: bold; margin-bottom: 3px; font-size: 11.5px; }
+          .signature-status { margin-top: 25px; font-size: 10.5px; }
+        </style></head><body>
+        <div class="company-header">
+          <span>CÔNG TY CỔ PHẦN ĐẦU TƯ BVN QUẢNG BÌNH</span>
+          <span>Mẫu số: TT-200</span>
+        </div>
+        <div class="header">
+          <h2>PHIẾU ĐỀ NGHỊ THANH TOÁN</h2>
+          <div style="font-size: 12px; margin-top: 4px;">Số phiếu: <b>${maPhieuHienThi}</b> | Ngày đề nghị: ${submittedDate}</div>
+        </div>
+        <div class="meta-info">
+          <div><b>Người đề nghị:</b> ${createdBy}</div>
+          <div><b>Bộ phận:</b> ${department}</div>
+          <div><b>Nội dung đề xuất:</b> ${title}</div>
+          <div><b>Nhà cung cấp / Thụ hưởng:</b> ${supplierName} ${bankAccount ? ' - <b>TK:</b> ' + bankAccount : ''}</div>
+        </div>
+        <table><thead><tr><th>Số CT</th><th>Ngày</th><th>Diễn giải nội dung</th><th>Số tiền (VNĐ)</th><th>Ghi chú</th></tr></thead>
+        <tbody>${detailsRowsHTML}</tbody></table>
+        <div class="amount-section">
+          <b>Tổng cộng tiền thanh toán:</b> <span style="color: #d9534f; font-weight: bold;">${totalAmount} VNĐ</span><br>
+          <b>Bằng chữ:</b> <i>${amountInWords}</i>
+        </div>
+
+        <div class="footer">
+          ${footerSignaturesHTML}
+        </div>
+
+        <script>window.onload = function() { window.print(); window.close(); };<\/script>
+      </body></html>`;
+
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+      }
+    };
+
+    // --- QUẢN LÝ NHÂN SỰ (ADMIN) ---
+    async function loadUsersList() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/users`);
+        const users = await response.json();
+        allUsersCache = users;
+        const userTableBody = document.getElementById('userTableBody');
+        if (!userTableBody) return;
+
+        userTableBody.innerHTML = '';
+        if (!users || users.length === 0) {
+          userTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Chưa có nhân sự nào.</td></tr>`;
+          return;
         }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
-});
 
-// --- MỞ MODAL SỬA - TÌM KIẾM THEO USERNAME HOẶC ID ---
-window.editUser = async function(identifier) {
-    if (!identifier) {
+        users.forEach((user, index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="text-align: center;">${index + 1}</td>
+            <td>${user.username || ''}</td>
+            <td>${user.fullName || ''}</td>
+            <td>${user.department || ''}</td>
+            <td style="text-align: center;">${user.role || ''}</td>
+            <td style="text-align: center;">${user.zaloPhone || ''}</td>
+            <td style="text-align: center; white-space: nowrap; width: 60px;">
+              <div style="display: flex; gap: 4px; justify-content: center;">
+                <button type="button" class="btn btn-sm" onclick="editUser('${user.username}')" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Sửa">✏️ Sửa</button>
+                <button type="button" class="btn btn-sm" onclick="deleteUser('${user._id || user.id}')" style="background-color: #f1f5f9; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; padding: 2px 5px; border-radius: 3px;" title="Xóa">🗑️ Xóa</button>
+              </div>
+            </td>
+          `;
+          userTableBody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('Lỗi tải nhân sự:', error);
+      }
+    }
+
+    window.editUser = async function (identifier) {
+      if (!identifier) {
         alert('Không nhận diện được tài khoản cần sửa!');
         return;
-    }
+      }
 
-    let user = null;
-
-    try {
-        // 1. Tìm trong biến cache danh sách đang có sẵn trên trình duyệt
+      let user = null;
+      try {
         if (window.allUsersCache && allUsersCache.length > 0) {
-            user = allUsersCache.find(u => 
-                String(u.username) === String(identifier) || 
-                String(u._id) === String(identifier) || 
-                String(u.id) === String(identifier)
+          user = allUsersCache.find(u =>
+            String(u.username) === String(identifier) ||
+            String(u._id) === String(identifier) ||
+            String(u.id) === String(identifier)
+          );
+        }
+
+        if (!user) {
+          const response = await fetch(`${API_BASE_URL}/api/users`);
+          if (response.ok) {
+            const users = await response.json();
+            window.allUsersCache = users;
+            user = users.find(u =>
+              String(u.username) === String(identifier) ||
+              String(u._id) === String(identifier) ||
+              String(u.id) === String(identifier)
             );
-        }
-
-        // 2. Nếu chưa có trong cache, gọi API lấy danh sách mới nhất từ server
-        if (!user) {
-            const response = await fetch(`${API_BASE_URL}/api/users`);
-            if (response.ok) {
-                const users = await response.json();
-                window.allUsersCache = users; // Cập nhật lại cache
-                user = users.find(u => 
-                    String(u.username) === String(identifier) || 
-                    String(u._id) === String(identifier) || 
-                    String(u.id) === String(identifier)
-                );
-            }
+          }
         }
 
         if (!user) {
-            alert('Không tìm thấy thông tin tài khoản: ' + identifier);
-            return;
+          alert('Không tìm thấy thông tin tài khoản: ' + identifier);
+          return;
         }
 
-        // Đổ dữ liệu cũ vào các ô input trong Modal Sửa
         document.getElementById('editUserId').value = user._id || user.id || user.username;
         document.getElementById('editUsername').value = user.username || '';
-        document.getElementById('editPassword').value = ''; // Để trống mật khẩu nếu không muốn đổi
+        document.getElementById('editPassword').value = '';
         document.getElementById('editFullName').value = user.fullName || '';
         document.getElementById('editDepartment').value = user.department || '';
         document.getElementById('editRole').value = user.role || 'nhanvien';
         document.getElementById('editManager').value = user.managerId || '';
 
         const editZaloPhoneEl = document.getElementById('editZaloPhone');
-        if (editZaloPhoneEl) {
-            editZaloPhoneEl.value = user.zaloPhone || '';
-        }
+        if (editZaloPhoneEl) editZaloPhoneEl.value = user.zaloPhone || '';
 
-        // Hiển thị modal lên màn hình
         const modal = document.getElementById('editUserModal');
         if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
         }
-    } catch (err) {
+      } catch (err) {
         console.error('Lỗi kết nối khi lấy thông tin user:', err);
         alert('Không thể kết nối đến máy chủ để lấy thông tin!');
-    }
-};
-
-// --- XỬ LÝ KHI BẤM "LƯU THAY ĐỔI" TRONG MODAL SỬA ---
-document.getElementById('editUserForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const userId = document.getElementById('editUserId').value;
-    const msgDiv = document.getElementById('editUserMsg');
-
-    if (!userId) {
-        alert('Không tìm thấy ID người dùng!');
-        return;
-    }
-
-    const editZaloPhoneEl = document.getElementById('editZaloPhone');
-    const zaloPhoneVal = editZaloPhoneEl ? editZaloPhoneEl.value.trim() : '';
-
-    const userData = {
-        username: document.getElementById('editUsername').value.trim(),
-        fullName: document.getElementById('editFullName').value.trim(),
-        department: document.getElementById('editDepartment').value,
-        role: document.getElementById('editRole').value,
-        managerId: document.getElementById('editManager').value.trim(),
-        zaloPhone: zaloPhoneVal
+      }
     };
 
-    // Chỉ gửi mật khẩu nếu người dùng có nhập mật khẩu mới
-    const newPassword = document.getElementById('editPassword').value.trim();
-    if (newPassword) {
-        userData.password = newPassword;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            if (msgDiv) {
-                msgDiv.style.display = 'block';
-                msgDiv.style.background = '#d4edda';
-                msgDiv.style.color = '#155724';
-                msgDiv.innerHTML = 'Cập nhật thành công!';
-            }
-            alert('Cập nhật tài khoản thành công!');
-            
-            // Đóng modal sau 0.5 giây và tải lại danh sách
-            setTimeout(() => {
-                closeEditUserModal();
-                if (typeof loadUsersList === 'function') {
-                    loadUsersList();
-                } else {
-                    location.reload();
-                }
-            }, 500);
-
-        } else {
-            if (msgDiv) {
-                msgDiv.style.display = 'block';
-                msgDiv.style.background = '#f8d7da';
-                msgDiv.style.color = '#721c24';
-                msgDiv.innerHTML = 'Lỗi: ' + (result.error || 'Không thể cập nhật');
-            }
-            alert('Lỗi: ' + (result.error || 'Không thể cập nhật tài khoản'));
-        }
-    } catch (err) {
-        console.error('Lỗi kết nối khi cập nhật:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
-});
-// --- XỬ LÝ XÓA TÀI KHOẢN NHÂN SỰ ---
-window.deleteUser = async function(userId) {
-    if (!userId || userId === 'undefined') {
+    window.deleteUser = async function (userId) {
+      if (!userId || userId === 'undefined') {
         alert('Không tìm thấy ID định danh của nhân sự cần xóa!');
         return;
-    }
+      }
 
-    // Hỏi xác nhận trước khi xóa
-    const confirmDelete = confirm('Bạn có chắc chắn muốn xóa tài khoản nhân sự này khỏi hệ thống không?');
-    if (!confirmDelete) return;
+      if (!confirm('Bạn có chắc chắn muốn xóa tài khoản nhân sự này khỏi hệ thống không?')) return;
 
-    try {
+      try {
         const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
         });
 
         const result = await response.json();
         if (response.ok) {
-            alert('Xóa tài khoản thành công!');
-            
-            // Tải lại bảng danh sách nhân sự ngay lập tức
-            if (typeof loadUsersList === 'function') {
-                loadUsersList();
-            } else {
-                location.reload();
-            }
+          alert('Xóa tài khoản thành công!');
+          loadUsersList();
         } else {
-            alert('Lỗi: ' + (result.error || 'Không thể xóa tài khoản'));
+          alert('Lỗi: ' + (result.error || 'Không thể xóa tài khoản'));
         }
-    } catch (err) {
+      } catch (err) {
         console.error('Lỗi kết nối khi xóa nhân sự:', err);
         alert('Không thể kết nối đến máy chủ server để xóa!');
-    }
-};
-    // --- KHỞI CHẠY DOM CONTENT LOADED ---
-    document.addEventListener('DOMContentLoaded', () => {
-        loadDepartments();
-
-        if (currentUser) {
-            const loginSection = document.getElementById('loginSection');
-            const mainSection = document.getElementById('mainSection');
-            if (loginSection) loginSection.classList.add('hidden');
-            if (mainSection) mainSection.classList.remove('hidden');
-
-            document.getElementById('userFullName').innerText = currentUser.fullName || '';
-            document.getElementById('userRoleBadge').innerText = `Chức vụ: ${(currentUser.role || '').toUpperCase()}`;
-
-            if (currentUser.role === 'admin') {
-                document.getElementById('adminNavTab').classList.remove('hidden');
-                document.body.classList.add('role-admin');
-            } else {
-                document.getElementById('adminNavTab').classList.add('hidden');
-                document.body.classList.remove('role-admin');
-            }
-
-            if (currentUser.role === 'nhanvien' || currentUser.role === 'admin') {
-                const createContainer = document.getElementById('createFormContainer');
-                if (createContainer) createContainer.classList.remove('hidden');
-                resetFormToCreateMode();
-            }
-
-            loadRequests();
-        }
-
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            loginForm.onsubmit = async function(e) {
-                e.preventDefault();
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-                const loginMessage = document.getElementById('loginMessage');
-
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await res.json();
-
-                    if (res.ok) {
-                        currentUser = data.user;
-                        localStorage.setItem('user', JSON.stringify(currentUser));
-                        location.reload();
-                    } else {
-                        if (loginMessage) {
-                            loginMessage.className = 'error';
-                            loginMessage.innerText = '❌ ' + (data.error || 'Đăng nhập thất bại!');
-                            loginMessage.style.display = 'block';
-                        }
-                    }
-                } catch (err) {
-                    console.error('Lỗi kết nối:', err);
-                    alert('Không thể kết nối đến server!');
-                }
-            };
-        }
-
-        const editUserForm = document.getElementById('editUserForm');
-        if (editUserForm) {
-            editUserForm.onsubmit = async function(e) {
-                e.preventDefault();
-                const userId = document.getElementById('editUserId').value;
-                const payload = {
-                    username: document.getElementById('editUsername').value.trim(),
-                    password: document.getElementById('editPassword').value.trim(),
-                    fullName: document.getElementById('editFullName').value.trim(),
-                    department: document.getElementById('editDepartment').value,
-                    role: document.getElementById('editRole').value,
-                    managerId: document.getElementById('editManager').value.trim()
-                };
-
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    const msgDiv = document.getElementById('editUserMsg');
-
-                    if (res.ok) {
-                        if (msgDiv) {
-                            msgDiv.className = 'success';
-                            msgDiv.innerText = '✅ ' + data.message;
-                            msgDiv.style.display = 'block';
-                        }
-                        setTimeout(() => {
-                            if (msgDiv) msgDiv.style.display = 'none';
-                            closeEditUserModal();
-                            loadUsersList();
-                        }, 1500);
-                    } else {
-                        if (msgDiv) {
-                            msgDiv.className = 'error';
-                            msgDiv.innerText = '❌ ' + (data.error || 'Cập nhật thất bại!');
-                            msgDiv.style.display = 'block';
-                        }
-                    }
-                } catch (err) {
-                    console.error('Lỗi cập nhật user:', err);
-                }
-            };
-        }
-
-        const deptSelect = document.getElementById('department');
-        const codeInput = document.getElementById('requestCode');
-        if (deptSelect && codeInput) {
-            deptSelect.addEventListener('change', function() {
-                const editingId = document.getElementById('editingRequestId')?.value;
-                if (editingId) return;
-                let selectedVal = deptSelect.value;
-                if (selectedVal) {
-                    codeInput.value = generateRequestCode(selectedVal);
-                } else {
-                    codeInput.value = '';
-                }
-            });
-        }
-
-        const attachFiles = document.getElementById('attachmentFiles');
-        if (attachFiles) {
-            attachFiles.addEventListener('change', function(e) {
-                const files = e.target.files;
-                selectedFilesData = [];
-                let listNames = [];
-                if (files.length > 0) {
-                    let filesLoaded = 0;
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        listNames.push(file.name);
-                        const reader = new FileReader();
-                        reader.onload = function(uploadEvent) {
-                            selectedFilesData.push({ 
-                                name: file.name, 
-                                data: uploadEvent.target.result // Đảm bảo lưu đúng chuỗi Data URL Base64
-                            });
-                            filesLoaded++;
-                            if (filesLoaded === files.length) {
-                                document.getElementById('fileNamesList').innerText = "Đã chọn: " + listNames.join(', ');
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                } else {
-                    document.getElementById('fileNamesList').innerText = "";
-                }
-            });
-        }
-
-        const paymentForm = document.getElementById('paymentForm');
-        if (paymentForm) {
-            paymentForm.onsubmit = async function(e) {
-                e.preventDefault();
-                const editingId = document.getElementById('editingRequestId').value;
-                const amountVal = parseFloat(document.getElementById('lblTotalAmount').innerText.replace(/\./g, '')) || 0;
-
-                const details = [];
-                document.querySelectorAll('#detailRows tr').forEach(tr => {
-                    let rowAttachments = [];
-                    try {
-                        if (tr.dataset.filesJson) {
-                            rowAttachments = JSON.parse(tr.dataset.filesJson);
-                        }
-                    } catch (e) {
-                        rowAttachments = [];
-                    }
-
-                    details.push({
-                        docNo: tr.querySelector('.row-docNo').value,
-                        docDate: tr.querySelector('.row-docDate').value,
-                        desc: tr.querySelector('.row-desc').value,
-                        amount: parseFloat(tr.querySelector('.row-amount').value) || 0,
-                        note: '',
-                        attachments: rowAttachments
-                    });
-                });
-
-                let allAttachments = [...currentEditingAttachments, ...selectedFiles];
-                const payload = {
-                    requestCode: document.getElementById('requestCode').value,
-                    title: document.getElementById('title').value,
-                    amount: amountVal,
-                    costType: document.getElementById('costType').value,
-                    department: document.getElementById('department').value,
-                    supplierName: document.getElementById('supplierName').value,
-                    bankAccount: document.getElementById('bankAccount').value,
-                    details: details,
-                    attachments: allAttachments,
-                    createdBy: currentUser.fullName
-                };
-
-                try {
-                    let url = `${API_BASE_URL}/api/requests`;
-                    let method = 'POST';
-                    if (editingId) {
-                        url = `${API_BASE_URL}/api/requests/${editingId}`;
-                        method = 'PUT';
-                    }
-
-                    const res = await fetch(url, {
-                        method: method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    const messageDiv = document.getElementById('message');
-
-                    if (res.ok) {
-                        if (messageDiv) {
-                            messageDiv.className = 'success';
-                            messageDiv.innerText = '✅ ' + data.message;
-                            messageDiv.style.display = 'block';
-                        }
-                        resetFormToCreateMode();
-                        loadRequests();
-                        setTimeout(() => { if (messageDiv) messageDiv.style.display = 'none'; }, 3000);
-                    } else {
-                        if (messageDiv) {
-                            messageDiv.className = 'error';
-                            messageDiv.innerText = '❌ ' + (data.error || 'Lưu phiếu thất bại!');
-                            messageDiv.style.display = 'block';
-                        }
-                    }
-                } catch (err) {
-                    console.error('Lỗi gửi phiếu:', err);
-                }
-            };
-        }
-    });
+      }
+    };
 
     // --- MODAL MẬT KHẨU & NHÂN SỰ ---
-window.openChangePasswordModal = function() {
-    const modal = document.getElementById('changePasswordModal');
-    if (modal) {
+    window.openChangePasswordModal = function () {
+      const modal = document.getElementById('changePasswordModal');
+      if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex'; // Đảm bảo hiển thị nếu dùng flex
-    }
-    const form = document.getElementById('changePasswordForm');
-    if (form) form.reset();
-    const pwdMsg = document.getElementById('pwdMsg');
-    if (pwdMsg) pwdMsg.style.display = 'none';
-};
+        modal.style.display = 'flex';
+      }
+      const form = document.getElementById('changePasswordForm');
+      if (form) form.reset();
+      const pwdMsg = document.getElementById('pwdMsg');
+      if (pwdMsg) pwdMsg.style.display = 'none';
+    };
 
-window.closeChangePasswordModal = function() {
-    const modal = document.getElementById('changePasswordModal');
-    if (modal) {
+    window.closeChangePasswordModal = function () {
+      const modal = document.getElementById('changePasswordModal');
+      if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
-    }
-};
+      }
+    };
 
-window.closeEditUserModal = function() {
-    const modal = document.getElementById('editUserModal');
-    if (modal) {
+    window.closeEditUserModal = function () {
+      const modal = document.getElementById('editUserModal');
+      if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
-    }
-};
+      }
+    };
 
-// --- XỬ LÝ GỬI YÊU CẦU ĐỔI MẬT KHẨU CÁ NHÂN (LỌC CHUẨN USERNAME) ---
-document.getElementById('changePasswordForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
+    // --- XEM FILE ĐÍNH KÈM ---
+    let currentModalFiles = [];
+    let currentFileIndex = 0;
 
-    const inputs = this.querySelectorAll('input');
-    let oldPassword = '';
-    let newPassword = '';
-    let confirmPassword = '';
-
-    if (inputs.length >= 3) {
-        oldPassword = inputs[0].value.trim();
-        newPassword = inputs[1].value.trim();
-        confirmPassword = inputs[2].value.trim();
-    } else if (inputs.length === 2) {
-        oldPassword = inputs[0].value.trim();
-        newPassword = inputs[1].value.trim();
-        confirmPassword = newPassword;
-    }
-
-    const pwdMsg = document.getElementById('pwdMsg');
-
-    if (!oldPassword || !newPassword) {
-        alert('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
-        return;
-    }
-
-    if (confirmPassword && newPassword !== confirmPassword) {
-        alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
-        if (pwdMsg) {
-            pwdMsg.style.display = 'block';
-            pwdMsg.style.background = '#f8d7da';
-            pwdMsg.style.color = '#721c24';
-            pwdMsg.innerHTML = 'Mật khẩu mới không khớp!';
-        }
-        return;
-    }
-
-    // Lấy thông tin đăng nhập từ localStorage một cách an toàn
-    let rawUser = localStorage.getItem('currentUser') || localStorage.getItem('username') || localStorage.getItem('user') || '';
-    let currentUsername = '';
-
-    // Nếu dữ liệu lưu trong localStorage là dạng JSON (ví dụ: {"username":"admin", ...})
-    if (rawUser.startsWith('{') || rawUser.startsWith('[')) {
-        try {
-            const parsed = JSON.parse(rawUser);
-            currentUsername = parsed.username || parsed.user || parsed.name || '';
-        } catch (e) {
-            currentUsername = rawUser;
-        }
-    } else {
-        currentUsername = rawUser;
-    }
-
-    // Nếu vẫn chưa lấy được username rõ ràng, mặc định lấy chuỗi hiển thị trên giao diện hoặc 'admin'
-    if (!currentUsername || currentUsername.length > 30 || currentUsername.includes('{')) {
-        currentUsername = 'admin'; // Hoặc chỉnh sửa tên tài khoản bạn đang test trực tiếp ở đây
-    }
-
-    console.log("Username chuẩn để đổi mật khẩu:", currentUsername);
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(currentUsername)}/change-password`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ oldPassword, newPassword })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.');
-            this.reset();
-            closeChangePasswordModal();
-            location.reload();
-        } else {
-            alert('Lỗi từ server: ' + (result.error || 'Không thể đổi mật khẩu'));
-            if (pwdMsg) {
-                pwdMsg.style.display = 'block';
-                pwdMsg.style.background = '#f8d7da';
-                pwdMsg.style.color = '#721c24';
-                pwdMsg.innerHTML = 'Lỗi: ' + (result.error || 'Không thể đổi mật khẩu');
-            }
-        }
-    } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-    }
-});
-// Biến lưu danh sách file đang được mở trong modal
-let currentModalFiles = [];
-let currentFileIndex = 0;
-
-function openFilePreview(filesInput, selectedIndex = 0) {
-    let filesList = [];
-    
-    // Xử lý linh hoạt: nhận vào 1 file đơn lẻ hoặc một mảng nhiều file
-    if (typeof filesInput === 'string') {
+    function openFilePreview(filesInput, selectedIndex = 0) {
+      let filesList = [];
+      if (typeof filesInput === 'string') {
         filesList = [{ name: arguments[1] || 'Tài liệu', data: filesInput }];
-    } else if (Array.isArray(filesInput)) {
+      } else if (Array.isArray(filesInput)) {
         filesList = filesInput;
-    }
+      }
 
-    if (!filesList || filesList.length === 0) {
+      if (!filesList || filesList.length === 0) {
         alert('Không tìm thấy file đính kèm!');
         return;
+      }
+
+      currentModalFiles = filesList;
+      currentFileIndex = selectedIndex;
+      renderCurrentModalFile();
+
+      const modal = document.getElementById('filePreviewModal');
+      if (modal) modal.style.display = 'flex';
     }
 
-    currentModalFiles = filesList;
-    currentFileIndex = selectedIndex;
-    renderCurrentModalFile();
+    function renderCurrentModalFile() {
+      const file = currentModalFiles[currentFileIndex];
+      if (!file) return;
 
-    // Hiển thị Modal
-    const modal = document.getElementById('filePreviewModal');
-    if (modal) modal.style.display = 'flex';
-}
+      const iframe = document.getElementById('previewIframe');
+      const img = document.getElementById('previewImage');
+      const title = document.getElementById('previewModalTitle');
+      const downloadBtn = document.getElementById('modalDownloadBtn');
+      const tabsContainer = document.getElementById('modalFilesTabs');
 
-function renderCurrentModalFile() {
-    const file = currentModalFiles[currentFileIndex];
-    if (!file) return;
-
-    const iframe = document.getElementById('previewIframe');
-    const img = document.getElementById('previewImage');
-    const title = document.getElementById('previewModalTitle');
-    const downloadBtn = document.getElementById('modalDownloadBtn');
-    const tabsContainer = document.getElementById('modalFilesTabs');
-
-    if (title) title.innerText = `📄 Đang xem: ${file.name}`;
-    if (downloadBtn) {
+      if (title) title.innerText = `📄 Đang xem: ${file.name}`;
+      if (downloadBtn) {
         downloadBtn.href = file.data;
         downloadBtn.download = file.name || 'tai-lieu';
-    }
+      }
 
-    // Tạo các tab chuyển đổi nếu có từ 2 file trở lên
-    if (tabsContainer) {
+      if (tabsContainer) {
         if (currentModalFiles.length > 1) {
-            tabsContainer.innerHTML = currentModalFiles.map((f, idx) => `
-                <button type="button" onclick="currentFileIndex = ${idx}; renderCurrentModalFile();" 
-                    style="background: ${idx === currentFileIndex ? '#0d6efd' : '#444'}; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
-                    File ${idx + 1}: ${f.name}
-                </button>
-            `).join('');
+          tabsContainer.innerHTML = currentModalFiles.map((f, idx) => `
+            <button type="button" onclick="currentFileIndex = ${idx}; renderCurrentModalFile();"
+              style="background: ${idx === currentFileIndex ? '#0d6efd' : '#444'}; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+              File ${idx + 1}: ${f.name}
+            </button>
+          `).join('');
         } else {
-            tabsContainer.innerHTML = '';
+          tabsContainer.innerHTML = '';
         }
-    }
+      }
 
-    const lowerName = (file.name || '').toLowerCase();
-    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp');
+      const lowerName = (file.name || '').toLowerCase();
+      const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp');
 
-    if (isImage) {
+      if (isImage) {
         if (iframe) iframe.style.display = 'none';
         if (img) {
-            img.style.display = 'block';
-            img.src = file.data;
+          img.style.display = 'block';
+          img.src = file.data;
         }
-    } else {
+      } else {
         if (img) img.style.display = 'none';
         if (iframe) {
-            iframe.style.display = 'block';
-            iframe.src = file.data;
+          iframe.style.display = 'block';
+          iframe.src = file.data;
         }
-    }
-}
-
-function closeFilePreviewModal() {
-    const modal = document.getElementById('filePreviewModal');
-    const iframe = document.getElementById('previewIframe');
-    const img = document.getElementById('previewImage');
-    if (modal) modal.style.display = 'none';
-    if (iframe) iframe.src = '';
-    if (img) img.src = '';
-}
-// Mảng lưu trữ danh sách các file tạm thời trước khi submit
-    document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.getElementById('attachmentFiles');
-        if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
-                const files = e.target.files;
-                for (let i = 0; i < files.length; i++) {
-                    selectedFiles.push(files[i]);
-                }
-                renderFileListUI();
-            });
-        }
-    });
-
-    // Hàm vẽ danh sách file kèm nút bấm xóa (❌)
-    function renderFileListUI() {
-        const container = document.getElementById('fileNamesList');
-        if (!container) return;
-
-        if (selectedFiles.length === 0) {
-            container.innerHTML = '';
-            return;
-        }
-
-        let html = '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">File đã chọn:</div>';
-        selectedFiles.forEach((file, index) => {
-            html += `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #ced4da; border-radius: 4px;">
-                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
-                    <button type="button" onclick="removeAttachedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+      }
     }
 
-    // Hàm xử lý khi bấm nút ❌ để xóa file ra khỏi danh sách
-    window.removeAttachedFile = function(index) {
-        selectedFiles.splice(index, 1);
-        renderFileListUI();
-        
-        // Reset lại giá trị ô input file để có thể chọn lại chính file đó nếu cần
-        const fileInput = document.getElementById('attachmentFiles');
-        if (fileInput) {
-            fileInput.value = '';
-        }
-    };
-    window.removeDetailAttachment = function(index) {
-    // Xóa file ở dòng thứ index trong mảng chi tiết
-    if (typeof detailsList !== 'undefined' && detailsList[index]) {
-        detailsList[index].attachment = { name: '', data: '' };
-        renderDetailsTable(); // Vẽ lại bảng chi tiết
+    function closeFilePreviewModal() {
+      const modal = document.getElementById('filePreviewModal');
+      const iframe = document.getElementById('previewIframe');
+      const img = document.getElementById('previewImage');
+      if (modal) modal.style.display = 'none';
+      if (iframe) iframe.src = '';
+      if (img) img.src = '';
     }
-};
-function exportRequestsToExcel() {
-    if (typeof XLSX === 'undefined') {
+
+    // --- XUẤT EXCEL ---
+    function exportRequestsToExcel() {
+      if (typeof XLSX === 'undefined') {
         alert('Không tải được thư viện xuất Excel. Vui lòng kiểm tra kết nối mạng!');
         return;
-    }
+      }
 
-    const rows = [];
-    const sourceData =
+      const rows = [];
+      const sourceData =
         (Array.isArray(window.allRequests) && window.allRequests.length > 0 && window.allRequests) ||
         (Array.isArray(window.currentRequests) && window.currentRequests.length > 0 && window.currentRequests) ||
-        (Array.isArray(window.requests) && window.requests.length > 0 && window.requests) ||
         null;
 
-    const inferDepartmentFromCode = (code = '') => {
+      const inferDepartmentFromCode = (code = '') => {
         const prefix = String(code).split('-')[0].trim().toUpperCase();
-        if (prefix === 'KT') return 'Phòng Kế Toán';
+        if (prefix === 'TCKT' || prefix === 'KT') return 'Phòng Kế Toán';
         if (prefix === 'HC') return 'Phòng Hành Chính - Nhân Sự';
         if (prefix === 'KD') return 'Phòng Kinh Doanh';
+        if (prefix === 'BGD') return 'Ban Giám Đốc';
         if (prefix === 'KTH' || prefix === 'KTN' || prefix === 'SX') return 'Phòng Kỹ Thuật';
         return '';
-    };
+      };
 
-    const parseAmount = (val) => {
+      const parseAmount = (val) => {
         if (typeof val === 'number' && !Number.isNaN(val)) return val;
         const cleaned = String(val ?? '0').replace(/[^\d-]/g, '');
         return Number(cleaned || 0);
-    };
+      };
 
-    if (sourceData) {
+      if (sourceData) {
         sourceData.forEach((item) => {
-            const code = String(item.requestCode || item.code || item.soPhieu || '').trim();
-            const rawDate = item.submittedAt || item.createdAt || item.date || item.ngayThang || '';
-            const formattedDate = rawDate ? String(rawDate).slice(0, 10) : '';
+          const code = String(item.requestCode || item.code || item.soPhieu || '').trim();
+          const rawDate = item.submittedAt || item.createdAt || item.date || item.ngayThang || '';
+          const formattedDate = rawDate ? String(rawDate).slice(0, 10) : '';
 
-            rows.push({
-                'Số phiếu': code,
-                'ngày tháng': formattedDate,
-                'người đề nghị': String(
-                    item.createdBy ||
-                    item.createdByName ||
-                    item.requesterName ||
-                    item.creatorName ||
-                    item.creator ||
-                    item.userName ||
-                    item.nguoiDeNghi ||
-                    ''
-                ).trim(),
-                'bộ phận': String(
-                    item.department ||
-                    item.departmentName ||
-                    item.boPhan ||
-                    inferDepartmentFromCode(code)
-                ).trim(),
-                'nội dung': String(
-                    item.title ||
-                    item.content ||
-                    item.description ||
-                    item.noiDung ||
-                    ''
-                ).trim(),
-                'số tiền': parseAmount(item.totalAmount ?? item.amount ?? item.soTien ?? 0),
-                'loại chi phí': String(
-                    item.costType ||
-                    item.cost_type ||
-                    item.expenseType ||
-                    item.expense_type ||
-                    item.category ||
-                    item.type ||
-                    item.loaiChiPhi ||
-                    ''
-                ).trim()
-            });
+          rows.push({
+            'Số phiếu': code,
+            'Ngày tháng': formattedDate,
+            'Người đề nghị': String(
+              item.createdBy || item.createdByName || item.requesterName || item.creatorName || item.creator || item.userName || item.nguoiDeNghi || ''
+            ).trim(),
+            'Bộ phận': String(
+              item.department || item.departmentName || item.boPhan || inferDepartmentFromCode(code)
+            ).trim(),
+            'Nội dung': String(
+              item.title || item.content || item.description || item.noiDung || ''
+            ).trim(),
+            'Số tiền': parseAmount(item.totalAmount ?? item.amount ?? item.soTien ?? 0),
+            'Loại chi phí': String(
+              item.costType || item.cost_type || item.expenseType || item.expense_type || item.category || item.type || item.loaiChiPhi || ''
+            ).trim()
+          });
         });
-    } else {
-        const trList = document.querySelectorAll('table tbody tr');
-        trList.forEach((tr) => {
-            const cells = tr.querySelectorAll('td');
-            if (cells.length >= 5) {
-                const code = (cells[0]?.innerText || '').replace(/\s+/g, ' ').trim();
-                rows.push({
-                    'Số phiếu': code,
-                    'ngày tháng': (cells[1]?.innerText || '').replace(/\s+/g, ' ').trim(),
-                    'người đề nghị': (cells[2]?.innerText || '').replace(/\s+/g, ' ').trim(),
-                    'bộ phận': inferDepartmentFromCode(code),
-                    'nội dung': (cells[3]?.innerText || '').replace(/\s+/g, ' ').trim(),
-                    'số tiền': parseAmount(cells[4]?.innerText || '0'),
-                    'loại chi phí': ''
-                });
-            }
-        });
-    }
+      }
 
-    if (rows.length === 0) {
+      if (rows.length === 0) {
         alert('Không có dữ liệu phiếu để xuất Excel!');
         return;
-    }
+      }
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    worksheet['!cols'] = [
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet['!cols'] = [
         { wch: 16 },
         { wch: 14 },
         { wch: 24 },
@@ -2297,36 +1724,358 @@ function exportRequestsToExcel() {
         { wch: 42 },
         { wch: 18 },
         { wch: 30 }
-    ];
+      ];
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'DanhSachPhieu');
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'DanhSachPhieu');
 
-    const today = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(workbook, `Danh_sach_phieu_${today}.xlsx`);
-}
-    </script>
-<!-- Modal Xem File Chuyên Nghiệp -->
-<div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
+      const today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `Danh_sach_phieu_${today}.xlsx`);
+    }
+
+    // --- KHỞI TẠO SỰ KIỆN ---
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDepartments();
+
+      if (currentUser) {
+        const loginSection = document.getElementById('loginSection');
+        const mainSection = document.getElementById('mainSection');
+        if (loginSection) loginSection.classList.add('hidden');
+        if (mainSection) mainSection.classList.remove('hidden');
+
+        document.getElementById('userFullName').innerText = currentUser.fullName || '';
+        document.getElementById('userRoleBadge').innerText = `Chức vụ: ${(currentUser.role || '').toUpperCase()}`;
+
+        if (currentUser.role === 'admin') {
+          document.getElementById('adminNavTab').classList.remove('hidden');
+          document.body.classList.add('role-admin');
+        } else {
+          document.getElementById('adminNavTab').classList.add('hidden');
+          document.body.classList.remove('role-admin');
+        }
+
+        if (currentUser.role === 'nhanvien' || currentUser.role === 'admin') {
+          const createContainer = document.getElementById('createFormContainer');
+          if (createContainer) createContainer.classList.remove('hidden');
+          resetFormToCreateMode();
+        }
+
+        loadRequests();
+      }
+
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        loginForm.onsubmit = async function (e) {
+          e.preventDefault();
+          const username = document.getElementById('username').value.trim();
+          const password = document.getElementById('password').value.trim();
+          const loginMessage = document.getElementById('loginMessage');
+
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+              currentUser = data.user;
+              localStorage.setItem('user', JSON.stringify(currentUser));
+              location.reload();
+            } else if (loginMessage) {
+              loginMessage.className = 'error';
+              loginMessage.innerText = '❌ ' + (data.error || 'Đăng nhập thất bại!');
+              loginMessage.style.display = 'block';
+            }
+          } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến server!');
+          }
+        };
+      }
+
+      const createUserForm = document.getElementById('createUserForm');
+      if (createUserForm) {
+        createUserForm.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const userData = {
+            username: document.getElementById('newUsername')?.value.trim() || '',
+            password: document.getElementById('newPassword')?.value.trim() || '',
+            fullName: document.getElementById('newFullName')?.value.trim() || '',
+            department: document.getElementById('newDepartment')?.value || '',
+            role: document.getElementById('newRole')?.value || 'nhanvien',
+            managerId: document.getElementById('newManager')?.value.trim() || '',
+            zaloPhone: document.getElementById('newZaloPhone')?.value.trim() || ''
+          };
+
+          if (!userData.username || !userData.password || !userData.fullName) {
+            alert('Vui lòng điền đầy đủ Tên đăng nhập, Mật khẩu và Họ tên!');
+            return;
+          }
+
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/users`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(userData)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              alert('Tạo tài khoản thành công!');
+              createUserForm.reset();
+              loadUsersList();
+            } else {
+              alert('Lỗi: ' + (result.error || 'Không thể tạo tài khoản'));
+            }
+          } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến máy chủ server!');
+          }
+        });
+      }
+
+      const editUserForm = document.getElementById('editUserForm');
+      if (editUserForm) {
+        editUserForm.addEventListener('submit', async function (event) {
+          event.preventDefault();
+          const userId = document.getElementById('editUserId').value;
+          const msgDiv = document.getElementById('editUserMsg');
+
+          if (!userId) {
+            alert('Không tìm thấy ID người dùng!');
+            return;
+          }
+
+          const payload = {
+            username: document.getElementById('editUsername').value.trim(),
+            fullName: document.getElementById('editFullName').value.trim(),
+            department: document.getElementById('editDepartment').value,
+            role: document.getElementById('editRole').value,
+            managerId: document.getElementById('editManager').value.trim(),
+            zaloPhone: document.getElementById('editZaloPhone')?.value.trim() || ''
+          };
+
+          const newPassword = document.getElementById('editPassword').value.trim();
+          if (newPassword) payload.password = newPassword;
+
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              if (msgDiv) {
+                msgDiv.style.display = 'block';
+                msgDiv.className = 'success';
+                msgDiv.innerHTML = '✅ Cập nhật thành công!';
+              }
+              setTimeout(() => {
+                if (msgDiv) msgDiv.style.display = 'none';
+                closeEditUserModal();
+                loadUsersList();
+              }, 800);
+            } else if (msgDiv) {
+              msgDiv.style.display = 'block';
+              msgDiv.className = 'error';
+              msgDiv.innerHTML = '❌ Lỗi: ' + (result.error || 'Không thể cập nhật');
+            }
+          } catch (err) {
+            console.error('Lỗi kết nối khi cập nhật:', err);
+            alert('Không thể kết nối đến máy chủ server!');
+          }
+        });
+      }
+
+      const changePasswordForm = document.getElementById('changePasswordForm');
+      if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const oldPassword = document.getElementById('cpOldPassword')?.value.trim() || '';
+          const newPassword = document.getElementById('cpNewPassword')?.value.trim() || '';
+          const confirmPassword = document.getElementById('cpConfirmPassword')?.value.trim() || '';
+          const pwdMsg = document.getElementById('pwdMsg');
+
+          if (!oldPassword || !newPassword) {
+            alert('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
+            return;
+          }
+
+          if (confirmPassword && newPassword !== confirmPassword) {
+            if (pwdMsg) {
+              pwdMsg.style.display = 'block';
+              pwdMsg.className = 'error';
+              pwdMsg.innerHTML = 'Mật khẩu mới không khớp!';
+            }
+            return;
+          }
+
+          const currentUsername = currentUser?.username || 'admin';
+
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(currentUsername)}/change-password`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ oldPassword, newPassword })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.');
+              this.reset();
+              closeChangePasswordModal();
+              logout();
+            } else if (pwdMsg) {
+              pwdMsg.style.display = 'block';
+              pwdMsg.className = 'error';
+              pwdMsg.innerHTML = 'Lỗi: ' + (result.error || 'Không thể đổi mật khẩu');
+            }
+          } catch (err) {
+            console.error('Lỗi kết nối:', err);
+            alert('Không thể kết nối đến máy chủ server!');
+          }
+        });
+      }
+
+      const deptSelect = document.getElementById('department');
+      if (deptSelect) {
+        deptSelect.addEventListener('change', function () {
+          const editingId = document.getElementById('editingRequestId')?.value;
+          if (editingId) return;
+          const selectedVal = deptSelect.value;
+          if (selectedVal) {
+            window.applyGeneratedRequestCode(selectedVal);
+          } else {
+            const codeInput = document.getElementById('requestCode');
+            if (codeInput) codeInput.value = '';
+          }
+        });
+      }
+
+      const attachFiles = document.getElementById('attachmentFiles');
+      if (attachFiles) {
+        attachFiles.addEventListener('change', function (e) {
+          const files = Array.from(e.target.files || []);
+          if (!files.length) return;
+
+          const promises = files.map(file => new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function (uploadEvent) {
+              resolve({ name: file.name, data: uploadEvent.target.result });
+            };
+            reader.readAsDataURL(file);
+          }));
+
+          Promise.all(promises).then(newlyLoaded => {
+            selectedFilesData = [...selectedFilesData, ...newlyLoaded];
+            renderSelectedGeneralFilesUI();
+            attachFiles.value = '';
+          });
+        });
+      }
+
+      const paymentForm = document.getElementById('paymentForm');
+      if (paymentForm) {
+        paymentForm.onsubmit = async function (e) {
+          e.preventDefault();
+          const editingId = document.getElementById('editingRequestId').value;
+          const amountVal = parseFloat(document.getElementById('lblTotalAmount').innerText.replace(/\./g, '')) || 0;
+
+          const details = [];
+          document.querySelectorAll('#detailRows tr').forEach(tr => {
+            let rowAttachments = [];
+            try {
+              if (tr.dataset.filesJson) rowAttachments = JSON.parse(tr.dataset.filesJson);
+            } catch (err) {
+              rowAttachments = [];
+            }
+
+            details.push({
+              docNo: tr.querySelector('.row-docNo').value,
+              docDate: tr.querySelector('.row-docDate').value,
+              desc: tr.querySelector('.row-desc').value,
+              amount: parseFloat(tr.querySelector('.row-amount').value) || 0,
+              note: '',
+              attachments: rowAttachments
+            });
+          });
+
+          const allAttachments = [...currentEditingAttachments, ...selectedFilesData];
+          const payload = {
+            requestCode: document.getElementById('requestCode').value,
+            title: document.getElementById('title').value,
+            amount: amountVal,
+            costType: document.getElementById('costType').value,
+            department: document.getElementById('department').value,
+            supplierName: document.getElementById('supplierName').value,
+            bankAccount: document.getElementById('bankAccount').value,
+            details,
+            attachments: allAttachments,
+            createdBy: currentUser.fullName
+          };
+
+          try {
+            let url = `${API_BASE_URL}/api/requests`;
+            let method = 'POST';
+            if (editingId) {
+              url = `${API_BASE_URL}/api/requests/${editingId}`;
+              method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            const messageDiv = document.getElementById('message');
+
+            if (res.ok) {
+              if (messageDiv) {
+                messageDiv.className = 'success';
+                messageDiv.innerText = '✅ ' + data.message;
+                messageDiv.style.display = 'block';
+              }
+              resetFormToCreateMode();
+              loadRequests();
+              setTimeout(() => { if (messageDiv) messageDiv.style.display = 'none'; }, 3000);
+            } else if (messageDiv) {
+              messageDiv.className = 'error';
+              messageDiv.innerText = '❌ ' + (data.error || 'Lưu phiếu thất bại!');
+              messageDiv.style.display = 'block';
+            }
+          } catch (err) {
+            console.error('Lỗi gửi phiếu:', err);
+          }
+        };
+      }
+    });
+  </script>
+
+  <!-- Modal Xem File Chuyên Nghiệp -->
+  <div id="filePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; font-family: Arial, sans-serif;">
     <div style="background: #1e1e1e; width: 90%; height: 90%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-        <!-- Thanh tiêu đề phía trên -->
-        <div style="padding: 12px 20px; background: #2d2d2d; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="previewModalTitle" style="font-weight: bold; font-size: 14px; color: #fff;">📄 Xem tài liệu đính kèm</span>
-                <!-- Khu vực hiển thị các tab file nếu có nhiều file -->
-                <div id="modalFilesTabs" style="display: flex; gap: 8px;"></div>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <a id="modalDownloadBtn" href="#" download="" style="background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;">📥 Tải về máy</a>
-                <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">✕ Đóng</button>
-            </div>
+      <div style="padding: 12px 20px; background: #2d2d2d; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <span id="previewModalTitle" style="font-weight: bold; font-size: 14px; color: #fff;">📄 Xem tài liệu đính kèm</span>
+          <div id="modalFilesTabs" style="display: flex; gap: 8px;"></div>
         </div>
-        <!-- Khung hiển thị nội dung chính -->
-        <div style="flex: 1; background: #262626; display: flex; justify-content: center; align-items: center; overflow: auto; position: relative; padding: 20px;">
-            <iframe id="previewIframe" style="width: 100%; height: 100%; border: none; background: white; display: none; border-radius: 4px;"></iframe>
-            <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; display: none;" />
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a id="modalDownloadBtn" href="#" download="" style="background: #0d6efd; color: white; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold;">📥 Tải về máy</a>
+          <button type="button" onclick="closeFilePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">✕ Đóng</button>
         </div>
+      </div>
+      <div style="flex: 1; background: #262626; display: flex; justify-content: center; align-items: center; overflow: auto; position: relative; padding: 20px;">
+        <iframe id="previewIframe" style="width: 100%; height: 100%; border: none; background: white; display: none; border-radius: 4px;"></iframe>
+        <img id="previewImage" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; display: none;" />
+      </div>
     </div>
-</div>
+  </div>
 </body>
 </html>
