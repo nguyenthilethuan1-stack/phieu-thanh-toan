@@ -458,7 +458,9 @@
         }
     }
 
-    // --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
+    window.API_BASE_URL = "https://phieu-thanh-toan.onrender.com";
+
+// --- HÀM TỰ ĐỘNG SINH SỐ PHIẾU ---
 window.generateRequestCode = async function(departmentName) {
   let prefix = "PT";
   let deptLower = (departmentName || "").toLowerCase();
@@ -470,15 +472,11 @@ window.generateRequestCode = async function(departmentName) {
   else if (deptLower.includes("ban giám đốc") || deptLower.includes("bgđ")) prefix = "BGD";
 
   const today = new Date();
-  const yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const yyyyMM = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
 
   try {
-    // Ưu tiên window.API_BASE_URL nếu có cấu hình riêng cho backend Render
-    const rawBase = window.API_BASE_URL || window.BACKEND_URL || "";
-    const baseUrl = String(rawBase).replace(/\/+$/, "");
-    const url = `${baseUrl}/api/next-request-code?department=${encodeURIComponent(departmentName || "")}`;
-
-    const response = await fetch(url);
+    const baseUrl = String(window.API_BASE_URL || "").replace(/\/+$/, "");
+    const response = await fetch(`${baseUrl}/api/next-request-code?department=${encodeURIComponent(departmentName || "")}`);
     if (response.ok) {
       const data = await response.json();
       if (data && typeof data.requestCode === "string" && data.requestCode.trim()) {
@@ -509,7 +507,6 @@ window.applyGeneratedRequestCode = async function(departmentName) {
   const deptVal = departmentName ?? (document.getElementById("department")?.value || "");
   const code = await window.generateRequestCode(deptVal);
 
-  // Chỉ gán nếu đây là lần gọi mới nhất (tránh chọn phòng 1 xong đổi ngay sang phòng 2 bị ghi đè ngược)
   if (currentSeq === __codeGenSeq && typeof code === "string") {
     inputEl.value = code;
   }
