@@ -1461,13 +1461,13 @@ window.printRequest = function (id) {
     timeStr: t5Time
   });
 
-  const s6Sign = renderSignHtml({
-    approved: approvedLevel >= 5 && rejectedStep !== 'gd',
-    rejected: rejectedStep === 'gd',
-    labelApproved: 'Đã duyệt',
-    labelPending: 'Chờ duyệt',
-    timeStr: t6Time
-  });
+  const t6Time = formatDateTimeVN(
+  req.gdApprovedAt ||
+    req.gdAt ||
+    req.approvedAtGD ||
+    req.completedAt ||
+    findHistoryTime(['giám đốc', 'giam_doc'])
+);
 
   let footerSignaturesHTML = `
     <div>
@@ -1501,14 +1501,13 @@ window.printRequest = function (id) {
       </div>
     `;
   }
-
   footerSignaturesHTML += `
-    <div>
-      <div class="signature-title">Giám Đốc</div>
-      <div style="font-size: 10px;">(Ký, đóng dấu)</div>
-      <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
-    </div>
-  `;
+  <div>
+    <div class="signature-title">Giám Đốc</div>
+    <div style="font-size: 10px;">(Ký, đóng dấu)</div>
+    <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${s6Sign}</div>
+  </div>
+`;
 
   const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
     <style>
