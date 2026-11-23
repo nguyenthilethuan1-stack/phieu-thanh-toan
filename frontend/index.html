@@ -1256,173 +1256,310 @@
     };
 
     // --- HÀM IN PHIẾU ---
-    window.printRequest = function (id) {
-      const req = currentRequests.find(r => (r._id && r._id.toString() === String(id)) || (r.id && r.id.toString() === String(id)));
-      if (!req) {
-        alert('Không tìm thấy thông tin phiếu để in!');
-        return;
-      }
+window.printRequest = function (id) {
+  const req = currentRequests.find(
+    (r) =>
+      (r._id && r._id.toString() === String(id)) ||
+      (r.id && r.id.toString() === String(id))
+  );
+  if (!req) {
+    alert('Không tìm thấy thông tin phiếu để in!');
+    return;
+  }
 
-      let detailsRowsHTML = '';
-      const listDetails = req.details || req.items || req.lines || [];
-      if (Array.isArray(listDetails) && listDetails.length > 0) {
-        listDetails.forEach((item, idx) => {
-          const ngayCT = item.docDate ? String(item.docDate).split('T')[0] : '';
-          detailsRowsHTML += `<tr>
-            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.docNo || (idx + 1)}</td>
-            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${ngayCT}</td>
-            <td style="border: 1px solid #000; padding: 6px;">${item.desc || ''}</td>
-            <td style="border: 1px solid #000; padding: 6px; text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
-            <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.note || ''}</td>
-          </tr>`;
-        });
-      }
+  let detailsRowsHTML = '';
+  const listDetails = req.details || req.items || req.lines || [];
+  if (Array.isArray(listDetails) && listDetails.length > 0) {
+    listDetails.forEach((item, idx) => {
+      const ngayCT = item.docDate ? String(item.docDate).split('T')[0] : '';
+      detailsRowsHTML += `<tr>
+        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.docNo || (idx + 1)}</td>
+        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${ngayCT}</td>
+        <td style="border: 1px solid #000; padding: 6px;">${item.desc || ''}</td>
+        <td style="border: 1px solid #000; padding: 6px; text-align: right;">${Number(item.amount || 0).toLocaleString('vi-VN')}</td>
+        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${item.note || ''}</td>
+      </tr>`;
+    });
+  }
 
-      const submittedDate = req.submittedAt ? String(req.submittedAt).split('T')[0] : (req.createdAt ? String(req.createdAt).split('T')[0] : '');
-      const createdBy = req.createdBy || 'Nhân viên';
-      const department = req.department || '';
-      const title = req.title || '';
-      const supplierName = req.supplierName || '';
-      const bankAccount = req.bankAccount || '';
-      const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
-      const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
-      const maPhieuHienThi = req.requestCode || req.code || req.soPhieu || req.requestNo || req.maPhieu || '';
+  const submittedRaw = req.submittedAt || req.createdAt || '';
+  const submittedDate = submittedRaw ? String(submittedRaw).split('T')[0] : '';
+  const createdBy = req.createdBy || 'Nhân viên';
+  const department = req.department || '';
+  const title = req.title || '';
+  const supplierName = req.supplierName || '';
+  const bankAccount = req.bankAccount || '';
+  const totalAmount = Number(req.amount || 0).toLocaleString('vi-VN');
+  const amountInWords = typeof numberToWords === 'function' ? numberToWords(req.amount) : 'Không đồng.';
+  const maPhieuHienThi = req.requestCode || req.code || req.soPhieu || req.requestNo || req.maPhieu || '';
 
-      const rawStatus = req.status || '';
-      const isCompleted = rawStatus.includes('hoàn tất') || rawStatus.includes('Đã thanh toán');
-      const now = new Date();
-      const timeString = now.toTimeString().substring(0, 5);
-      const defaultTimeStr = submittedDate ? `${submittedDate} ${timeString}` : '';
-      const isKyThuat = String(department).toLowerCase().includes('kỹ thuật') || String(department).toLowerCase().includes('ky thuat');
+  const rawStatus = String(req.status || '');
+  const statusLower = rawStatus.toLowerCase();
+  const isRejected = statusLower.includes('từ chối');
+  const isCompleted =
+    !isRejected &&
+    (statusLower.includes('hoàn tất') ||
+      statusLower.includes('đã thanh toán') ||
+      rawStatus.includes('5.'));
+  const isKyThuat =
+    String(department).toLowerCase().includes('kỹ thuật') ||
+    String(department).toLowerCase().includes('ky thuat');
 
-      const usersList = (typeof allUsersCache !== 'undefined' && Array.isArray(allUsersCache)) ? allUsersCache : [];
+  const formatDateTimeVN = (val) => {
+    if (!val) return '';
+    const d = new Date(val);
+    if (Number.isNaN(d.getTime())) return String(val);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  };
 
-      let foundTBP = usersList.find(u => {
-        const roleStr = String(u.role || '').toLowerCase();
-        const uDept = String(u.department || '').toLowerCase();
-        const reqDept = String(department).toLowerCase();
-        const isTbp = roleStr === 'tbp' || roleStr === 'truong_bo_phan';
-        const deptMatch = uDept && reqDept && (uDept.includes(reqDept) || reqDept.includes(uDept));
-        return isTbp && deptMatch;
-      });
+  // Tìm mốc thời gian từ mảng lịch sử duyệt nếu backend có lưu
+  const historyList = Array.isArray(req.approvalHistory)
+    ? req.approvalHistory
+    : Array.isArray(req.history)
+      ? req.history
+      : Array.isArray(req.logs)
+        ? req.logs
+        : [];
 
-      if (!foundTBP) {
-        foundTBP = usersList.find(u => {
-          const roleStr = String(u.role || '').toLowerCase();
-          return roleStr === 'tbp' || roleStr === 'truong_bo_phan';
-        });
-      }
+  const findHistoryTime = (keywords) => {
+    const matched = historyList.find((h) => {
+      const text = `${h.step || ''} ${h.role || ''} ${h.roleName || ''} ${h.action || ''} ${h.status || ''}`.toLowerCase();
+      return keywords.some((k) => text.includes(k));
+    });
+    return matched ? (matched.time || matched.timestamp || matched.approvedAt || matched.createdAt || matched.date || '') : '';
+  };
 
-      const foundKT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
-      const foundKTT = usersList.find(u => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
-      const foundPGD = usersList.find(u => String(u.role || '').toLowerCase().includes('pgd_sx') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
-      const foundGD = usersList.find(u => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giamdoc'));
+  const t1Time = formatDateTimeVN(submittedRaw);
+  const t2Time = formatDateTimeVN(
+    req.tbpApprovedAt || req.tbpAt || req.approvedAtTBP || findHistoryTime(['tbp', 'trưởng bộ phận', 'truong_bo_phan'])
+  );
+  const t3Time = formatDateTimeVN(
+    req.ktApprovedAt || req.ktThanhToanAt || req.paidDate || findHistoryTime(['kt thanh toán', 'kt_thanhtoan', 'thanhtoan'])
+  );
+  const t4Time = formatDateTimeVN(
+    req.kttApprovedAt || req.kttAt || req.approvedAtKTT || findHistoryTime(['kế toán trưởng', 'ktt', 'kt_truong'])
+  );
+  const t5Time = formatDateTimeVN(
+    req.pgdApprovedAt || req.pgdAt || req.approvedAtPGD || findHistoryTime(['pgd', 'phó giám đốc', 'pgd_sx'])
+  );
+  const t6Time = formatDateTimeVN(
+    req.gdApprovedAt || req.gdAt || req.approvedAtGD || req.completedAt || findHistoryTime(['giám đốc', 'giam_doc'])
+  );
 
-      const nameNV = createdBy;
-      const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
-      const nameKT = foundKT ? foundKT.fullName : 'Nguyễn Thị Lệ Thuần';
-      const nameKTT = foundKTT ? foundKTT.fullName : 'Phạm Văn Tuấn';
-      const namePGD = foundPGD ? foundPGD.fullName : 'Đỗ Công Thịnh';
-      const nameGD = foundGD ? foundGD.fullName : 'Vũ Quang Sáng';
+  // Xác định cấp độ bước đã duyệt (khớp với logic hiển thị danh sách ngoài bảng)
+  let approvedLevel = 0;
+  if (isCompleted) {
+    approvedLevel = 5;
+  } else if (rawStatus.includes('4. Chờ Giám đốc')) {
+    approvedLevel = isKyThuat ? 4 : 3;
+  } else if (rawStatus.includes('4. Chờ Phó GĐ')) {
+    approvedLevel = 3;
+  } else if (rawStatus.includes('3. Chờ Kế toán trưởng')) {
+    approvedLevel = 2;
+  } else if (rawStatus.includes('2. Chờ KT Thanh toán')) {
+    approvedLevel = 1;
+  } else if (isRejected) {
+    if (statusLower.includes('giám đốc') || statusLower.includes('giam_doc')) approvedLevel = isKyThuat ? 4 : 3;
+    else if (statusLower.includes('phó giám đốc') || statusLower.includes('pgd')) approvedLevel = 3;
+    else if (statusLower.includes('kế toán trưởng') || statusLower.includes('ktt')) approvedLevel = 2;
+    else if (statusLower.includes('kế toán thanh toán') || statusLower.includes('kt thanh toán')) approvedLevel = 1;
+    else approvedLevel = 0;
+  }
 
-      const s1Sign = `✅ Đã lập<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>`;
-      const s2Sign = (isCompleted || rawStatus.includes('Trưởng') || rawStatus.includes('KT') || rawStatus.includes('Giám đốc') || rawStatus.includes('2.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-      const s3Sign = (isCompleted || req.paidStatus === 'Đã thanh toán') ? `✅ Đã kiểm tra<br><span style="font-size:10px; color:#555;">${req.paidDate || defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ kiểm tra</span>`;
-      const s4Sign = (isCompleted || rawStatus.includes('Kế toán trưởng') || rawStatus.includes('Giám đốc') || rawStatus.includes('4.')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-      const s5Sign = (isCompleted || rawStatus.includes('PGD') || rawStatus.includes('Phó')) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
-      const s6Sign = (isCompleted) ? `✅ Đã duyệt<br><span style="font-size:10px; color:#555;">${defaultTimeStr}</span>` : `<span style="color:#888; font-style:italic;">Chờ duyệt</span>`;
+  // Xác định bước bị từ chối (nếu có)
+  let rejectedStep = '';
+  if (isRejected) {
+    if (statusLower.includes('giám đốc') || statusLower.includes('giam_doc')) rejectedStep = 'gd';
+    else if (statusLower.includes('phó giám đốc') || statusLower.includes('pgd')) rejectedStep = 'pgd';
+    else if (statusLower.includes('kế toán trưởng') || statusLower.includes('ktt')) rejectedStep = 'ktt';
+    else if (statusLower.includes('kế toán thanh toán') || statusLower.includes('kt thanh toán')) rejectedStep = 'kt';
+    else rejectedStep = 'tbp';
+  }
 
-      let footerSignaturesHTML = `
-        <div>
-          <div class="signature-title">Người lập phiếu</div>
-          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-          <div class="signature-status"><b style="font-size: 11px;">${nameNV}</b><br>${s1Sign}</div>
-        </div>
-        <div>
-          <div class="signature-title">Trưởng Bộ Phận</div>
-          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-          <div class="signature-status"><b style="font-size: 11px;">${nameTBP}</b><br>${s2Sign}</div>
-        </div>
-        <div>
-          <div class="signature-title">Kế Toán Thanh Toán</div>
-          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-          <div class="signature-status"><b style="font-size: 11px;">${nameKT}</b><br>${s3Sign}</div>
-        </div>
-        <div>
-          <div class="signature-title">Kế Toán Trưởng</div>
-          <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-          <div class="signature-status"><b style="font-size: 11px;">${nameKTT}</b><br>${s4Sign}</div>
-        </div>
-      `;
+  const usersList = typeof allUsersCache !== 'undefined' && Array.isArray(allUsersCache) ? allUsersCache : [];
 
-      if (isKyThuat) {
-        footerSignaturesHTML += `
-          <div>
-            <div class="signature-title">Phó Giám Đốc</div>
-            <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
-            <div class="signature-status"><b style="font-size: 11px;">${namePGD}</b><br>${s5Sign}</div>
-          </div>
-        `;
-      }
+  let foundTBP = usersList.find((u) => {
+    const roleStr = String(u.role || '').toLowerCase();
+    const uDept = String(u.department || '').toLowerCase();
+    const reqDept = String(department).toLowerCase();
+    const isTbp = roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+    const deptMatch = uDept && reqDept && (uDept.includes(reqDept) || reqDept.includes(uDept));
+    return isTbp && deptMatch;
+  });
 
-      footerSignaturesHTML += `
-        <div>
-          <div class="signature-title">Giám Đốc</div>
-          <div style="font-size: 10px;">(Ký, đóng dấu)</div>
-          <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
-        </div>
-      `;
+  if (!foundTBP) {
+    foundTBP = usersList.find((u) => {
+      const roleStr = String(u.role || '').toLowerCase();
+      return roleStr === 'tbp' || roleStr === 'truong_bo_phan';
+    });
+  }
 
-      const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
-        <style>
-          body { font-family: "Times New Roman", Times, serif; font-size: 13px; margin: 25px; color: #000; }
-          .company-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
-          .header { text-align: center; margin-bottom: 15px; }
-          .header h2 { margin: 3px 0; font-size: 17px; }
-          .meta-info { margin-bottom: 15px; line-height: 1.5; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
-          th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
-          th { background-color: #f2f2f2; text-align: center; }
-          .amount-section { font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
-          .footer { display: flex; justify-content: space-between; text-align: center; font-size: 11px; margin-top: 25px; page-break-inside: avoid; }
-          .footer div { flex: 1; padding: 0 3px; }
-          .signature-title { font-weight: bold; margin-bottom: 3px; font-size: 11.5px; }
-          .signature-status { margin-top: 25px; font-size: 10.5px; }
-        </style></head><body>
-        <div class="company-header">
-          <span>CÔNG TY CỔ PHẦN ĐẦU TƯ BVN QUẢNG BÌNH</span>
-          <span>Mẫu số: TT-200</span>
-        </div>
-        <div class="header">
-          <h2>PHIẾU ĐỀ NGHỊ THANH TOÁN</h2>
-          <div style="font-size: 12px; margin-top: 4px;">Số phiếu: <b>${maPhieuHienThi}</b> | Ngày đề nghị: ${submittedDate}</div>
-        </div>
-        <div class="meta-info">
-          <div><b>Người đề nghị:</b> ${createdBy}</div>
-          <div><b>Bộ phận:</b> ${department}</div>
-          <div><b>Nội dung đề xuất:</b> ${title}</div>
-          <div><b>Nhà cung cấp / Thụ hưởng:</b> ${supplierName} ${bankAccount ? ' - <b>TK:</b> ' + bankAccount : ''}</div>
-        </div>
-        <table><thead><tr><th>Số CT</th><th>Ngày</th><th>Diễn giải nội dung</th><th>Số tiền (VNĐ)</th><th>Ghi chú</th></tr></thead>
-        <tbody>${detailsRowsHTML}</tbody></table>
-        <div class="amount-section">
-          <b>Tổng cộng tiền thanh toán:</b> <span style="color: #d9534f; font-weight: bold;">${totalAmount} VNĐ</span><br>
-          <b>Bằng chữ:</b> <i>${amountInWords}</i>
-        </div>
+  const foundKT = usersList.find((u) => String(u.role || '').toLowerCase().includes('kt_thanhtoan') || String(u.role || '').toLowerCase().includes('thanhtoan'));
+  const foundKTT = usersList.find((u) => String(u.role || '').toLowerCase().includes('kt_truong') || String(u.role || '').toLowerCase().includes('ktt'));
+  const foundPGD = usersList.find((u) => String(u.role || '').toLowerCase().includes('pgd_sx') || String(u.role || '').toLowerCase().includes('phó') || String(u.role || '').toLowerCase().includes('pgdsx'));
+  const foundGD = usersList.find((u) => String(u.role || '').toLowerCase().includes('giam_doc') || String(u.role || '').toLowerCase().includes('giamdoc'));
 
-        <div class="footer">
-          ${footerSignaturesHTML}
-        </div>
+  const nameNV = createdBy;
+  const nameTBP = req.tbpApproverName || req.tbpName || (foundTBP ? foundTBP.fullName : (isKyThuat ? 'Nguyễn Đăng Thành' : 'Hoàng Thanh Bình'));
+  const nameKT = foundKT ? foundKT.fullName : 'Nguyễn Thị Lệ Thuần';
+  const nameKTT = foundKTT ? foundKTT.fullName : 'Phạm Văn Tuấn';
+  const namePGD = foundPGD ? foundPGD.fullName : 'Đỗ Công Thịnh';
+  const nameGD = foundGD ? foundGD.fullName : 'Vũ Quang Sáng';
 
-        <script>window.onload = function() { window.print(); window.close(); };<\/script>
-      </body></html>`;
+  const renderSignHtml = ({ approved, rejected, labelApproved, labelPending, timeStr }) => {
+    if (rejected) {
+      return `<span style="color:#dc3545; font-weight:bold;">❌ Từ chối</span>${timeStr ? `<br><span style="font-size:10px; color:#555;">${timeStr}</span>` : ''}`;
+    }
+    if (approved) {
+      return `✅ ${labelApproved}${timeStr ? `<br><span style="font-size:10px; color:#555;">${timeStr}</span>` : ''}`;
+    }
+    return `<span style="color:#888; font-style:italic;">${labelPending}</span>`;
+  };
 
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-      }
-    };
+  const s1Sign = renderSignHtml({
+    approved: true,
+    rejected: false,
+    labelApproved: 'Đã lập',
+    labelPending: 'Chờ lập',
+    timeStr: t1Time
+  });
+
+  const s2Sign = renderSignHtml({
+    approved: approvedLevel >= 1 && rejectedStep !== 'tbp',
+    rejected: rejectedStep === 'tbp',
+    labelApproved: 'Đã duyệt',
+    labelPending: 'Chờ duyệt',
+    timeStr: t2Time
+  });
+
+  const s3Sign = renderSignHtml({
+    approved: (approvedLevel >= 2 || req.paidStatus === 'Đã thanh toán') && rejectedStep !== 'kt',
+    rejected: rejectedStep === 'kt',
+    labelApproved: 'Đã kiểm tra',
+    labelPending: 'Chờ kiểm tra',
+    timeStr: t3Time
+  });
+
+  const s4Sign = renderSignHtml({
+    approved: approvedLevel >= 3 && rejectedStep !== 'ktt',
+    rejected: rejectedStep === 'ktt',
+    labelApproved: 'Đã duyệt',
+    labelPending: 'Chờ duyệt',
+    timeStr: t4Time
+  });
+
+  const s5Sign = renderSignHtml({
+    approved: approvedLevel >= 4 && rejectedStep !== 'pgd',
+    rejected: rejectedStep === 'pgd',
+    labelApproved: 'Đã duyệt',
+    labelPending: 'Chờ duyệt',
+    timeStr: t5Time
+  });
+
+  const s6Sign = renderSignHtml({
+    approved: approvedLevel >= 5 && rejectedStep !== 'gd',
+    rejected: rejectedStep === 'gd',
+    labelApproved: 'Đã duyệt',
+    labelPending: 'Chờ duyệt',
+    timeStr: t6Time
+  });
+
+  let footerSignaturesHTML = `
+    <div>
+      <div class="signature-title">Người lập phiếu</div>
+      <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+      <div class="signature-status"><b style="font-size: 11px;">${nameNV}</b><br>${s1Sign}</div>
+    </div>
+    <div>
+      <div class="signature-title">Trưởng Bộ Phận</div>
+      <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+      <div class="signature-status"><b style="font-size: 11px;">${nameTBP}</b><br>${s2Sign}</div>
+    </div>
+    <div>
+      <div class="signature-title">Kế Toán Thanh Toán</div>
+      <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+      <div class="signature-status"><b style="font-size: 11px;">${nameKT}</b><br>${s3Sign}</div>
+    </div>
+    <div>
+      <div class="signature-title">Kế Toán Trưởng</div>
+      <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+      <div class="signature-status"><b style="font-size: 11px;">${nameKTT}</b><br>${s4Sign}</div>
+    </div>
+  `;
+
+  if (isKyThuat) {
+    footerSignaturesHTML += `
+      <div>
+        <div class="signature-title">Phó Giám Đốc</div>
+        <div style="font-size: 10px;">(Ký, ghi rõ họ tên)</div>
+        <div class="signature-status"><b style="font-size: 11px;">${namePGD}</b><br>${s5Sign}</div>
+      </div>
+    `;
+  }
+
+  footerSignaturesHTML += `
+    <div>
+      <div class="signature-title">Giám Đốc</div>
+      <div style="font-size: 10px;">(Ký, đóng dấu)</div>
+      <div class="signature-status"><b style="font-size: 11px;">${nameGD}</b><br>${isKyThuat ? s6Sign : s5Sign}</div>
+    </div>
+  `;
+
+  const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>In Phiếu</title>
+    <style>
+      body { font-family: "Times New Roman", Times, serif; font-size: 13px; margin: 25px; color: #000; }
+      .company-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+      .header { text-align: center; margin-bottom: 15px; }
+      .header h2 { margin: 3px 0; font-size: 17px; }
+      .meta-info { margin-bottom: 15px; line-height: 1.5; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
+      th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
+      th { background-color: #f2f2f2; text-align: center; }
+      .amount-section { font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+      .footer { display: flex; justify-content: space-between; text-align: center; font-size: 11px; margin-top: 25px; page-break-inside: avoid; }
+      .footer div { flex: 1; padding: 0 3px; }
+      .signature-title { font-weight: bold; margin-bottom: 3px; font-size: 11.5px; }
+      .signature-status { margin-top: 25px; font-size: 10.5px; }
+    </style></head><body>
+    <div class="company-header">
+      <span>CÔNG TY CỔ PHẦN ĐẦU TƯ BVN QUẢNG BÌNH</span>
+      <span>Mẫu số: TT-200</span>
+    </div>
+    <div class="header">
+      <h2>PHIẾU ĐỀ NGHỊ THANH TOÁN</h2>
+      <div style="font-size: 12px; margin-top: 4px;">Số phiếu: <b>${maPhieuHienThi}</b> | Ngày đề nghị: ${submittedDate}</div>
+    </div>
+    <div class="meta-info">
+      <div><b>Người đề nghị:</b> ${createdBy}</div>
+      <div><b>Bộ phận:</b> ${department}</div>
+      <div><b>Nội dung đề xuất:</b> ${title}</div>
+      <div><b>Nhà cung cấp / Thụ hưởng:</b> ${supplierName} ${bankAccount ? ' - <b>TK:</b> ' + bankAccount : ''}</div>
+    </div>
+    <table><thead><tr><th>Số CT</th><th>Ngày</th><th>Diễn giải nội dung</th><th>Số tiền (VNĐ)</th><th>Ghi chú</th></tr></thead>
+    <tbody>${detailsRowsHTML}</tbody></table>
+    <div class="amount-section">
+      <b>Tổng cộng tiền thanh toán:</b> <span style="color: #d9534f; font-weight: bold;">${totalAmount} VNĐ</span><br>
+      <b>Bằng chữ:</b> <i>${amountInWords}</i>
+    </div>
+
+    <div class="footer">
+      ${footerSignaturesHTML}
+    </div>
+
+    <script>window.onload = function() { window.print(); window.close(); };<\/script>
+  </body></html>`;
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  }
+};
 
     // --- QUẢN LÝ NHÂN SỰ (ADMIN) ---
     async function loadUsersList() {

@@ -167,7 +167,12 @@ const paymentRequestSchema = new mongoose.Schema({
   comment: { type: String, default: '' },
   rejectReason: { type: String, default: '' },
   createdBy: { type: String, required: true },
-  submittedAt: { type: Date, default: Date.now }
+  submittedAt: { type: Date, default: Date.now },
+  tbpApprovedAt: { type: Date, default: null },
+  ktApprovedAt: { type: Date, default: null },
+  kttApprovedAt: { type: Date, default: null },
+  pgdApprovedAt: { type: Date, default: null },
+  gdApprovedAt: { type: Date, default: null }
 });
 const PaymentRequest = mongoose.model('PaymentRequest', paymentRequestSchema);
 function normalizeVnPhone(phone = '') {
@@ -433,6 +438,7 @@ app.put('/api/requests/:id/approve', async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
         }
 
+        const now = new Date();
         let currentStatus = reqDoc.status || '';
         let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
         const roleNorm = String(userRole || req.body.role || '').trim().toLowerCase();
@@ -444,26 +450,31 @@ app.put('/api/requests/:id/approve', async (req, res) => {
                     return res.status(400).json({ error: 'Phiếu chưa được Trưởng Bộ phận duyệt, bạn không có quyền duyệt bước này!' });
                 }
                 reqDoc.status = '2. Chờ KT Thanh toán';
+                reqDoc.tbpApprovedAt = now;
             } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
                 if (roleNorm && roleNorm !== 'kt_thanhtoan' && !roleNorm.includes('thanhtoan') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Kế toán thanh toán duyệt!' });
                 }
                 reqDoc.status = '3. Chờ Kế toán trưởng';
+                reqDoc.ktApprovedAt = now;
             } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
                 if (roleNorm && roleNorm !== 'ktt' && roleNorm !== 'kt_truong' && !roleNorm.includes('ke_toan_truong') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Kế toán trưởng duyệt!' });
                 }
                 reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
+                reqDoc.kttApprovedAt = now;
             } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
                 if (roleNorm && roleNorm !== 'pgd_sx' && roleNorm !== 'pgdsx' && !roleNorm.includes('pgd') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Phó GĐ sản xuất duyệt!' });
                 }
                 reqDoc.status = '4. Chờ Giám đốc';
+                reqDoc.pgdApprovedAt = now;
             } else if (currentStatus.includes('4. Chờ Giám đốc')) {
                 if (roleNorm && roleNorm !== 'giam_doc' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
                     return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
                 }
                 reqDoc.status = '5. Đã hoàn tất';
+                reqDoc.gdApprovedAt = now;
             } else {
                 return res.status(400).json({ error: 'Phiếu không ở trạng thái chờ duyệt hợp lệ!' });
             }
