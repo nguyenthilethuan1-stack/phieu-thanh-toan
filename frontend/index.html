@@ -1460,15 +1460,14 @@ window.printRequest = function (id) {
     labelPending: 'Chờ duyệt',
     timeStr: t5Time
   });
-
-  const t6Time = formatDateTimeVN(
-  req.gdApprovedAt ||
-    req.gdAt ||
-    req.approvedAtGD ||
-    req.completedAt ||
-    findHistoryTime(['giám đốc', 'giam_doc'])
-);
-
+  const s6Sign = renderSignHtml({
+    approved: approvedLevel >= 5 && rejectedStep !== 'gd',
+    rejected: rejectedStep === 'gd',
+    labelApproved: 'Đã duyệt',
+    labelPending: 'Chờ duyệt',
+    timeStr: t6Time
+});
+  
   let footerSignaturesHTML = `
     <div>
       <div class="signature-title">Người lập phiếu</div>
