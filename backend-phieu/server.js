@@ -345,17 +345,18 @@ app.get('/api/requests', async (req, res) => {
         }
 
         if (status) {
-            if (status === 'Chờ duyệt') {
-                query.status = { $not: /Đã hoàn tất|Đã từ chối/ };
-            } else if (status === 'Chờ thanh toán') {
-                query.status = /Đã hoàn tất/;
-                query.paidStatus = { $ne: 'Đã thanh toán' };
-            } else if (status === 'Đã thanh toán') {
-                query.paidStatus = 'Đã thanh toán';
-            } else if (status === 'Đã từ chối') {
-                query.status = 'Đã từ chối';
-            }
-        }
+  const s = String(status).trim().toLowerCase();
+  if (s.includes('chờ duyệt')) {
+    query.status = { $not: /hoàn tất|từ chối/i };
+  } else if (s.includes('chờ thanh toán')) {
+    query.status = /hoàn tất/i;
+    query.paidStatus = { $ne: 'Đã thanh toán' };
+  } else if (s.includes('đã thanh toán')) {
+    query.paidStatus = 'Đã thanh toán';
+  } else if (s.includes('từ chối')) {
+    query.status = { $regex: 'từ chối', $options: 'i' };
+  }
+}
 
         const requests = await PaymentRequest.find(query).sort({ submittedAt: -1, createdAt: -1 }).lean();
         res.json(requests);
