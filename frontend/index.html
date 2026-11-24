@@ -409,7 +409,7 @@
 
     window.API_BASE_URL = API_BASE_URL;
 
-    let currentUser = JSON.parse(localStorage.getItem('user')) || null;
+    let currentUser = JSON.parse(sessionStorage.getItem('user')) || null;
     let currentRequests = [];
     let currentEditingAttachments = [];
     let selectedFilesData = [];
@@ -419,7 +419,7 @@
 
     window.logout = function () {
       currentUser = null;
-      localStorage.clear();
+      sessionStorage.clear();
       location.reload();
     };
 
@@ -1916,7 +1916,7 @@ window.printRequest = function (id) {
 
             if (res.ok) {
               currentUser = data.user;
-              localStorage.setItem('user', JSON.stringify(currentUser));
+              sessionStorage.setItem('user', JSON.stringify(currentUser));
               location.reload();
             } else if (loginMessage) {
               loginMessage.className = 'error';
