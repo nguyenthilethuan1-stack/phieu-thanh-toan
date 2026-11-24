@@ -14,57 +14,33 @@ app.use(cors());
 // --- CẤU HÌNH THƯ MỤC UPLOAD VẬT LÝ ---
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-const tempDir = path.join(uploadDir, 'temp');
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
-}
-
-function buildPendingAttachments(files = []) {
-  return files.map((file) => {
-    const utf8Name = Buffer.from(file.originalname, 'latin1').toString('utf8');
-    return {
-      name: utf8Name,
-      mimeType: file.mimetype,
-      tempPath: file.path,
-      syncStatus: 'pending', // 'pending' | 'processing' | 'synced' | 'failed'
-      driveFileId: null,
-      driveViewUrl: null,
-      syncError: null,
-      retryCount: 0,
-      uploadedAt: new Date().toISOString(),
-      syncedAt: null,
-    };
-  });
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-    cb(null, uniqueSuffix + '-' + originalName);
-  },
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        cb(null, uniqueSuffix + '-' + originalName);
+    }
 });
 const upload = multer({ storage: storage });
 
 // Cho phép truy cập công khai thư mục uploads qua đường dẫn tĩnh HTTP
-app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Chuỗi kết nối MongoDB Atlas
 const MONGO_URI = process.env.MONGO_URI;
 
-mongoose
-  .connect(MONGO_URI)
-  .then(async () => {
+mongoose.connect(MONGO_URI)
+  .then(() => {
     console.log('✅ Đã kết nối MongoDB Atlas thành công!');
-    await fixOldRequests();
-    await resetStuckProcessingAttachments();
+    fixOldRequests();
   })
-  .catch((err) => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
+  .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
 
 function departmentPrefix(department) {
   const deptLower = (department || '').toLowerCase();
@@ -76,19 +52,14 @@ function departmentPrefix(department) {
   return 'PT';
 }
 
-function getVietnamYearMonthParts(date = new Date()) {
+function yearMonthInVietnam(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Ho_Chi_Minh',
     year: 'numeric',
-    month: '2-digit',
+    month: '2-digit'
   }).formatToParts(new Date(date));
-  const year = parts.find((part) => part.type === 'year').value;
-  const month = parts.find((part) => part.type === 'month').value;
-  return { year, month };
-}
-
-function yearMonthInVietnam(date = new Date()) {
-  const { year, month } = getVietnamYearMonthParts(date);
+  const year = parts.find(part => part.type === 'year').value;
+  const month = parts.find(part => part.type === 'month').value;
   return `${year}${month}`;
 }
 
@@ -102,7 +73,7 @@ async function allocateNextRequestCode(department, date = new Date()) {
   const pattern = new RegExp(`^${prefix}-${dateCode}-(\\d+)$`);
   const existing = await PaymentRequest.find({ requestCode: pattern }).select('requestCode');
   let max = 0;
-  existing.forEach((item) => {
+  existing.forEach(item => {
     const match = String(item.requestCode).match(pattern);
     if (match) max = Math.max(max, parseInt(match[1], 10) || 0);
   });
@@ -124,8 +95,8 @@ async function fixOldRequests() {
       $or: [
         { requestCode: { $exists: false } },
         { requestCode: null },
-        { requestCode: '' },
-      ],
+        { requestCode: '' }
+      ]
     }).sort({ submittedAt: 1, createdAt: 1, _id: 1 });
 
     for (const req of requests) {
@@ -135,18 +106,6 @@ async function fixOldRequests() {
     }
   } catch (e) {
     console.log('Fix old requests error:', e);
-  }
-}
-
-async function resetStuckProcessingAttachments() {
-  try {
-    await PaymentRequest.updateMany(
-      { 'driveAttachments.syncStatus': 'processing' },
-      { $set: { 'driveAttachments.$[elem].syncStatus': 'pending' } },
-      { arrayFilters: [{ 'elem.syncStatus': 'processing' }] }
-    );
-  } catch (err) {
-    console.error('Lỗi reset trạng thái processing:', err.message);
   }
 }
 
@@ -164,40 +123,32 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   fullName: { type: String, required: true },
   department: { type: String, default: 'Chung' },
-  role: {
-    type: String,
-    required: true,
-    enum: ['nhanvien', 'tbp', 'kt_thanhtoan', 'ktt', 'pgd_sx', 'giam_doc', 'admin'],
+  role: { 
+    type: String, 
+    required: true, 
+    enum: ['nhanvien', 'tbp', 'kt_thanhtoan', 'ktt', 'pgd_sx', 'giam_doc', 'admin'] 
   },
   managerId: { type: String, default: '' },
-  zaloPhone: { type: String, default: '' },
+  zaloPhone: { type: String, default: '' }
 });
 const User = mongoose.model('User', userSchema);
 
-const paymentDetailSchema = new mongoose.Schema(
-  {
-    docNo: { type: String, default: '' },
-    docDate: { type: String, default: '' },
-    desc: { type: String, default: '' },
-    amount: { type: Number, default: 0 },
-    note: { type: String, default: '' },
-    attachments: [
-      {
-        name: { type: String, default: '' },
-        data: { type: String, default: '' },
-      },
-    ],
-  },
-  { _id: false }
-);
-
-const attachmentSchema = new mongoose.Schema(
-  {
+const paymentDetailSchema = new mongoose.Schema({
+  docNo: { type: String, default: '' },
+  docDate: { type: String, default: '' },
+  desc: { type: String, default: '' },
+  amount: { type: Number, default: 0 },
+  note: { type: String, default: '' },
+  attachments: [{
     name: { type: String, default: '' },
-    data: { type: String, default: '' },
-  },
-  { _id: false }
-);
+    data: { type: String, default: '' }
+  }]
+}, { _id: false });
+
+const attachmentSchema = new mongoose.Schema({
+  name: { type: String, default: '' },
+  data: { type: String, default: '' }
+}, { _id: false });
 
 const paymentRequestSchema = new mongoose.Schema({
   requestCode: { type: String, default: '' },
@@ -210,20 +161,6 @@ const paymentRequestSchema = new mongoose.Schema({
   description: { type: String },
   details: [paymentDetailSchema],
   attachments: [attachmentSchema],
-  driveAttachments: [
-    {
-      name: String,
-      mimeType: String,
-      tempPath: String,
-      syncStatus: { type: String, default: 'pending' },
-      driveFileId: { type: String, default: null },
-      driveViewUrl: { type: String, default: null },
-      syncError: { type: String, default: null },
-      retryCount: { type: Number, default: 0 },
-      uploadedAt: String,
-      syncedAt: { type: String, default: null },
-    },
-  ],
   status: { type: String, default: '1. Chờ Trưởng Bộ phận duyệt' },
   paidStatus: { type: String, default: 'Chờ thanh toán' },
   paidDate: { type: String, default: '' },
@@ -235,10 +172,9 @@ const paymentRequestSchema = new mongoose.Schema({
   ktApprovedAt: { type: Date, default: null },
   kttApprovedAt: { type: Date, default: null },
   pgdApprovedAt: { type: Date, default: null },
-  gdApprovedAt: { type: Date, default: null },
+  gdApprovedAt: { type: Date, default: null }
 });
 const PaymentRequest = mongoose.model('PaymentRequest', paymentRequestSchema);
-
 function normalizeVnPhone(phone = '') {
   const digits = String(phone).replace(/\D/g, '');
   if (!digits) return '';
@@ -246,24 +182,23 @@ function normalizeVnPhone(phone = '') {
   if (digits.startsWith('0')) return '84' + digits.slice(1);
   return '84' + digits;
 }
-
 // --- API HỆ THỐNG ---
 app.get('/api/departments', (req, res) => {
   res.json(STANDARD_DEPARTMENTS);
 });
 
 app.post('/api/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username, password });
-    if (user) {
-      res.json({ success: true, user });
-    } else {
-      res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng!' });
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username, password });
+        if (user) {
+            res.json({ success: true, user });
+        } else {
+            res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng!' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 app.get('/api/users', async (req, res) => {
@@ -289,7 +224,7 @@ app.post('/api/users', async (req, res) => {
       department,
       role,
       managerId,
-      zaloPhone: normalizeVnPhone(zaloPhone || ''),
+      zaloPhone: normalizeVnPhone(zaloPhone || '')
     });
     await newUser.save();
     res.status(201).json({ message: 'Tạo tài khoản thành công!', user: newUser });
@@ -329,27 +264,9 @@ app.put('/api/users/:username/change-password', async (req, res) => {
 app.post('/api/requests', async (req, res) => {
   try {
     const {
-      title,
-      amount,
-      costType,
-      department,
-      supplierName,
-      bankAccount,
-      description,
-      details,
-      attachments,
-      driveAttachments,
-      pendingDriveItems,
-      createdBy,
-      requestCode: preferredCode,
+      title, amount, costType, department, supplierName, bankAccount,
+      description, details, attachments, createdBy, requestCode: preferredCode
     } = req.body;
-
-    // Nhận danh sách file chờ đẩy Drive từ frontend (hỗ trợ cả 2 tên trường)
-    const initialDriveAttachments = Array.isArray(driveAttachments)
-      ? driveAttachments
-      : Array.isArray(pendingDriveItems)
-      ? pendingDriveItems
-      : [];
 
     let requestCode = await resolveRequestCode(department, preferredCode);
     let savedRequest = null;
@@ -358,18 +275,11 @@ app.post('/api/requests', async (req, res) => {
       try {
         const newRequest = new PaymentRequest({
           requestCode,
-          title,
-          amount,
-          costType,
-          department,
-          supplierName,
-          bankAccount,
-          description,
+          title, amount, costType, department, supplierName, bankAccount, description,
           details: details || [],
           attachments: attachments || [],
-          driveAttachments: initialDriveAttachments,
           createdBy,
-          status: '1. Chờ Trưởng Bộ phận duyệt',
+          status: '1. Chờ Trưởng Bộ phận duyệt'
         });
         savedRequest = await newRequest.save();
         break;
@@ -386,15 +296,6 @@ app.post('/api/requests', async (req, res) => {
       return res.status(409).json({ error: 'Không thể cấp số phiếu duy nhất, vui lòng thử lại!' });
     }
 
-    // Kích hoạt đồng bộ ngầm ngay nếu phiếu có file chờ đẩy Drive
-    if (initialDriveAttachments.length > 0) {
-      setImmediate(() => {
-        syncPendingDriveAttachments().catch((err) =>
-          console.error('Lỗi kích hoạt đồng bộ Drive ngay sau khi tạo phiếu:', err.message)
-        );
-      });
-    }
-
     res.status(201).json({ message: 'Tạo phiếu thành công!', request: savedRequest });
   } catch (err) {
     console.error('Lỗi khi tạo phiếu:', err);
@@ -404,20 +305,7 @@ app.post('/api/requests', async (req, res) => {
 
 app.put('/api/requests/:id', async (req, res) => {
   try {
-    const {
-      title,
-      amount,
-      costType,
-      department,
-      supplierName,
-      bankAccount,
-      description,
-      details,
-      attachments,
-      driveAttachments,
-      pendingDriveItems,
-    } = req.body;
-
+    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments } = req.body;
     const existingRequest = await PaymentRequest.findById(req.params.id);
     if (!existingRequest) {
       return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
@@ -426,42 +314,11 @@ app.put('/api/requests/:id', async (req, res) => {
       return res.status(400).json({ error: 'Phiếu đã được cấp trên duyệt, không thể chỉnh sửa!' });
     }
 
-    const updatePayload = {
-      title,
-      amount,
-      costType,
-      department,
-      supplierName,
-      bankAccount,
-      description,
-      details: details || [],
-      attachments: attachments || [],
-    };
-
-    const incomingDriveItems = Array.isArray(driveAttachments)
-      ? driveAttachments
-      : Array.isArray(pendingDriveItems)
-      ? pendingDriveItems
-      : null;
-
-    if (incomingDriveItems) {
-      updatePayload.driveAttachments = incomingDriveItems;
-    }
-
     const updatedRequest = await PaymentRequest.findByIdAndUpdate(
       req.params.id,
-      updatePayload,
+      { title, amount, costType, department, supplierName, bankAccount, description, details: details || [], attachments: attachments || [] },
       { new: true }
     );
-
-    if (incomingDriveItems && incomingDriveItems.some((item) => item.syncStatus === 'pending')) {
-      setImmediate(() => {
-        syncPendingDriveAttachments().catch((err) =>
-          console.error('Lỗi kích hoạt đồng bộ Drive sau khi sửa phiếu:', err.message)
-        );
-      });
-    }
-
     res.json({ message: 'Cập nhật nội dung phiếu thành công!', request: updatedRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -469,49 +326,49 @@ app.put('/api/requests/:id', async (req, res) => {
 });
 
 app.get('/api/requests', async (req, res) => {
-  try {
-    const { role, department, username, status, departmentFilter } = req.query;
-    let query = {};
+    try {
+        const { role, department, username, status, departmentFilter } = req.query;
+        let query = {};
 
-    if (role === 'nhanvien') {
-      const user = await User.findOne({ username });
-      if (user) {
-        query.createdBy = { $in: [user.fullName, username] };
-      } else {
-        query.createdBy = username;
-      }
-    } else if (role === 'tbp') {
-      if (department) {
-        query.department = { $regex: new RegExp('^' + department.trim() + '$', 'i') };
-      } else {
-        query.department = 'KHÔNG_CÓ_BỘ_PHẬN';
-      }
-    }
+        if (role === 'nhanvien') {
+            const user = await User.findOne({ username });
+            if (user) {
+                query.createdBy = { $in: [user.fullName, username] };
+            } else {
+                query.createdBy = username;
+            }
+        } else if (role === 'tbp') {
+            if (department) {
+                query.department = { $regex: new RegExp('^' + department.trim() + '$', 'i') };
+            } else {
+                query.department = 'KHÔNG_CÓ_BỘ_PHẬN';
+            }
+        }
 
-    if (departmentFilter && role !== 'tbp') {
-      query.department = departmentFilter;
-    }
+        if (departmentFilter && role !== 'tbp') {
+            query.department = departmentFilter;
+        }
 
-    if (status) {
-      const s = String(status).trim().toLowerCase();
-      if (s.includes('chờ duyệt')) {
-        query.status = { $not: /hoàn tất|từ chối/i };
-      } else if (s.includes('chờ thanh toán')) {
-        query.status = /hoàn tất/i;
-        query.paidStatus = { $ne: 'Đã thanh toán' };
-      } else if (s.includes('đã thanh toán')) {
-        query.paidStatus = 'Đã thanh toán';
-      } else if (s.includes('từ chối')) {
-        query.status = { $regex: 'từ chối', $options: 'i' };
-      }
-    }
-
-    const requests = await PaymentRequest.find(query).sort({ submittedAt: -1, createdAt: -1 }).lean();
-    res.json(requests);
-  } catch (err) {
-    console.error('Lỗi API requests:', err);
-    res.status(500).json({ error: err.message });
+        if (status) {
+  const s = String(status).trim().toLowerCase();
+  if (s.includes('chờ duyệt')) {
+    query.status = { $not: /hoàn tất|từ chối/i };
+  } else if (s.includes('chờ thanh toán')) {
+    query.status = /hoàn tất/i;
+    query.paidStatus = { $ne: 'Đã thanh toán' };
+  } else if (s.includes('đã thanh toán')) {
+    query.paidStatus = 'Đã thanh toán';
+  } else if (s.includes('từ chối')) {
+    query.status = { $regex: 'từ chối', $options: 'i' };
   }
+}
+
+        const requests = await PaymentRequest.find(query).sort({ submittedAt: -1, createdAt: -1 }).lean();
+        res.json(requests);
+    } catch (err) {
+        console.error('Lỗi API requests:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.put('/api/users/:id', async (req, res) => {
@@ -527,9 +384,11 @@ app.put('/api/users/:id', async (req, res) => {
     if (managerId !== undefined) updateData.managerId = managerId;
     if (zaloPhone !== undefined) updateData.zaloPhone = normalizeVnPhone(zaloPhone);
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-    }).select('-password');
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).select('-password');
 
     if (!updatedUser) {
       return res.status(404).json({ error: 'Không tìm thấy tài khoản!' });
@@ -557,7 +416,6 @@ app.put('/api/requests/:id/paid-status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // Lấy số phiếu tiếp theo theo phòng ban + tháng hiện tại trên toàn bộ database (không lọc theo user)
 app.get('/api/next-request-code', async (req, res) => {
   try {
@@ -572,108 +430,99 @@ app.get('/api/next-request-code', async (req, res) => {
 
 // --- API DUYỆT PHIẾU ĐÃ ĐƯỢC VÁ LỖI CHẶN VƯỢT CẤP & CHỐNG TRÙNG LẶP ---
 app.put('/api/requests/:id/approve', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { action, comment, userRole } = req.body;
-    const reqDoc = await PaymentRequest.findById(id);
-    if (!reqDoc) {
-      return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
+    try {
+        const { id } = req.params;
+        const { action, comment, userRole } = req.body;
+        const reqDoc = await PaymentRequest.findById(id);
+        if (!reqDoc) {
+            return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
+        }
+
+        const now = new Date();
+        let currentStatus = reqDoc.status || '';
+        let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
+        const roleNorm = String(userRole || req.body.role || '').trim().toLowerCase();
+
+        if (action === 'approve') {
+            // Kiểm tra nghiêm ngặt phân quyền tuần tự chống vượt cấp
+            if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || !currentStatus) {
+                if (roleNorm && roleNorm !== 'tbp' && roleNorm !== 'admin') {
+                    return res.status(400).json({ error: 'Phiếu chưa được Trưởng Bộ phận duyệt, bạn không có quyền duyệt bước này!' });
+                }
+                reqDoc.status = '2. Chờ KT Thanh toán';
+                reqDoc.tbpApprovedAt = now;
+            } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
+                if (roleNorm && roleNorm !== 'kt_thanhtoan' && !roleNorm.includes('thanhtoan') && roleNorm !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Kế toán thanh toán duyệt!' });
+                }
+                reqDoc.status = '3. Chờ Kế toán trưởng';
+                reqDoc.ktApprovedAt = now;
+            } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
+                if (roleNorm && roleNorm !== 'ktt' && roleNorm !== 'kt_truong' && !roleNorm.includes('ke_toan_truong') && roleNorm !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Kế toán trưởng duyệt!' });
+                }
+                reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
+                reqDoc.kttApprovedAt = now;
+            } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
+                if (roleNorm && roleNorm !== 'pgd_sx' && roleNorm !== 'pgdsx' && !roleNorm.includes('pgd') && roleNorm !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Phó GĐ sản xuất duyệt!' });
+                }
+                reqDoc.status = '4. Chờ Giám đốc';
+                reqDoc.pgdApprovedAt = now;
+            } else if (currentStatus.includes('4. Chờ Giám đốc')) {
+                if (roleNorm && roleNorm !== 'giam_doc' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
+                    return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
+                }
+                reqDoc.status = '5. Đã hoàn tất';
+                reqDoc.gdApprovedAt = now;
+            } else {
+                return res.status(400).json({ error: 'Phiếu không ở trạng thái chờ duyệt hợp lệ!' });
+            }
+
+            if (comment) reqDoc.comment = comment;
+        } else if (action === 'reject') {
+            // Nhận diện chức vụ người từ chối để lưu trạng thái minh bạch
+            let roleTitle = 'Người duyệt';
+            if (roleNorm === 'tbp' || roleNorm.includes('truong_bo_phan')) roleTitle = 'Trưởng Bộ Phận';
+            else if (roleNorm === 'kt_thanhtoan' || roleNorm.includes('thanhtoan')) roleTitle = 'Kế Toán Thanh Toán';
+            else if (roleNorm === 'ktt' || roleNorm === 'kt_truong' || roleNorm.includes('ke_toan_truong')) roleTitle = 'Kế Toán Trưởng';
+            else if (roleNorm === 'pgd_sx' || roleNorm.includes('pgd')) roleTitle = 'Phó Giám Đốc';
+            else if (roleNorm === 'giam_doc') roleTitle = 'Giám Đốc';
+            else if (roleNorm === 'admin') roleTitle = 'Admin';
+
+            reqDoc.status = `Đã từ chối (${roleTitle})`;
+            reqDoc.rejectReason = comment || '';
+            if (comment) reqDoc.comment = comment;
+        } else {
+            return res.status(400).json({ error: 'Hành động phê duyệt không hợp lệ!' });
+        }
+
+        await reqDoc.save();
+        res.json({ message: 'Xử lý phiếu thành công!', request: reqDoc });
+    } catch (err) {
+        console.error('Lỗi server khi duyệt:', err);
+        res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
     }
-
-    const now = new Date();
-    let currentStatus = reqDoc.status || '';
-    let isKyThuat = (reqDoc.department || '').toLowerCase().includes('kỹ thuật');
-    const roleNorm = String(userRole || req.body.role || '').trim().toLowerCase();
-
-    if (action === 'approve') {
-      // Kiểm tra nghiêm ngặt phân quyền tuần tự chống vượt cấp
-      if (currentStatus.includes('1. Chờ Trưởng Bộ phận') || !currentStatus) {
-        if (roleNorm && roleNorm !== 'tbp' && roleNorm !== 'admin') {
-          return res.status(400).json({ error: 'Phiếu chưa được Trưởng Bộ phận duyệt, bạn không có quyền duyệt bước này!' });
-        }
-        reqDoc.status = '2. Chờ KT Thanh toán';
-        reqDoc.tbpApprovedAt = now;
-      } else if (currentStatus.includes('2. Chờ KT Thanh toán')) {
-        if (roleNorm && roleNorm !== 'kt_thanhtoan' && !roleNorm.includes('thanhtoan') && roleNorm !== 'admin') {
-          return res.status(400).json({ error: 'Chưa đến lượt Kế toán thanh toán duyệt!' });
-        }
-        reqDoc.status = '3. Chờ Kế toán trưởng';
-        reqDoc.ktApprovedAt = now;
-      } else if (currentStatus.includes('3. Chờ Kế toán trưởng')) {
-        if (roleNorm && roleNorm !== 'ktt' && roleNorm !== 'kt_truong' && !roleNorm.includes('ke_toan_truong') && roleNorm !== 'admin') {
-          return res.status(400).json({ error: 'Chưa đến lượt Kế toán trưởng duyệt!' });
-        }
-        reqDoc.status = isKyThuat ? '4. Chờ Phó GĐ' : '4. Chờ Giám đốc';
-        reqDoc.kttApprovedAt = now;
-      } else if (currentStatus.includes('4. Chờ Phó GĐ')) {
-        if (roleNorm && roleNorm !== 'pgd_sx' && roleNorm !== 'pgdsx' && !roleNorm.includes('pgd') && roleNorm !== 'admin') {
-          return res.status(400).json({ error: 'Chưa đến lượt Phó GĐ sản xuất duyệt!' });
-        }
-        reqDoc.status = '4. Chờ Giám đốc';
-        reqDoc.pgdApprovedAt = now;
-      } else if (currentStatus.includes('4. Chờ Giám đốc')) {
-        if (roleNorm && roleNorm !== 'giam_doc' && !roleNorm.includes('giamdoc') && roleNorm !== 'admin') {
-          return res.status(400).json({ error: 'Chưa đến lượt Giám đốc duyệt!' });
-        }
-        reqDoc.status = '5. Đã hoàn tất';
-        reqDoc.gdApprovedAt = now;
-      } else {
-        return res.status(400).json({ error: 'Phiếu không ở trạng thái chờ duyệt hợp lệ!' });
-      }
-
-      if (comment) reqDoc.comment = comment;
-    } else if (action === 'reject') {
-      let roleTitle = 'Người duyệt';
-      if (roleNorm === 'tbp' || roleNorm.includes('truong_bo_phan')) roleTitle = 'Trưởng Bộ Phận';
-      else if (roleNorm === 'kt_thanhtoan' || roleNorm.includes('thanhtoan')) roleTitle = 'Kế Toán Thanh Toán';
-      else if (roleNorm === 'ktt' || roleNorm === 'kt_truong' || roleNorm.includes('ke_toan_truong')) roleTitle = 'Kế Toán Trưởng';
-      else if (roleNorm === 'pgd_sx' || roleNorm.includes('pgd')) roleTitle = 'Phó Giám Đốc';
-      else if (roleNorm === 'giam_doc') roleTitle = 'Giám Đốc';
-      else if (roleNorm === 'admin') roleTitle = 'Admin';
-
-      reqDoc.status = `Đã từ chối (${roleTitle})`;
-      reqDoc.rejectReason = comment || '';
-      if (comment) reqDoc.comment = comment;
-    } else {
-      return res.status(400).json({ error: 'Hành động phê duyệt không hợp lệ!' });
-    }
-
-    await reqDoc.save();
-    res.json({ message: 'Xử lý phiếu thành công!', request: reqDoc });
-  } catch (err) {
-    console.error('Lỗi server khi duyệt:', err);
-    res.status(500).json({ error: 'Lỗi máy chủ: ' + err.message });
-  }
 });
 
-// API Upload file lẻ trả về đường dẫn URL công khai + danh sách chờ đẩy Drive
+// API Upload file lẻ trả về đường dẫn URL công khai
 app.post('/api/upload', upload.array('files'), (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'Không có file nào được tải lên!' });
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'Không có file nào được tải lên!' });
+        }
+        const fileUrls = req.files.map(file => {
+            const baseUrl = `${req.protocol}://${req.get('host')}`;
+            return {
+                name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+                data: `${baseUrl}/uploads/${file.filename}`
+            };
+        });
+        res.json({ success: true, files: fileUrls });
+    } catch (err) {
+        console.error('Lỗi upload file:', err);
+        res.status(500).json({ error: err.message });
     }
-
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const fileUrls = [];
-    const pendingDriveItems = buildPendingAttachments(req.files);
-
-    for (const file of req.files) {
-      const utf8Name = Buffer.from(file.originalname, 'latin1').toString('utf8');
-      fileUrls.push({
-        name: utf8Name,
-        data: `${baseUrl}/uploads/${file.filename}`,
-      });
-    }
-
-    res.json({
-      success: true,
-      files: fileUrls,
-      pendingDriveItems,
-    });
-  } catch (err) {
-    console.error('Lỗi upload file:', err);
-    res.status(500).json({ error: err.message });
-  }
 });
 
 app.delete('/api/requests/:id', async (req, res) => {
@@ -688,20 +537,10 @@ app.delete('/api/requests/:id', async (req, res) => {
 async function seedUsers() {
   try {
     const defaultUsers = [
-      {
-        username: 'admin',
-        password: '123',
-        fullName: 'Quản Trị Hệ Thống',
-        department: 'Ban Giám Đốc',
-        role: 'admin',
-      },
-    ];
+      { username: 'admin', password: '123', fullName: 'Quản Trị Hệ Thống', department: 'Ban Giám Đốc', role: 'admin' },
+          ];
     for (let u of defaultUsers) {
-      await User.findOneAndUpdate(
-        { username: u.username },
-        u,
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+      await User.findOneAndUpdate({ username: u.username }, u, { upsert: true, new: true, setDefaultsOnInsert: true });
     }
   } catch (err) {
     console.error('Lỗi khởi tạo tài khoản:', err.message);
@@ -709,115 +548,8 @@ async function seedUsers() {
 }
 seedUsers();
 
-const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
-let isSyncingDrive = false;
-
-async function syncPendingDriveAttachments() {
-  if (!APPS_SCRIPT_URL || isSyncingDrive) return;
-  isSyncingDrive = true;
-
-  try {
-    // Tìm các phiếu có file đang chờ đẩy Drive hoặc lỗi tạm thời còn lượt thử lại
-    const requests = await PaymentRequest.find({
-      driveAttachments: {
-        $elemMatch: {
-          $or: [
-            { syncStatus: 'pending' },
-            { syncStatus: 'failed', retryCount: { $lt: 5 } },
-          ],
-        },
-      },
-    }).limit(10);
-
-    for (const reqDoc of requests) {
-      let docChanged = false;
-
-      // Lấy thông tin Năm / Tháng / Phòng ban theo giờ Việt Nam
-      const refDate = reqDoc.submittedAt || reqDoc.createdAt || new Date();
-      const { year, month: monthOnly } = getVietnamYearMonthParts(refDate);
-      const month = `${year}-${monthOnly}`;
-      const department = reqDoc.department || 'Chua_phan_loai';
-
-      for (const att of reqDoc.driveAttachments) {
-        const shouldSync =
-          att.syncStatus === 'pending' ||
-          (att.syncStatus === 'failed' && (att.retryCount || 0) < 5);
-
-        if (!shouldSync) continue;
-
-        try {
-          if (!att.tempPath || !fs.existsSync(att.tempPath)) {
-            att.syncStatus = 'failed';
-            att.syncError = 'Không tìm thấy file tạm trên server';
-            att.retryCount = (att.retryCount || 0) + 1;
-            docChanged = true;
-            continue;
-          }
-
-          att.syncStatus = 'processing';
-          docChanged = true;
-          await reqDoc.save();
-
-          const fileBuffer = await fs.promises.readFile(att.tempPath);
-          const base64Data = fileBuffer.toString('base64');
-
-          const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              base64Data,
-              fileName: att.name,
-              mimeType: att.mimeType || 'application/octet-stream',
-              year,
-              month,
-              department,
-            }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok || !result.success || !result.viewUrl) {
-            throw new Error(result.error || 'Apps Script phản hồi không thành công');
-          }
-
-          att.driveFileId = result.fileId || null;
-          att.driveViewUrl = result.viewUrl;
-          att.syncStatus = 'synced';
-          att.syncError = null;
-          att.syncedAt = new Date().toISOString();
-          docChanged = true;
-
-          console.log(`✅ Đã đẩy Drive thành công: ${att.name} -> ${result.folderPath || ''}`);
-
-          // Xóa file tạm sau khi đã đẩy thành công lên Google Drive
-          try {
-            await fs.promises.unlink(att.tempPath);
-            att.tempPath = null;
-          } catch (_) {}
-        } catch (err) {
-          att.syncStatus = 'failed';
-          att.syncError = err.message || String(err);
-          att.retryCount = (att.retryCount || 0) + 1;
-          docChanged = true;
-          console.error(`❌ Lỗi đẩy Drive (${att.name}):`, att.syncError);
-        }
-      }
-
-      if (docChanged) {
-        await reqDoc.save();
-      }
-    }
-  } catch (err) {
-    console.error('Lỗi tiến trình đồng bộ ngầm Google Drive:', err.message);
-  } finally {
-    isSyncingDrive = false;
-  }
-}
-
-// Chạy quét ngầm mỗi 30 giây
-setInterval(syncPendingDriveAttachments, 30 * 1000);
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại cổng http://localhost:${PORT}`);
 });
+
