@@ -2191,6 +2191,24 @@ window.printRequest = function (id) {
         };
       }
     });
+    function renderDriveAttachmentsHtml(driveAttachments = []) {
+  if (!Array.isArray(driveAttachments) || driveAttachments.length === 0) {
+    return '';
+  }
+
+  return driveAttachments
+    .map((att) => {
+      const safeName = att.name || 'Chứng từ';
+      if (att.syncStatus === 'synced' && att.driveViewUrl) {
+        return `<div><a href="${att.driveViewUrl}" target="_blank" rel="noopener noreferrer">📁 ${safeName} (Mở trên Drive)</a></div>`;
+      }
+      if (att.syncStatus === 'failed') {
+        return `<div>⚠️ ${safeName} — Lỗi đẩy Drive${att.syncError ? `: ${att.syncError}` : ''}</div>`;
+      }
+      return `<div>⏳ ${safeName} — Đang chờ đẩy Drive...</div>`;
+    })
+    .join('');
+}
   </script>
 
   <!-- Modal Xem File Chuyên Nghiệp -->

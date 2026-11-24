@@ -16,6 +16,25 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
+const tempDir = path.join(uploadDir, 'temp');
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
+function buildPendingAttachments(files = []) {
+  return files.map((file) => ({
+    name: file.originalname,
+    mimeType: file.mimetype,
+    tempPath: file.path,
+    syncStatus: 'pending', // 'pending' | 'processing' | 'synced' | 'failed'
+    driveFileId: null,
+    driveViewUrl: null,
+    syncError: null,
+    retryCount: 0,
+    uploadedAt: new Date().toISOString(),
+    syncedAt: null,
+  }));
+}
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -161,6 +180,20 @@ const paymentRequestSchema = new mongoose.Schema({
   description: { type: String },
   details: [paymentDetailSchema],
   attachments: [attachmentSchema],
+  driveAttachments: [
+  {
+    name: String,
+    mimeType: String,
+    tempPath: String,
+    syncStatus: { type: String, default: 'pending' },
+    driveFileId: { type: String, default: null },
+    driveViewUrl: { type: String, default: null },
+    syncError: { type: String, default: null },
+    retryCount: { type: Number, default: 0 },
+    uploadedAt: String,
+    syncedAt: { type: String, default: null },
+  },
+],
   status: { type: String, default: '1. Chờ Trưởng Bộ phận duyệt' },
   paidStatus: { type: String, default: 'Chờ thanh toán' },
   paidDate: { type: String, default: '' },
@@ -505,24 +538,48 @@ app.put('/api/requests/:id/approve', async (req, res) => {
     }
 });
 
-// API Upload file lẻ trả về đường dẫn URL công khai
+// API Upload file lẻ trả về đường dẫn URL công khai + danh sách chờ đẩy Drive
 app.post('/api/upload', upload.array('files'), (req, res) => {
-    try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ error: 'Không có file nào được tải lên!' });
-        }
-        const fileUrls = req.files.map(file => {
-            const baseUrl = `${req.protocol}://${req.get('host')}`;
-            return {
-                name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
-                data: `${baseUrl}/uploads/${file.filename}`
-            };
-        });
-        res.json({ success: true, files: fileUrls });
-    } catch (err) {
-        console.error('Lỗi upload file:', err);
-        res.status(500).json({ error: err.message });
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Không có file nào được tải lên!' });
     }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const fileUrls = [];
+    const pendingDriveItems = [];
+
+    for (const file of req.files) {
+      const utf8Name = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
+      fileUrls.push({
+        name: utf8Name,
+        data: `${baseUrl}/uploads/${file.filename}`,
+      });
+
+      pendingDriveItems.push({
+        name: utf8Name,
+        mimeType: file.mimetype,
+        tempPath: file.path,
+        syncStatus: 'pending',
+        driveFileId: null,
+        driveViewUrl: null,
+        syncError: null,
+        retryCount: 0,
+        uploadedAt: new Date().toISOString(),
+        syncedAt: null,
+      });
+    }
+
+    res.json({
+      success: true,
+      files: fileUrls,
+      pendingDriveItems,
+    });
+  } catch (err) {
+    console.error('Lỗi upload file:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete('/api/requests/:id', async (req, res) => {
@@ -547,6 +604,110 @@ async function seedUsers() {
   }
 }
 seedUsers();
+const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
+let isSyncingDrive = false;
+
+async function syncPendingDriveAttachments() {
+  if (!APPS_SCRIPT_URL || isSyncingDrive) return;
+  isSyncingDrive = true;
+
+  try {
+    // Tìm các phiếu có file đang chờ đẩy Drive hoặc lỗi tạm thời còn lượt thử lại
+    const requests = await PaymentRequest.find({
+      driveAttachments: {
+        $elemMatch: {
+          $or: [
+            { syncStatus: 'pending' },
+            { syncStatus: 'failed', retryCount: { $lt: 5 } },
+          ],
+        },
+      },
+    }).limit(10);
+
+    for (const reqDoc of requests) {
+      let docChanged = false;
+
+      // Lấy thông tin Năm / Tháng / Phòng ban từ phiếu
+      const refDate = new Date(reqDoc.submittedAt || reqDoc.createdAt || Date.now());
+      const year = String(refDate.getFullYear());
+      const month = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, '0')}`;
+      const department = reqDoc.department || 'Chua_phan_loai';
+
+      for (const att of reqDoc.driveAttachments) {
+        const shouldSync =
+          att.syncStatus === 'pending' ||
+          (att.syncStatus === 'failed' && (att.retryCount || 0) < 5);
+
+        if (!shouldSync) continue;
+
+        try {
+          if (!att.tempPath || !fs.existsSync(att.tempPath)) {
+            att.syncStatus = 'failed';
+            att.syncError = 'Không tìm thấy file tạm trên server';
+            att.retryCount = (att.retryCount || 0) + 1;
+            docChanged = true;
+            continue;
+          }
+
+          att.syncStatus = 'processing';
+          docChanged = true;
+          await reqDoc.save();
+
+          const fileBuffer = fs.readFileSync(att.tempPath);
+          const base64Data = fileBuffer.toString('base64');
+
+          const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              base64Data,
+              fileName: att.name,
+              mimeType: att.mimeType || 'application/octet-stream',
+              year,
+              month,
+              department,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success || !result.viewUrl) {
+            throw new Error(result.error || 'Apps Script phản hồi không thành công');
+          }
+
+          att.driveFileId = result.fileId || null;
+          att.driveViewUrl = result.viewUrl;
+          att.syncStatus = 'synced';
+          att.syncError = null;
+          att.syncedAt = new Date().toISOString();
+          docChanged = true;
+
+          // Xóa file tạm sau khi đã đẩy thành công lên Google Drive
+          try {
+            fs.unlinkSync(att.tempPath);
+            att.tempPath = null;
+          } catch (_) {}
+        } catch (err) {
+          att.syncStatus = 'failed';
+          att.syncError = err.message || String(err);
+          att.retryCount = (att.retryCount || 0) + 1;
+          docChanged = true;
+        }
+      }
+
+      if (docChanged) {
+        await reqDoc.save();
+      }
+    }
+  } catch (err) {
+    console.error('Lỗi tiến trình đồng bộ ngầm Google Drive:', err.message);
+  } finally {
+    isSyncingDrive = false;
+  }
+}
+
+// Chạy quét ngầm mỗi 30 giây
+setInterval(syncPendingDriveAttachments, 30 * 1000);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
