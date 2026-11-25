@@ -428,15 +428,29 @@ app.put('/api/requests/:id', async (req, res) => {
       { title, amount, costType, department, supplierName, bankAccount, description, details: details || [], attachments: attachments || [] },
       { new: true }
     );
-    const filesToSync = Array.isArray(req.body?.driveAttachments)
-  ? req.body.driveAttachments
-  : [];
+    const filesToSync = [];
 
-if (filesToSync.length > 0 && updatedRequest) {
-  setImmediate(() => {
-    syncDriveAttachmentsInBackground(updatedRequest, filesToSync);
-  });
-}
+      if (Array.isArray(req.body?.driveAttachments)) {
+        filesToSync.push(...req.body.driveAttachments);
+      }
+
+      if (Array.isArray(req.body?.details)) {
+        for (const row of req.body.details) {
+          if (Array.isArray(row?.attachments)) {
+            for (const att of row.attachments) {
+              if (att && (att.dataUrl || att.data || att.base64)) {
+                filesToSync.push(att);
+              }
+            }
+          }
+        }
+      }
+
+      if (filesToSync.length > 0 && updatedRequest) {
+        setImmediate(() => {
+          syncDriveAttachmentsInBackground(updatedRequest, filesToSync);
+        });
+      }
     res.json({ message: 'Cập nhật nội dung phiếu thành công!', request: updatedRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
