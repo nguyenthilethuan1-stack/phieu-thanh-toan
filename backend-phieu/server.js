@@ -122,31 +122,38 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
         const targetName = result?.fileName || fileName;
 
         if (reqId && (fileId || viewUrl)) {
-          const setFields = {};
-          if (fileId) {
-            setFields['attachments.$[elem].fileId'] = fileId;
-            setFields['details.$[].attachments.$[elem].fileId'] = fileId;
-          }
-          if (viewUrl) {
-            setFields['attachments.$[elem].viewUrl'] = viewUrl;
-            setFields['details.$[].attachments.$[elem].viewUrl'] = viewUrl;
-          }
-
-          await PaymentRequest.updateOne(
-            { _id: reqId },
-            { $set: setFields },
-            {
-              arrayFilters: [
-                {
-                  $or: [
-                    { 'elem.name': targetName },
-                    { 'elem.fileName': targetName },
-                    { 'elem.originalName': targetName }
-                  ]
+          const doc = await PaymentRequest.findById(reqId);
+          if (doc) {
+            let changed = false;
+            const applyToList = (arr) => {
+              if (!Array.isArray(arr)) return;
+              for (const att of arr) {
+                if (!att) continue;
+                const attName = att.name || att.fileName || att.originalName || '';
+                if (!targetName || attName === targetName || attName.includes(targetName) || targetName.includes(attName)) {
+                  if (fileId) {
+                    att.fileId = fileId;
+                    changed = true;
+                  }
+                  if (viewUrl) {
+                    att.viewUrl = viewUrl;
+                    changed = true;
+                  }
                 }
-              ]
+              }
+            };
+
+            applyToList(doc.attachments);
+            if (Array.isArray(doc.details)) {
+              for (const detail of doc.details) {
+                applyToList(detail?.attachments);
+              }
             }
-          );
+
+            if (changed) {
+              await doc.save();
+            }
+          }
         }
       }
     } catch (err) {
