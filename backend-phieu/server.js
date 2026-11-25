@@ -43,11 +43,11 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
     new Date();
   const { year, month } = getVietnamYearMonth(refDate);
   const department =
-  requestDoc?.department ||
-  requestDoc?.dept ||
-  requestDoc?.departmentName ||
-  requestDoc?.boPhan ||
-  'Chua_phan_loai';
+    requestDoc?.department ||
+    requestDoc?.dept ||
+    requestDoc?.departmentName ||
+    requestDoc?.boPhan ||
+    'Chua_phan_loai';
 
   for (const item of driveAttachments) {
     try {
@@ -67,18 +67,18 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
         'application/octet-stream';
 
       const payload = {
-  fileName,
-  mimeType,
-  base64Data,
-  year,
-  month,
-  department,
-  yearFolderName: year,
-  monthFolderName: month,
-  deptFolderName: department,
-  requestCode: requestDoc?.requestCode || '',
-  requestId: String(requestDoc?._id || requestDoc?.id || '')
-};
+        fileName,
+        mimeType,
+        base64Data,
+        year,
+        month,
+        department,
+        yearFolderName: year,
+        monthFolderName: month,
+        deptFolderName: department,
+        requestCode: requestDoc?.requestCode || '',
+        requestId: String(requestDoc?._id || requestDoc?.id || '')
+      };
 
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
@@ -103,6 +103,51 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
           '->',
           result?.folderPath || `${year}/${month}/${department}`
         );
+
+        const drivePayload = result?.data || result?.file || result || {};
+        const fileId =
+          drivePayload.fileId ||
+          drivePayload.id ||
+          result?.fileId ||
+          '';
+        const viewUrl =
+          drivePayload.viewUrl ||
+          drivePayload.url ||
+          drivePayload.webViewLink ||
+          drivePayload.driveUrl ||
+          result?.viewUrl ||
+          (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
+
+        const reqId = requestDoc?._id || requestDoc?.id;
+        const targetName = result?.fileName || fileName;
+
+        if (reqId && (fileId || viewUrl)) {
+          const setFields = {};
+          if (fileId) {
+            setFields['attachments.$[elem].fileId'] = fileId;
+            setFields['details.$[].attachments.$[elem].fileId'] = fileId;
+          }
+          if (viewUrl) {
+            setFields['attachments.$[elem].viewUrl'] = viewUrl;
+            setFields['details.$[].attachments.$[elem].viewUrl'] = viewUrl;
+          }
+
+          await PaymentRequest.updateOne(
+            { _id: reqId },
+            { $set: setFields },
+            {
+              arrayFilters: [
+                {
+                  $or: [
+                    { 'elem.name': targetName },
+                    { 'elem.fileName': targetName },
+                    { 'elem.originalName': targetName }
+                  ]
+                }
+              ]
+            }
+          );
+        }
       }
     } catch (err) {
       console.error('[DriveSync] Ngoại lệ khi đồng bộ file:', err?.message || err);
