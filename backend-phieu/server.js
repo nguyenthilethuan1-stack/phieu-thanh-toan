@@ -5,7 +5,105 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const APPS_SCRIPT_URL =
+  process.env.GOOGLE_APPS_SCRIPT_URL ||
+  'https://script.google.com/macros/s/AKfycbxW8msuUT4zR8Z41k1dWCItlcTy3gt-VOiV20nAc1Ij_Wg6aw3PPo2hvDwsp6dugtcJ/exec';
 
+function getVietnamYearMonth(dateInput) {
+  const parsed = dateInput ? new Date(dateInput) : new Date();
+  const safeDate = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit'
+  });
+
+  const parts = formatter.formatToParts(safeDate);
+  const year = parts.find((p) => p.type === 'year')?.value || '2026';
+  const month = parts.find((p) => p.type === 'month')?.value || '11';
+  return { year, month };
+}
+
+function extractBase64Payload(rawData) {
+  if (!rawData || typeof rawData !== 'string') return '';
+  const commaIdx = rawData.indexOf(',');
+  return commaIdx >= 0 ? rawData.slice(commaIdx + 1).trim() : rawData.trim();
+}
+
+async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = []) {
+  if (!APPS_SCRIPT_URL || !Array.isArray(driveAttachments) || driveAttachments.length === 0) {
+    return;
+  }
+
+  const refDate =
+    requestDoc?.details?.[0]?.docDate ||
+    requestDoc?.createdAt ||
+    requestDoc?.updatedAt ||
+    new Date();
+  const { year, month } = getVietnamYearMonth(refDate);
+  const department =
+    requestDoc?.department ||
+    requestDoc?.dept ||
+    'Chua_phan_loai';
+
+  for (const item of driveAttachments) {
+    try {
+      const base64Data = extractBase64Payload(
+        item?.dataUrl || item?.data || item?.base64 || ''
+      );
+      if (!base64Data) continue;
+
+      const fileName =
+        item?.originalName ||
+        item?.fileName ||
+        item?.name ||
+        `chung-tu-${Date.now()}`;
+      const mimeType =
+        item?.mimeType ||
+        item?.type ||
+        'application/octet-stream';
+
+      const payload = {
+        fileName,
+        mimeType,
+        base64Data,
+        yearFolderName: year,
+        monthFolderName: month,
+        deptFolderName: department,
+        requestCode: requestDoc?.requestCode || '',
+        requestId: String(requestDoc?._id || requestDoc?.id || '')
+      };
+
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      let result = null;
+      try {
+        result = JSON.parse(text);
+      } catch (_) {
+        result = { raw: text };
+      }
+
+      if (!res.ok || result?.success === false) {
+        console.error('[DriveSync] Lỗi đẩy file lên Apps Script:', fileName, result);
+      } else {
+        console.log(
+          '[DriveSync] Đã đẩy file:',
+          result?.fileName || fileName,
+          '->',
+          result?.folderPath || `${year}/${month}/${department}`
+        );
+      }
+    } catch (err) {
+      console.error('[DriveSync] Ngoại lệ khi đồng bộ file:', err?.message || err);
+    }
+  }
+}
 const app = express();
 app.use(express.json({ limit: '200mb' }));
 app.use(express.urlencoded({ limit: '200mb', extended: true }));
@@ -264,9 +362,9 @@ app.put('/api/users/:username/change-password', async (req, res) => {
 app.post('/api/requests', async (req, res) => {
   try {
     const {
-      title, amount, costType, department, supplierName, bankAccount,
-      description, details, attachments, createdBy, requestCode: preferredCode
-    } = req.body;
+        title, amount, costType, department, supplierName, bankAccount,
+        description, details, attachments, driveAttachments, createdBy, requestCode: preferredCode
+      } = req.body;
 
     let requestCode = await resolveRequestCode(department, preferredCode);
     let savedRequest = null;
@@ -294,6 +392,12 @@ app.post('/api/requests', async (req, res) => {
 
     if (!savedRequest) {
       return res.status(409).json({ error: 'Không thể cấp số phiếu duy nhất, vui lòng thử lại!' });
+    }
+    const filesToSync = Array.isArray(driveAttachments) ? driveAttachments : [];
+    if (filesToSync.length > 0) {
+      setImmediate(() => {
+        syncDriveAttachmentsInBackground(savedRequest, filesToSync);
+      });
     }
 
     res.status(201).json({ message: 'Tạo phiếu thành công!', request: savedRequest });

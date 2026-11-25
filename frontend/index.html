@@ -572,64 +572,127 @@
       return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + " đồng chẵn.";
     };
 
-    // --- QUẢN LÝ DÒNG CHI TIẾT ---
-    window.addRow = function (data = {}) {
-      const tbody = document.getElementById('detailRows');
-      if (!tbody) return;
-      const tr = document.createElement('tr');
+      // --- QUẢN LÝ DÒNG CHI TIẾT ---
+      window.addRow = function (data = {}) {
+        const tbody = document.getElementById('detailRows');
+        if (!tbody) return;
+        const tr = document.createElement('tr');
 
-      const todayStr = new Date().toISOString().split('T')[0];
-      const docNo = data.docNo || '';
-      const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
-      const desc = data.desc || '';
-      const amount = data.amount !== undefined ? data.amount : '';
+        const todayStr = new Date().toISOString().split('T')[0];
+        const docNo = data.docNo || '';
+        const docDate = data.docDate ? data.docDate.split('T')[0] : todayStr;
+        const desc = data.desc || '';
+        const amount = data.amount !== undefined ? data.amount : '';
 
-      const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
-      tr.dataset.filesJson = JSON.stringify(rowFiles);
+        const rowFiles = (data.attachments && data.attachments.length > 0) ? data.attachments : [];
+        tr.dataset.filesJson = JSON.stringify(rowFiles);
 
-      tr.innerHTML = `
-        <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
-        <td><input type="date" class="row-docDate" value="${docDate}" required></td>
-        <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
-        <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
-        <td style="text-align: center; vertical-align: middle;">
-          <label style="background: #e2e8f0; color: #1e293b; padding: 5px 8px; border-radius: 4px; cursor: pointer; display: inline-block; font-size: 11px; font-weight: 550; margin-bottom: 2px;">
-            📎 Chọn file
-            <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
-          </label>
-          <div class="row-file-names" style="margin-top: 4px; text-align: left;"></div>
-        </td>
-        <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
-      `;
-      tbody.appendChild(tr);
-
-      updateRowFilesUI(tr, rowFiles);
-      calculateTotal();
-    };
-
-    function updateRowFilesUI(tr, filesArray) {
-      const nameDiv = tr.querySelector('.row-file-names');
-      if (!nameDiv) return;
-
-      if (!filesArray || filesArray.length === 0) {
-        nameDiv.innerHTML = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
-        return;
-      }
-
-      nameDiv.innerHTML = filesArray.map((f, index) => {
-        const encoded = encodeURIComponent(JSON.stringify([f]));
-        return `
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 2px; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
-            <a href="javascript:void(0);" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encoded}')))" style="color: #0d6efd; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="Bấm để xem: ${f.name}">
-              📎 ${f.name}
-            </a>
-            <button type="button" onclick="removeRowFile(this, ${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; padding: 0 3px; font-size: 12px;" title="Xóa file này">×</button>
-          </div>
+        tr.innerHTML = `
+          <td><input type="text" class="row-docNo" placeholder="Số CT..." value="${docNo}" required></td>
+          <td><input type="date" class="row-docDate" value="${docDate}" required></td>
+          <td><input type="text" class="row-desc" placeholder="Nội dung chi tiết..." value="${desc}" required></td>
+          <td><input type="number" class="row-amount" placeholder="0" value="${amount}" oninput="calculateTotal()" required></td>
+          <td style="text-align: center; vertical-align: middle;">
+            <label style="background: #e2e8f0; color: #1e293b; padding: 5px 8px; border-radius: 4px; cursor: pointer; display: inline-block; font-size: 11px; font-weight: 550; margin-bottom: 2px;">
+              📎 Chọn file
+              <input type="file" multiple class="row-file-input" style="display: none;" onchange="handleRowFiles(this)">
+            </label>
+            <div class="row-file-names" style="margin-top: 4px; text-align: left;"></div>
+          </td>
+          <td style="text-align: center;"><button type="button" onclick="removeRow(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button></td>
         `;
-      }).join('');
-    }
+        tbody.appendChild(tr);
 
-    window.handleRowFiles = function (input) {
+        updateRowFilesUI(tr, rowFiles);
+        calculateTotal();
+      };
+
+      function updateRowFilesUI(tr, filesArray) {
+        const nameDiv = tr.querySelector('.row-file-names');
+        if (!nameDiv) return;
+
+        if (!filesArray || filesArray.length === 0) {
+          nameDiv.innerHTML = '<span style="color: #888; font-style: italic; font-size: 11px;">Không có file</span>';
+          return;
+        }
+
+        nameDiv.innerHTML = filesArray.map((f, index) => {
+          const encoded = encodeURIComponent(JSON.stringify([f]));
+          return `
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 2px; background: #f1f5f9; padding: 2px 5px; border-radius: 3px;">
+              <a href="javascript:void(0);" onclick="openFilePreview(JSON.parse(decodeURIComponent('${encoded}')))" style="color: #0d6efd; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="Bấm để xem: ${f.name}">
+                📎 ${f.name}
+              </a>
+              <button type="button" onclick="removeRowFile(this, ${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; padding: 0 3px; font-size: 12px;" title="Xóa file này">×</button>
+            </div>
+          `;
+        }).join('');
+      }
+          let pendingDriveItems = [];
+
+function normalizeDriveUploadResponse(data, fallbackName = '', fallbackMime = '') {
+  const rawItems = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.files)
+      ? data.files
+      : Array.isArray(data?.items)
+        ? data.items
+        : data?.file
+          ? [data.file]
+          : data
+            ? [data]
+            : [];
+
+  return rawItems
+    .map((item) => {
+      const tempFileName =
+        item?.tempFileName ||
+        item?.storedName ||
+        item?.filename ||
+        item?.fileNameOnServer ||
+        item?.savedName ||
+        '';
+      const originalName =
+        item?.originalName ||
+        item?.fileName ||
+        item?.name ||
+        fallbackName ||
+        tempFileName;
+      const mimeType =
+        item?.mimeType ||
+        item?.mimetype ||
+        item?.type ||
+        fallbackMime ||
+        'application/octet-stream';
+      const tempPath = item?.path || item?.filePath || '';
+
+      if (!tempFileName && !tempPath) return null;
+
+      return {
+        originalName,
+        tempFileName,
+        tempPath,
+        mimeType,
+        size: Number(item?.size || 0) || 0
+      };
+    })
+    .filter(Boolean);
+}
+
+function addPendingDriveItems(newItems) {
+  if (!Array.isArray(newItems) || newItems.length === 0) return;
+  for (const item of newItems) {
+    const exists = pendingDriveItems.some(
+      (x) =>
+        (x.tempFileName && item.tempFileName && x.tempFileName === item.tempFileName) ||
+        (x.tempPath && item.tempPath && x.tempPath === item.tempPath)
+    );
+    if (!exists) {
+      pendingDriveItems.push(item);
+    }
+  }
+}
+      window.handleRowFiles = function (input) {
       const tr = input.closest('tr');
       const files = input.files;
       if (!files || files.length === 0 || !tr) return;
@@ -641,10 +704,16 @@
         existingFiles = [];
       }
 
-      const promises = Array.from(files).map(file => new Promise((resolve) => {
+      const fileList = Array.from(files);
+      const promises = fileList.map(file => new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          resolve({ name: file.name, data: e.target.result });
+          resolve({
+            name: file.name,
+            data: e.target.result,
+            mimeType: file.type || 'application/octet-stream',
+            size: file.size || 0
+          });
         };
         reader.readAsDataURL(file);
       }));
@@ -653,73 +722,86 @@
         const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
         tr.dataset.filesJson = JSON.stringify(combinedFiles);
         updateRowFilesUI(tr, combinedFiles);
+
+        if (typeof addPendingDriveItems === 'function') {
+          const driveItems = newlyLoadedFiles.map(f => ({
+            originalName: f.name,
+            tempFileName: '',
+            tempPath: '',
+            mimeType: f.mimeType || 'application/octet-stream',
+            size: f.size || 0,
+            dataUrl: f.data || ''
+          }));
+          addPendingDriveItems(driveItems);
+        }
+
         input.value = '';
       });
     };
 
-    window.removeRowFile = function (btn, fileIndex) {
-      const tr = btn.closest('tr');
-      if (!tr) return;
+      window.removeRowFile = function (btn, fileIndex) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
 
-      let existingFiles = [];
-      try {
-        if (tr.dataset.filesJson) existingFiles = JSON.parse(tr.dataset.filesJson);
-      } catch (e) {
-        existingFiles = [];
+        let existingFiles = [];
+        try {
+          if (tr.dataset.filesJson) existingFiles = JSON.parse(tr.dataset.filesJson);
+        } catch (e) {
+          existingFiles = [];
+        }
+
+        existingFiles.splice(fileIndex, 1);
+        tr.dataset.filesJson = JSON.stringify(existingFiles);
+        updateRowFilesUI(tr, existingFiles);
+      };
+
+      window.removeRow = function (btn) {
+        const row = btn.closest('tr');
+        if (document.querySelectorAll('#detailRows tr').length > 1) {
+          row.remove();
+          calculateTotal();
+        } else {
+          alert('Phiếu phải có ít nhất một khoản mục chi phí!');
+        }
+      };
+
+      window.calculateTotal = function () {
+        const amountInputs = document.querySelectorAll('.row-amount');
+        let total = 0;
+        amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
+        const lblTotal = document.getElementById('lblTotalAmount');
+        const lblWords = document.getElementById('lblAmountInWords');
+        if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
+        if (lblWords) lblWords.innerText = numberToWords(total);
+      };
+
+      function renderSelectedGeneralFilesUI() {
+        const container = document.getElementById('fileNamesList');
+        if (!container) return;
+
+        if (!selectedFilesData.length) {
+          container.innerHTML = '';
+          return;
+        }
+
+        container.innerHTML =
+          '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">File đã chọn:</div>' +
+          selectedFilesData.map((file, index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #ced4da; border-radius: 4px;">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
+              <button type="button" onclick="removeAttachedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
+            </div>
+          `).join('');
       }
 
-      existingFiles.splice(fileIndex, 1);
-      tr.dataset.filesJson = JSON.stringify(existingFiles);
-      updateRowFilesUI(tr, existingFiles);
-    };
+      window.removeAttachedFile = function (index) {
+        selectedFilesData.splice(index, 1);
+        renderSelectedGeneralFilesUI();
+        const fileInput = document.getElementById('attachmentFiles');
+        if (fileInput) fileInput.value = '';
+      };
 
-    window.removeRow = function (btn) {
-      const row = btn.closest('tr');
-      if (document.querySelectorAll('#detailRows tr').length > 1) {
-        row.remove();
-        calculateTotal();
-      } else {
-        alert('Phiếu phải có ít nhất một khoản mục chi phí!');
-      }
-    };
-
-    window.calculateTotal = function () {
-      const amountInputs = document.querySelectorAll('.row-amount');
-      let total = 0;
-      amountInputs.forEach(input => { total += parseFloat(input.value) || 0; });
-      const lblTotal = document.getElementById('lblTotalAmount');
-      const lblWords = document.getElementById('lblAmountInWords');
-      if (lblTotal) lblTotal.innerText = total.toLocaleString('vi-VN');
-      if (lblWords) lblWords.innerText = numberToWords(total);
-    };
-
-    function renderSelectedGeneralFilesUI() {
-      const container = document.getElementById('fileNamesList');
-      if (!container) return;
-
-      if (!selectedFilesData.length) {
-        container.innerHTML = '';
-        return;
-      }
-
-      container.innerHTML =
-        '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">File đã chọn:</div>' +
-        selectedFilesData.map((file, index) => `
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #ced4da; border-radius: 4px;">
-            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
-            <button type="button" onclick="removeAttachedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
-          </div>
-        `).join('');
-    }
-
-    window.removeAttachedFile = function (index) {
-      selectedFilesData.splice(index, 1);
-      renderSelectedGeneralFilesUI();
-      const fileInput = document.getElementById('attachmentFiles');
-      if (fileInput) fileInput.value = '';
-    };
-
-    window.resetFormToCreateMode = function () {
+      window.resetFormToCreateMode = function () {
       document.getElementById('editingRequestId').value = '';
       document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
       document.getElementById('btnSubmitForm').innerText = 'Gửi Phiếu Đề Xuất Thanh Toán';
@@ -729,6 +811,9 @@
 
       currentEditingAttachments = [];
       selectedFilesData = [];
+      if (typeof pendingDriveItems !== 'undefined') {
+        pendingDriveItems = [];
+      }
 
       const existingBox = document.getElementById('existingAttachmentsBox');
       if (existingBox) existingBox.classList.add('hidden');
@@ -753,17 +838,17 @@
       }
     };
 
-    window.resetFilters = function () {
-      const startEl = document.getElementById('filterStartDate');
-      const endEl = document.getElementById('filterEndDate');
-      const statusEl = document.getElementById('filterStatus');
-      const deptEl = document.getElementById('filterDepartment');
-      if (startEl) startEl.value = '';
-      if (endEl) endEl.value = '';
-      if (statusEl) statusEl.value = '';
-      if (deptEl) deptEl.value = '';
-      loadRequests();
-    };
+      window.resetFilters = function () {
+        const startEl = document.getElementById('filterStartDate');
+        const endEl = document.getElementById('filterEndDate');
+        const statusEl = document.getElementById('filterStatus');
+        const deptEl = document.getElementById('filterDepartment');
+        if (startEl) startEl.value = '';
+        if (endEl) endEl.value = '';
+        if (statusEl) statusEl.value = '';
+        if (deptEl) deptEl.value = '';
+        loadRequests();
+      };
 
     // --- TẢI DANH SÁCH PHIẾU ---
     window.loadRequests = async function () {
@@ -987,13 +1072,13 @@
 
     // --- XEM CHI TIẾT VÀ DUYỆT PHIẾU MODAL ---
     window.showDetailModal = function (id) {
-      const req = currentRequests.find(r => (r._id === id) || (r.id === id) || (String(r._id) === String(id)));
-      if (!req) return;
+  const req = currentRequests.find(r => (r._id === id) || (r.id === id));
+  if (!req) return;
 
-      currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userRole = (currentUser.role || '').toLowerCase();
-      const statusStr = String(req.status || '');
-      const statusLower = statusStr.toLowerCase();
+  const activeUser = currentUser || JSON.parse(sessionStorage.getItem('user') || '{}');
+  const userRole = (activeUser.role || '').toLowerCase();
+  const statusStr = String(req.status || '');
+  const statusLower = statusStr.toLowerCase();
 
       let detailsRowsHTML = '';
       const listDetails = req.details || req.items || req.lines || [];
@@ -2143,17 +2228,18 @@ window.printRequest = function (id) {
 
           const allAttachments = [...currentEditingAttachments, ...selectedFilesData];
           const payload = {
-            requestCode: document.getElementById('requestCode').value,
-            title: document.getElementById('title').value,
-            amount: amountVal,
-            costType: document.getElementById('costType').value,
-            department: document.getElementById('department').value,
-            supplierName: document.getElementById('supplierName').value,
-            bankAccount: document.getElementById('bankAccount').value,
-            details,
-            attachments: allAttachments,
-            createdBy: currentUser.fullName
-          };
+        requestCode: document.getElementById('requestCode').value,
+        title: document.getElementById('title').value,
+        amount: amountVal,
+        costType: document.getElementById('costType').value,
+        department: document.getElementById('department').value,
+        supplierName: document.getElementById('supplierName').value,
+        bankAccount: document.getElementById('bankAccount').value,
+        details,
+        attachments: allAttachments,
+        createdBy: currentUser.fullName,
+        driveAttachments: typeof pendingDriveItems !== 'undefined' ? pendingDriveItems : []
+      };
 
           try {
             let url = `${API_BASE_URL}/api/requests`;
