@@ -428,6 +428,15 @@ app.put('/api/requests/:id', async (req, res) => {
       { title, amount, costType, department, supplierName, bankAccount, description, details: details || [], attachments: attachments || [] },
       { new: true }
     );
+    const filesToSync = Array.isArray(req.body?.driveAttachments)
+  ? req.body.driveAttachments
+  : [];
+
+if (filesToSync.length > 0 && updatedRequest) {
+  setImmediate(() => {
+    syncDriveAttachmentsInBackground(updatedRequest, filesToSync);
+  });
+}
     res.json({ message: 'Cập nhật nội dung phiếu thành công!', request: updatedRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
