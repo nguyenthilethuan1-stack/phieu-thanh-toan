@@ -1831,9 +1831,12 @@ window.printRequest = function (id) {
 
       if (title) title.innerText = `📄 Đang xem: ${file.name}`;
       if (downloadBtn) {
-        downloadBtn.href = file.data;
-        downloadBtn.download = file.name || 'tai-lieu';
-      }
+  const linkUrl = file.viewUrl || file.url || file.driveUrl || (file.fileId ? `https://drive.google.com/file/d/${file.fileId}/view` : (file.data || file.dataUrl || '#'));
+  downloadBtn.href = linkUrl;
+  downloadBtn.target = '_blank';
+  downloadBtn.rel = 'noopener noreferrer';
+  downloadBtn.download = file.name || 'tai-lieu';
+}
 
       if (tabsContainer) {
         if (currentModalFiles.length > 1) {
@@ -1847,23 +1850,47 @@ window.printRequest = function (id) {
           tabsContainer.innerHTML = '';
         }
       }
+      function getAttachmentDisplayUrl(file, mode = 'view') {
+  if (!file || typeof file !== 'object') return '';
 
+  const rawUrl = file.viewUrl || file.url || file.driveUrl || '';
+  let fileId = file.fileId || '';
+
+  if (!fileId && rawUrl) {
+    const matchD = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const matchId = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    fileId = (matchD && matchD[1]) || (matchId && matchId[1]) || '';
+  }
+
+  if (fileId) {
+    if (mode === 'image') {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+    }
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  if (rawUrl) {
+    return rawUrl;
+  }
+
+  return file.data || file.dataUrl || '';
+}
       const lowerName = (file.name || '').toLowerCase();
       const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp');
 
       if (isImage) {
-        if (iframe) iframe.style.display = 'none';
-        if (img) {
-          img.style.display = 'block';
-          img.src = file.data;
-        }
-      } else {
-        if (img) img.style.display = 'none';
-        if (iframe) {
-          iframe.style.display = 'block';
-          iframe.src = file.data;
-        }
-      }
+  if (iframe) iframe.style.display = 'none';
+  if (img) {
+    img.style.display = 'block';
+    img.src = getAttachmentDisplayUrl(file, 'image');
+  }
+} else {
+  if (img) img.style.display = 'none';
+  if (iframe) {
+    iframe.style.display = 'block';
+    iframe.src = getAttachmentDisplayUrl(file, 'preview');
+  }
+}
     }
 
     function closeFilePreviewModal() {
