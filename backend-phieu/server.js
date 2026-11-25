@@ -43,9 +43,11 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
     new Date();
   const { year, month } = getVietnamYearMonth(refDate);
   const department =
-    requestDoc?.department ||
-    requestDoc?.dept ||
-    'Chua_phan_loai';
+  requestDoc?.department ||
+  requestDoc?.dept ||
+  requestDoc?.departmentName ||
+  requestDoc?.boPhan ||
+  'Chua_phan_loai';
 
   for (const item of driveAttachments) {
     try {
@@ -65,15 +67,18 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
         'application/octet-stream';
 
       const payload = {
-        fileName,
-        mimeType,
-        base64Data,
-        yearFolderName: year,
-        monthFolderName: month,
-        deptFolderName: department,
-        requestCode: requestDoc?.requestCode || '',
-        requestId: String(requestDoc?._id || requestDoc?.id || '')
-      };
+  fileName,
+  mimeType,
+  base64Data,
+  year,
+  month,
+  department,
+  yearFolderName: year,
+  monthFolderName: month,
+  deptFolderName: department,
+  requestCode: requestDoc?.requestCode || '',
+  requestId: String(requestDoc?._id || requestDoc?.id || '')
+};
 
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
