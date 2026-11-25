@@ -285,6 +285,24 @@ function normalizeVnPhone(phone = '') {
   if (digits.startsWith('0')) return '84' + digits.slice(1);
   return '84' + digits;
 }
+function sanitizeAttachmentsForMongo(attachments) {
+  if (!Array.isArray(attachments)) return [];
+  return attachments.map((item) => {
+    if (!item || typeof item !== 'object') return item;
+    const { data, dataUrl, base64, base64Data, ...lightMeta } = item;
+    return lightMeta;
+  });
+}
+function stripBase64FromDetailsForMongo(details) {
+  if (!Array.isArray(details)) return [];
+  return details.map((row) => {
+    if (!row || typeof row !== 'object') return row;
+    return {
+      ...row,
+      attachments: sanitizeAttachmentsForMongo(row.attachments),
+    };
+  });
+}
 // --- API HỆ THỐNG ---
 app.get('/api/departments', (req, res) => {
   res.json(STANDARD_DEPARTMENTS);
@@ -379,8 +397,8 @@ app.post('/api/requests', async (req, res) => {
         const newRequest = new PaymentRequest({
           requestCode,
           title, amount, costType, department, supplierName, bankAccount, description,
-          details: details || [],
-          attachments: attachments || [],
+          details: stripBase64FromDetailsForMongo(details || []),
+          attachments: sanitizeAttachmentsForMongo(attachments || []),
           createdBy,
           status: '1. Chờ Trưởng Bộ phận duyệt'
         });
@@ -422,10 +440,12 @@ app.put('/api/requests/:id', async (req, res) => {
     if (!existingRequest.status.includes('1. Chờ Trưởng Bộ phận')) {
       return res.status(400).json({ error: 'Phiếu đã được cấp trên duyệt, không thể chỉnh sửa!' });
     }
-
+    const cleanedDetails = Array.isArray(details)
+  ? stripBase64FromDetailsForMongo(details)
+  : details;
     const updatedRequest = await PaymentRequest.findByIdAndUpdate(
       req.params.id,
-      { title, amount, costType, department, supplierName, bankAccount, description, details: details || [], attachments: attachments || [] },
+      { title, amount, costType, department, supplierName, bankAccount, description, details: cleanedDetails, attachments: sanitizeAttachmentsForMongo(attachments || []) },
       { new: true }
     );
     const filesToSync = [];
