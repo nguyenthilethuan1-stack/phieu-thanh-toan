@@ -1204,48 +1204,69 @@ window.sessionPreviewCache = window.sessionPreviewCache || new Map();
       }
     };
 
-    // --- XỬ LÝ PHÊ DUYỆT / TỪ CHỐI ---
-    window.handleApproveAction = async function (id, action = 'approve') {
-      const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
-      const commentInput = document.getElementById('approvalCommentInput');
-      const userComment = commentInput ? commentInput.value.trim() : '';
+// --- XỬ LÝ PHÊ DUYỆT / TỪ CHỐI ---
+window.handleApproveAction = async function (id, action = 'approve') {
+  const actionName = (action === 'approve') ? 'DUYỆT' : 'TỪ CHỐI';
+  const commentInput = document.getElementById('approvalCommentInput');
+  const userComment = commentInput ? commentInput.value.trim() : '';
 
-      if (action === 'reject' && !userComment) {
-        alert('Vui lòng nhập lý do từ chối vào ô ý kiến trước khi bấm Từ chối phiếu!');
-        if (commentInput) commentInput.focus();
-        return;
-      }
+  if (action === 'reject' && !userComment) {
+    alert('Vui lòng nhập lý do từ chối vào ô ý kiến trước khi bấm Từ chối phiếu!');
+    if (commentInput) commentInput.focus();
+    return;
+  }
 
-      if (!confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`)) {
-        return;
-      }
+  if (!confirm(`Bạn có chắc chắn muốn ${actionName} phiếu thanh toán này không?`)) {
+    return;
+  }
 
-      const activeUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
+  const rawSessionUser = sessionStorage.getItem('user') || sessionStorage.getItem('currentUser');
+  const rawLocalUser = localStorage.getItem('user') || localStorage.getItem('currentUser');
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action,
-            comment: userComment,
-            userRole: activeUser.role || ''
-          })
-        });
+  let activeUser = {};
+  try {
+    activeUser = JSON.parse(rawSessionUser || rawLocalUser || '{}') || {};
+  } catch (e) {
+    activeUser = {};
+  }
 
-        const result = await response.json();
-        if (response.ok) {
-          alert(`Thực hiện ${actionName} thành công!`);
-          closeDetailModal();
-          loadRequests();
-        } else {
-          alert('Lỗi: ' + (result.error || 'Không thể thực hiện phê duyệt'));
-        }
-      } catch (err) {
-        console.error('Lỗi kết nối:', err);
-        alert('Không thể kết nối đến máy chủ server!');
-      }
-    };
+  if (rawSessionUser && rawSessionUser !== rawLocalUser) {
+    localStorage.setItem('user', rawSessionUser);
+  }
+
+  const resolvedRole = activeUser.role || activeUser.userRole || '';
+  const resolvedDepartment = activeUser.department || activeUser.dept || activeUser.phongBan || '';
+  const resolvedName = activeUser.fullName || activeUser.name || activeUser.username || '';
+  const resolvedUserId = activeUser._id || activeUser.id || '';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/requests/${id}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        comment: userComment,
+        userRole: resolvedRole,
+        role: resolvedRole,
+        department: resolvedDepartment,
+        userName: resolvedName,
+        userId: resolvedUserId
+      })
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      alert(`Thực hiện ${actionName} thành công!`);
+      closeDetailModal();
+      loadRequests();
+    } else {
+      alert('Lỗi: ' + (result.error || result.message || 'Không thể thực hiện phê duyệt'));
+    }
+  } catch (err) {
+    console.error('Lỗi kết nối:', err);
+    alert('Không thể kết nối đến máy chủ server!');
+  }
+};
 
     // --- SỬA PHIẾU ---
     window.editRequest = function (id) {
