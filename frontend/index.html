@@ -1775,7 +1775,8 @@ window.printRequest = function (id) {
       const matchId = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
       return (matchD && matchD[1]) || (matchId && matchId[1]) || '';
     }
-    const sessionPreviewCache = new Map();
+    window.sessionPreviewCache = window.sessionPreviewCache || new Map();
+const sessionPreviewCache = window.sessionPreviewCache;
 
 function buildPreviewCacheKey(scopeKey, rowIndex, fileName) {
   const safeScope = String(scopeKey || 'draft').trim();
@@ -1799,7 +1800,6 @@ function getSessionPreview(scopeKey, rowIndex, fileName) {
   const item = sessionPreviewCache.get(key);
   return item ? item.dataUrl : '';
 }
-
 function removeSessionPreview(scopeKey, rowIndex, fileName) {
   const key = buildPreviewCacheKey(scopeKey, rowIndex, fileName);
   sessionPreviewCache.delete(key);
