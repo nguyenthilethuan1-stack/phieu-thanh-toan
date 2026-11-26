@@ -296,13 +296,17 @@ const paymentDetailSchema = new mongoose.Schema({
   note: { type: String, default: '' },
   attachments: [{
     name: { type: String, default: '' },
-    data: { type: String, default: '' }
+    data: { type: String, default: '' },
+    fileId: { type: String, default: '' },
+    viewUrl: { type: String, default: '' }
   }]
 }, { _id: false });
 
 const attachmentSchema = new mongoose.Schema({
   name: { type: String, default: '' },
-  data: { type: String, default: '' }
+  data: { type: String, default: '' },
+  fileId: { type: String, default: '' },
+  viewUrl: { type: String, default: '' }
 }, { _id: false });
 
 const paymentRequestSchema = new mongoose.Schema({
