@@ -712,7 +712,17 @@ function addPendingDriveItems(newItems) {
         const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
         tr.dataset.filesJson = JSON.stringify(combinedFiles);
         updateRowFilesUI(tr, combinedFiles);
+        const scopeKey = (typeof editingRequestId !== 'undefined' && editingRequestId)
+        ? String(editingRequestId)
+        : 'draft';
+      const rowIndex = (tr && typeof tr.rowIndex === 'number') ? tr.rowIndex : 0;
 
+      newlyLoadedFiles.forEach((f) => {
+        if (f && f.name && f.data) {
+          setSessionPreview(scopeKey, rowIndex, f.name, f.data);
+          setSessionPreview('draft', rowIndex, f.name, f.data);
+        }
+      });
         if (typeof addPendingDriveItems === 'function') {
           const driveItems = newlyLoadedFiles.map(f => ({
             originalName: f.name,
@@ -1765,7 +1775,35 @@ window.printRequest = function (id) {
       const matchId = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
       return (matchD && matchD[1]) || (matchId && matchId[1]) || '';
     }
+    const sessionPreviewCache = new Map();
 
+function buildPreviewCacheKey(scopeKey, rowIndex, fileName) {
+  const safeScope = String(scopeKey || 'draft').trim();
+  const safeRow = rowIndex === undefined || rowIndex === null ? '0' : String(rowIndex);
+  const safeName = String(fileName || '').trim().toLowerCase();
+  return `${safeScope}::${safeRow}::${safeName}`;
+}
+
+function setSessionPreview(scopeKey, rowIndex, fileName, dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return;
+  if (!dataUrl.startsWith('data:') && !dataUrl.startsWith('blob:')) return;
+  const key = buildPreviewCacheKey(scopeKey, rowIndex, fileName);
+  sessionPreviewCache.set(key, {
+    dataUrl,
+    updatedAt: Date.now()
+  });
+}
+
+function getSessionPreview(scopeKey, rowIndex, fileName) {
+  const key = buildPreviewCacheKey(scopeKey, rowIndex, fileName);
+  const item = sessionPreviewCache.get(key);
+  return item ? item.dataUrl : '';
+}
+
+function removeSessionPreview(scopeKey, rowIndex, fileName) {
+  const key = buildPreviewCacheKey(scopeKey, rowIndex, fileName);
+  sessionPreviewCache.delete(key);
+}  
     function getAttachmentDisplayUrl(file, mode = 'view') {
       if (!file || typeof file !== 'object') return '';
 
@@ -1886,33 +1924,57 @@ window.printRequest = function (id) {
         iframe.src = '';
       }
 
-      if (isImage) {
-  const imgSrc = hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image');
-  if (isImage) {
-        const imgSrc = hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image');
-        if (img && imgSrc) {
-          let retried = false;
-          let finalSrc = imgSrc;
-          if (finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
-            finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
-          }
+if (isImage) {
+  const targetName = file.name || file.fileName || file.originalName || '';
+  const currentScope = (typeof editingRequestId !== 'undefined' && editingRequestId)
+    ? String(editingRequestId)
+    : 'draft';
+  const currentRowIndex = (typeof currentFileRowIndex !== 'undefined' && currentFileRowIndex !== null)
+    ? currentFileRowIndex
+    : 0;
+  const cachedData =
+    (typeof getSessionPreview === 'function'
+      ? (getSessionPreview(currentScope, currentRowIndex, targetName) ||
+         getSessionPreview('draft', currentRowIndex, targetName) ||
+         getSessionPreview(currentScope, 0, targetName) ||
+         getSessionPreview('draft', 0, targetName))
+      : '') || '';
 
-          img.style.display = 'block';
-          img.onerror = () => {
-            if (!retried && finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
-              retried = true;
-              const retrySrc = finalSrc.replace(/([?&]_t=)\d+/, '$1' + Date.now()) + '&_r=1';
-              img.src = retrySrc;
-              return;
-            }
-            img.style.display = 'none';
-            if (driveViewUrl) {
-              window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
-            }
-          };
-          img.src = finalSrc;
-        }
+  const imgSrc = hasInlineData
+    ? inlineData
+    : (cachedData || getAttachmentDisplayUrl(file, 'image'));
+
+  const isValidImgSrc =
+    typeof imgSrc === 'string' &&
+    imgSrc.trim().length > 0 &&
+    imgSrc.trim() !== window.location.href &&
+    (imgSrc.startsWith('data:') || imgSrc.startsWith('blob:') || /^https?:\/\//i.test(imgSrc));
+
+  if (img && isValidImgSrc) {
+    let retried = false;
+    let finalSrc = imgSrc;
+    if (!finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+      finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    }
+
+    img.style.display = 'block';
+    img.onerror = () => {
+      if (!retried && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+        retried = true;
+        const retrySrc = finalSrc.replace(/([?&]_t=)\d+/, '$1' + Date.now()) + '&_r=1';
+        img.src = retrySrc;
+        return;
       }
+      img.style.display = 'none';
+      if (driveViewUrl) {
+        window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+    img.src = finalSrc;
+  } else if (img) {
+    img.style.display = 'none';
+    img.removeAttribute('src');
+  }
 
       } else if (isPdf && hasInlineData) {
         if (iframe) {
