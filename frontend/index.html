@@ -712,15 +712,15 @@ function addPendingDriveItems(newItems) {
         const combinedFiles = [...existingFiles, ...newlyLoadedFiles];
         tr.dataset.filesJson = JSON.stringify(combinedFiles);
         updateRowFilesUI(tr, combinedFiles);
-        const scopeKey = (typeof editingRequestId !== 'undefined' && editingRequestId)
-        ? String(editingRequestId)
-        : 'draft';
-      const rowIndex = (tr && typeof tr.rowIndex === 'number') ? tr.rowIndex : 0;
+window.sessionPreviewCache = window.sessionPreviewCache || new Map();
+      const rowKey = (tr && (tr.dataset?.rowId || tr.id))
+        ? String(tr.dataset.rowId || tr.id)
+        : String(tr && typeof tr.rowIndex === 'number' ? tr.rowIndex : 0);
 
       newlyLoadedFiles.forEach((f) => {
         if (f && f.name && f.data) {
-          setSessionPreview(scopeKey, rowIndex, f.name, f.data);
-          setSessionPreview('draft', rowIndex, f.name, f.data);
+          setSessionPreview('any', rowKey, f.name, f.data);
+          setSessionPreview('any', '0', f.name, f.data);
         }
       });
         if (typeof addPendingDriveItems === 'function') {
