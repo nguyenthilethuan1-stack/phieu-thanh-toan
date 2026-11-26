@@ -5,6 +5,11 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ limit: '200mb', extended: true }));
 const APPS_SCRIPT_URL =
   process.env.GOOGLE_APPS_SCRIPT_URL ||
   'https://script.google.com/macros/s/AKfycbxW8msuUT4zR8Z41k1dWCItlcTy3gt-VOiV20nAc1Ij_Wg6aw3PPo2hvDwsp6dugtcJ/exec';
@@ -82,7 +87,8 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
 
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
 
@@ -94,66 +100,88 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
         result = { raw: text };
       }
 
-      if (!res.ok || result?.success === false) {
-        console.error('[DriveSync] Lỗi đẩy file lên Apps Script:', fileName, result);
-      } else {
-        console.log(
-          '[DriveSync] Đã đẩy file:',
-          result?.fileName || fileName,
-          '->',
-          result?.folderPath || `${year}/${month}/${department}`
-        );
+      if (!res.ok || result?.success === false || result?.raw) {
+        console.error('[DriveSync] Phản hồi lỗi hoặc không phải JSON từ Apps Script:', {
+          status: res.status,
+          fileName,
+          preview: text.slice(0, 300)
+        });
+        continue;
+      }
 
-        const drivePayload = result?.data || result?.file || result || {};
-        const fileId =
-          drivePayload.fileId ||
-          drivePayload.id ||
-          result?.fileId ||
-          '';
-        const viewUrl =
-          drivePayload.viewUrl ||
-          drivePayload.url ||
-          drivePayload.webViewLink ||
-          drivePayload.driveUrl ||
-          result?.viewUrl ||
-          (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
+      console.log(
+        '[DriveSync] Đã đẩy file:',
+        result?.fileName || fileName,
+        '->',
+        result?.folderPath || `${year}/${month}/${department}`
+      );
 
-        const reqId = requestDoc?._id || requestDoc?.id;
-        const targetName = result?.fileName || fileName;
+      const drivePayload = result?.data || result?.file || result || {};
+      const fileId =
+        drivePayload.fileId ||
+        drivePayload.id ||
+        result?.fileId ||
+        '';
+      const viewUrl =
+        drivePayload.viewUrl ||
+        drivePayload.url ||
+        drivePayload.webViewLink ||
+        drivePayload.driveUrl ||
+        result?.viewUrl ||
+        (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
 
-        if (reqId && (fileId || viewUrl)) {
-          const doc = await PaymentRequest.findById(reqId);
-          if (doc) {
-            let changed = false;
-            const applyToList = (arr) => {
-              if (!Array.isArray(arr)) return;
-              for (const att of arr) {
-                if (!att) continue;
-                const attName = att.name || att.fileName || att.originalName || '';
-                if (!targetName || attName === targetName || attName.includes(targetName) || targetName.includes(attName)) {
-                  if (fileId) {
-                    att.fileId = fileId;
-                    changed = true;
-                  }
-                  if (viewUrl) {
-                    att.viewUrl = viewUrl;
-                    changed = true;
-                  }
-                }
+      console.log('[DriveSync] Thông tin file nhận được:', { fileId, viewUrl });
+
+      const reqId = requestDoc?._id || requestDoc?.id;
+      const targetName = String(result?.fileName || fileName || '').trim();
+
+      if (reqId && (fileId || viewUrl)) {
+        const doc = await PaymentRequest.findById(reqId);
+        if (!doc) {
+          console.warn('[DriveSync] Không tìm thấy phiếu trong MongoDB để cập nhật:', reqId);
+          continue;
+        }
+
+        let changed = false;
+        const applyToList = (arr) => {
+          if (!Array.isArray(arr)) return;
+          for (const att of arr) {
+            if (!att) continue;
+            const attName = String(att.name || att.fileName || att.originalName || '').trim();
+            const isMatch =
+              arr.length === 1 ||
+              !targetName ||
+              attName === targetName ||
+              attName.includes(targetName) ||
+              targetName.includes(attName);
+
+            if (isMatch) {
+              if (fileId) {
+                att.fileId = fileId;
+                changed = true;
               }
-            };
-
-            applyToList(doc.attachments);
-            if (Array.isArray(doc.details)) {
-              for (const detail of doc.details) {
-                applyToList(detail?.attachments);
+              if (viewUrl) {
+                att.viewUrl = viewUrl;
+                changed = true;
               }
-            }
-
-            if (changed) {
-              await doc.save();
             }
           }
+        };
+
+        applyToList(doc.attachments);
+        if (Array.isArray(doc.details)) {
+          for (const detail of doc.details) {
+            applyToList(detail?.attachments);
+          }
+        }
+
+        if (changed) {
+          doc.markModified('attachments');
+          doc.markModified('details');
+          await doc.save();
+          console.log('[DriveSync] Đã lưu fileId/viewUrl vào MongoDB:', { reqId: String(reqId), fileId });
+        } else {
+          console.warn('[DriveSync] Không khớp attachment nào để cập nhật:', { reqId: String(reqId), targetName });
         }
       }
     } catch (err) {
@@ -161,10 +189,6 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
     }
   }
 }
-const app = express();
-app.use(express.json({ limit: '200mb' }));
-app.use(express.urlencoded({ limit: '200mb', extended: true }));
-app.use(cors());
 
 // --- CẤU HÌNH THƯ MỤC UPLOAD VẬT LÝ ---
 const uploadDir = path.join(__dirname, 'uploads');
