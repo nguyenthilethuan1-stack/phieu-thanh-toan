@@ -1925,57 +1925,82 @@ function removeSessionPreview(scopeKey, rowIndex, fileName) {
       }
 
 if (isImage) {
-  const targetName = file.name || file.fileName || file.originalName || '';
-  const currentScope = (typeof editingRequestId !== 'undefined' && editingRequestId)
-    ? String(editingRequestId)
-    : 'draft';
-  const currentRowIndex = (typeof currentFileRowIndex !== 'undefined' && currentFileRowIndex !== null)
-    ? currentFileRowIndex
-    : 0;
-  const cachedData =
-    (typeof getSessionPreview === 'function'
-      ? (getSessionPreview(currentScope, currentRowIndex, targetName) ||
-         getSessionPreview('draft', currentRowIndex, targetName) ||
-         getSessionPreview(currentScope, 0, targetName) ||
-         getSessionPreview('draft', 0, targetName))
-      : '') || '';
+        const rawTargetName = String(
+          file.name || file.fileName || file.originalName || file.title || ''
+        )
+          .trim()
+          .toLowerCase();
 
-  const imgSrc = hasInlineData
-    ? inlineData
-    : (cachedData || getAttachmentDisplayUrl(file, 'image'));
+        let cachedData = '';
+        const cacheMap = window.sessionPreviewCache;
+        if (cacheMap && typeof cacheMap.entries === 'function') {
+          for (const [k, v] of cacheMap.entries()) {
+            const dataUrl = v && typeof v === 'object' ? v.dataUrl : v;
+            if (!dataUrl || typeof dataUrl !== 'string') continue;
+            if (!dataUrl.startsWith('data:') && !dataUrl.startsWith('blob:')) continue;
 
-  const isValidImgSrc =
-    typeof imgSrc === 'string' &&
-    imgSrc.trim().length > 0 &&
-    imgSrc.trim() !== window.location.href &&
-    (imgSrc.startsWith('data:') || imgSrc.startsWith('blob:') || /^https?:\/\//i.test(imgSrc));
+            const keyLower = String(k).toLowerCase();
+            if (rawTargetName && keyLower.endsWith('::' + rawTargetName)) {
+              cachedData = dataUrl;
+              break;
+            }
+          }
 
-  if (img && isValidImgSrc) {
-    let retried = false;
-    let finalSrc = imgSrc;
-    if (!finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
-      finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
-    }
+          // Dự phòng: nếu tên file trên bản ghi sau lưu bị đổi/khác nhẹ nhưng trong cache chỉ có 1 ảnh mới nhất
+          if (!cachedData) {
+            let latestEntry = null;
+            for (const [, v] of cacheMap.entries()) {
+              const dataUrl = v && typeof v === 'object' ? v.dataUrl : v;
+              const updatedAt = v && typeof v === 'object' ? (v.updatedAt || 0) : 0;
+              if (dataUrl && (dataUrl.startsWith('data:') || dataUrl.startsWith('blob:'))) {
+                if (!latestEntry || updatedAt >= latestEntry.updatedAt) {
+                  latestEntry = { dataUrl, updatedAt };
+                }
+              }
+            }
+            if (latestEntry) {
+              cachedData = latestEntry.dataUrl;
+            }
+          }
+        }
 
-    img.style.display = 'block';
-    img.onerror = () => {
-      if (!retried && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
-        retried = true;
-        const retrySrc = finalSrc.replace(/([?&]_t=)\d+/, '$1' + Date.now()) + '&_r=1';
-        img.src = retrySrc;
-        return;
-      }
-      img.style.display = 'none';
-      if (driveViewUrl) {
-        window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
-      }
-    };
-    img.src = finalSrc;
-  } else if (img) {
-    img.style.display = 'none';
-    img.removeAttribute('src');
-  }
+        const imgSrc = cachedData || (hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image'));
 
+        const isValidImgSrc =
+          typeof imgSrc === 'string' &&
+          imgSrc.trim().length > 0 &&
+          imgSrc.trim() !== window.location.href &&
+          (imgSrc.startsWith('data:') || imgSrc.startsWith('blob:') || /^https?:\/\//i.test(imgSrc));
+
+        if (img && isValidImgSrc) {
+          let retried = false;
+          let finalSrc = imgSrc;
+          if (!finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+            finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
+          }
+
+          img.style.display = 'block';
+          img.onerror = () => {
+            if (!retried && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+              retried = true;
+              const retrySrc = finalSrc.replace(/([?&]_t=)\d+/, '$1' + Date.now()) + '&_r=1';
+              img.src = retrySrc;
+              return;
+            }
+            img.style.display = 'none';
+            if (!cachedData && driveViewUrl) {
+              window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+            }
+          };
+          img.src = finalSrc;
+        } else if (img) {
+          img.style.display = 'none';
+          img.removeAttribute('src');
+          if (!cachedData && driveViewUrl) {
+            window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+          }
+        }
+      
       } else if (isPdf && hasInlineData) {
         if (iframe) {
           iframe.style.display = 'block';
