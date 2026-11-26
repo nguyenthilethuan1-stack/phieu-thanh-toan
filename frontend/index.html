@@ -2303,7 +2303,7 @@ window.printRequest = function (id) {
                 messageDiv.style.display = 'block';
               }
               resetFormToCreateMode();
-              loadRequests();
+              await loadRequests();
               setTimeout(() => { if (messageDiv) messageDiv.style.display = 'none'; }, 3000);
             } else if (messageDiv) {
               messageDiv.className = 'error';
