@@ -1923,7 +1923,48 @@ function removeSessionPreview(scopeKey, rowIndex, fileName) {
         iframe.style.display = 'none';
         iframe.src = '';
       }
+      const cachedImageSrc = (() => {
+        const cacheMap = window.sessionPreviewCache;
+        if (!cacheMap || typeof cacheMap.entries !== 'function') return '';
+        const rawName = String(
+          (typeof file !== 'undefined' && (file.name || file.fileName || file.originalName || file.title)) || ''
+        )
+          .trim()
+          .toLowerCase();
 
+        if (rawName) {
+          for (const [k, v] of cacheMap.entries()) {
+            const dataUrl = v && typeof v === 'object' ? v.dataUrl : v;
+            if (dataUrl && (dataUrl.startsWith('data:image/') || dataUrl.startsWith('blob:') || dataUrl.startsWith('data:'))) {
+              if (String(k).toLowerCase().endsWith('::' + rawName)) {
+                return dataUrl;
+              }
+            }
+          }
+        }
+
+        let latest = null;
+        for (const [, v] of cacheMap.entries()) {
+          const dataUrl = v && typeof v === 'object' ? v.dataUrl : v;
+          const ts = v && typeof v === 'object' ? (v.updatedAt || 0) : 0;
+          if (dataUrl && (dataUrl.startsWith('data:image/') || dataUrl.startsWith('blob:') || dataUrl.startsWith('data:'))) {
+            if (!latest || ts >= latest.ts) latest = { dataUrl, ts };
+          }
+        }
+        return latest ? latest.dataUrl : '';
+      })();
+
+      if (cachedImageSrc) {
+        if (iframe) {
+          iframe.style.display = 'none';
+          iframe.removeAttribute('src');
+        }
+        if (img) {
+          img.style.display = 'block';
+          img.src = cachedImageSrc;
+        }
+        return;
+      }
 if (isImage) {
         const rawTargetName = String(
           file.name || file.fileName || file.originalName || file.title || ''
