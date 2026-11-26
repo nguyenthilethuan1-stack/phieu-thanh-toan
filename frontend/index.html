@@ -1887,21 +1887,30 @@ window.printRequest = function (id) {
       }
 
       if (isImage) {
-        const imgSrc = hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image');
-        if (img && imgSrc) {
-          img.style.display = 'block';
-          img.onerror = () => {
-            img.style.display = 'none';
-            if (driveViewUrl) {
-              window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
-            }
-          };
-          let finalSrc = imgSrc;
-if (finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
-  finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
-}
-img.src = finalSrc;
-        }
+  const imgSrc = hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image');
+  if (img && imgSrc) {
+    let retried = false;
+    let finalSrc = imgSrc;
+    if (finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+      finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    }
+
+    img.style.display = 'block';
+    img.onerror = () => {
+      if (!retried && finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+        retried = true;
+        const retrySrc = finalSrc.replace(/([?&]_t=)\d+/, '$1' + Date.now()) + '&_r=1';
+        img.src = retrySrc;
+        return;
+      }
+      img.style.display = 'none';
+      if (driveViewUrl) {
+        window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+    img.src = finalSrc;
+  }
+
       } else if (isPdf && hasInlineData) {
         if (iframe) {
           iframe.style.display = 'block';
