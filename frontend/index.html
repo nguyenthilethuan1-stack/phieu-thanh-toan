@@ -1896,7 +1896,11 @@ window.printRequest = function (id) {
               window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
             }
           };
-          img.src = imgSrc;
+          let finalSrc = imgSrc;
+if (finalSrc && !finalSrc.startsWith('data:') && !finalSrc.startsWith('blob:')) {
+  finalSrc += (finalSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
+}
+img.src = finalSrc;
         }
       } else if (isPdf && hasInlineData) {
         if (iframe) {
