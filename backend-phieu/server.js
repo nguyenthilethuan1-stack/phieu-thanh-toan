@@ -517,7 +517,10 @@ app.post('/api/requests', async (req, res) => {
 
 app.put('/api/requests/:id', async (req, res) => {
   try {
-    const { title, amount, costType, department, supplierName, bankAccount, description, details, attachments } = req.body;
+    const {
+  title, amount, costType, department, supplierName, bankAccount,
+  description, details, attachments
+} = req.body;
     const existingRequest = await PaymentRequest.findById(req.params.id);
     if (!existingRequest) {
       return res.status(404).json({ error: 'Không tìm thấy phiếu thanh toán!' });
