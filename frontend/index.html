@@ -2227,14 +2227,6 @@ window.printRequest = function (id) {
         });
       }
 
-            Promise.all(promises).then(newlyLoaded => {
-            selectedFilesData = [...selectedFilesData, ...newlyLoaded];
-            renderSelectedGeneralFilesUI();
-            attachFiles.value = '';
-          });
-        });
-      }
-
       const paymentForm = document.getElementById('paymentForm');
       if (paymentForm) {
         paymentForm.onsubmit = async function (e) {
