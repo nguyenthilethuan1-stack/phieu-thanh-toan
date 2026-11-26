@@ -403,7 +403,6 @@
     let currentUser = JSON.parse(sessionStorage.getItem('user')) || null;
     let currentRequests = [];
     let currentEditingAttachments = [];
-    let selectedFilesData = [];
     let departmentsCache = [];
     let allUsersCache = [];
     let __codeGenSeq = 0;
@@ -776,7 +775,6 @@ function addPendingDriveItems(newItems) {
       document.getElementById('btnCancelEdit').classList.add('hidden');
 
       currentEditingAttachments = [];
-      selectedFilesData = [];
       if (typeof pendingDriveItems !== 'undefined') {
         pendingDriveItems = [];
       }
@@ -1268,8 +1266,6 @@ function addPendingDriveItems(newItems) {
       document.getElementById('bankAccount').value = req.bankAccount || '';
 
       currentEditingAttachments = Array.isArray(req.attachments) ? [...req.attachments] : [];
-      selectedFilesData = [];
-      renderSelectedGeneralFilesUI();
 
       const tbody = document.getElementById('detailRows');
       if (tbody) tbody.innerHTML = '';
@@ -2253,7 +2249,7 @@ window.printRequest = function (id) {
             });
           });
 
-          const allAttachments = [...currentEditingAttachments, ...selectedFilesData];
+          const allAttachments = [...currentEditingAttachments];
           const payload = {
         requestCode: document.getElementById('requestCode').value,
         title: document.getElementById('title').value,
