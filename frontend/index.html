@@ -162,16 +162,6 @@
           </div>
 
           <!-- PHẦN ĐÍNH KÈM CHỨNG TỪ -->
-          <div class="form-group" style="margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-            <label style="color: #007bff;">📎 Đính kèm hóa đơn / chứng từ (Ảnh, PDF...):</label>
-            <div id="existingAttachmentsBox" class="hidden" style="margin-bottom: 10px; padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
-              <b style="font-size: 13px; color: #333;">File chứng từ đã đính kèm trước đó:</b>
-              <div id="existingFilesList" style="margin-top: 5px;"></div>
-            </div>
-            <input type="file" id="attachmentFiles" multiple accept="image/*,.pdf" style="background: #fff;">
-            <div id="fileNamesList" style="margin-top: 8px; font-size: 13px; color: #28a745; font-weight: bold;"></div>
-          </div>
-
           <div style="background: #e9ecef; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 14px;">
             <div><b>Tổng số tiền:</b> <span id="lblTotalAmount" style="color: #d9534f; font-size: 16px; font-weight: bold;">0</span> VNĐ</div>
             <div style="margin-top: 5px;"><b>Bằng chữ:</b> <i id="lblAmountInWords" style="color: #333;">Không đồng</i></div>
@@ -776,32 +766,7 @@ function addPendingDriveItems(newItems) {
         if (lblWords) lblWords.innerText = numberToWords(total);
       };
 
-      function renderSelectedGeneralFilesUI() {
-        const container = document.getElementById('fileNamesList');
-        if (!container) return;
-
-        if (!selectedFilesData.length) {
-          container.innerHTML = '';
-          return;
-        }
-
-        container.innerHTML =
-          '<div style="margin-bottom: 4px; font-weight: bold; color: #333;">File đã chọn:</div>' +
-          selectedFilesData.map((file, index) => `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #ced4da; border-radius: 4px;">
-              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">📎 ${file.name}</span>
-              <button type="button" onclick="removeAttachedFile(${index})" style="background: none; border: none; color: #dc3545; font-weight: bold; cursor: pointer; font-size: 14px;" title="Xóa file này">❌</button>
-            </div>
-          `).join('');
-      }
-
-      window.removeAttachedFile = function (index) {
-        selectedFilesData.splice(index, 1);
-        renderSelectedGeneralFilesUI();
-        const fileInput = document.getElementById('attachmentFiles');
-        if (fileInput) fileInput.value = '';
-      };
-
+           
       window.resetFormToCreateMode = function () {
       document.getElementById('editingRequestId').value = '';
       document.getElementById('formTitleText').innerText = 'Tạo Phiếu Đề Xuất Thanh Toán';
@@ -815,12 +780,6 @@ function addPendingDriveItems(newItems) {
       if (typeof pendingDriveItems !== 'undefined') {
         pendingDriveItems = [];
       }
-
-      const existingBox = document.getElementById('existingAttachmentsBox');
-      if (existingBox) existingBox.classList.add('hidden');
-      const existingList = document.getElementById('existingFilesList');
-      if (existingList) existingList.innerHTML = '';
-      renderSelectedGeneralFilesUI();
 
       const paymentForm = document.getElementById('paymentForm');
       if (paymentForm) paymentForm.reset();
@@ -2268,21 +2227,7 @@ window.printRequest = function (id) {
         });
       }
 
-      const attachFiles = document.getElementById('attachmentFiles');
-      if (attachFiles) {
-        attachFiles.addEventListener('change', function (e) {
-          const files = Array.from(e.target.files || []);
-          if (!files.length) return;
-
-          const promises = files.map(file => new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = function (uploadEvent) {
-              resolve({ name: file.name, data: uploadEvent.target.result });
-            };
-            reader.readAsDataURL(file);
-          }));
-
-          Promise.all(promises).then(newlyLoaded => {
+            Promise.all(promises).then(newlyLoaded => {
             selectedFilesData = [...selectedFilesData, ...newlyLoaded];
             renderSelectedGeneralFilesUI();
             attachFiles.value = '';
