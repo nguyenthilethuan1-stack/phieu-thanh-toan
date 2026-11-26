@@ -533,29 +533,30 @@ app.put('/api/requests/:id', async (req, res) => {
       { title, amount, costType, department, supplierName, bankAccount, description, details: cleanedDetails, attachments: sanitizeAttachmentsForMongo(attachments || []) },
       { new: true }
     );
-    const filesToSync = [];
-
-      if (Array.isArray(req.body?.driveAttachments)) {
-        filesToSync.push(...req.body.driveAttachments);
-      }
-
-      if (Array.isArray(req.body?.details)) {
-        for (const row of req.body.details) {
-          if (Array.isArray(row?.attachments)) {
-            for (const att of row.attachments) {
-              if (att && (att.dataUrl || att.data || att.base64)) {
-                filesToSync.push(att);
-              }
-            }
-          }
+const filesToSync = [];
+if (Array.isArray(req.body?.driveAttachments)) {
+  filesToSync.push(...req.body.driveAttachments);
+}
+if (Array.isArray(req.body?.details)) {
+  for (const row of req.body.details) {
+    if (Array.isArray(row?.attachments)) {
+      for (const att of row.attachments) {
+        if (att && (att.dataUrl || att.data || att.base64)) {
+          filesToSync.push(att);
         }
       }
-
-      if (filesToSync.length > 0 && updatedRequest) {
-        setImmediate(() => {
-          syncDriveAttachmentsInBackground(updatedRequest, filesToSync);
-        });
-      }
+    }
+  }
+}
+if (filesToSync.length > 0 && updatedRequest) {
+  const requestForSync = {
+    ...(updatedRequest.toObject ? updatedRequest.toObject() : updatedRequest),
+    requestCode: updatedRequest.requestCode || existingRequest.requestCode || ''
+  };
+  setImmediate(() => {
+    syncDriveAttachmentsInBackground(requestForSync, filesToSync);
+  });
+}
     res.json({ message: 'Cập nhật nội dung phiếu thành công!', request: updatedRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
