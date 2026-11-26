@@ -1794,9 +1794,50 @@ window.printRequest = function (id) {
       }
     };
 
-    // --- XEM FILE ĐÍNH KÈM ---
+// --- XEM FILE ĐÍNH KÈM ---
     let currentModalFiles = [];
     let currentFileIndex = 0;
+
+    function getAttachmentFileId(file) {
+      if (!file || typeof file !== 'object') return '';
+      if (file.fileId) return String(file.fileId).trim();
+
+      const rawUrl = String(file.viewUrl || file.url || file.driveUrl || '').trim();
+      if (!rawUrl) return '';
+
+      const matchD = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      const matchId = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      return (matchD && matchD[1]) || (matchId && matchId[1]) || '';
+    }
+
+    function getAttachmentDisplayUrl(file, mode = 'view') {
+      if (!file || typeof file !== 'object') return '';
+
+      const inlineData = file.data || file.dataUrl || '';
+      const hasInlineData = typeof inlineData === 'string' && inlineData.trim().length > 0;
+      const rawUrl = String(file.viewUrl || file.url || file.driveUrl || '').trim();
+      const fileId = getAttachmentFileId(file);
+
+      if (mode === 'inline') {
+        return hasInlineData ? inlineData : '';
+      }
+
+      if (fileId) {
+        if (mode === 'image') {
+          return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+        }
+        if (mode === 'download') {
+          return `https://drive.google.com/uc?export=download&id=${fileId}`;
+        }
+        return `https://drive.google.com/file/d/${fileId}/view`;
+      }
+
+      if (rawUrl) {
+        return rawUrl;
+      }
+
+      return hasInlineData ? inlineData : '';
+    }
 
     function openFilePreview(filesInput, selectedIndex = 0) {
       let filesList = [];
@@ -1812,7 +1853,7 @@ window.printRequest = function (id) {
       }
 
       currentModalFiles = filesList;
-      currentFileIndex = selectedIndex;
+      currentFileIndex = Math.max(0, Math.min(selectedIndex, filesList.length - 1));
       renderCurrentModalFile();
 
       const modal = document.getElementById('filePreviewModal');
@@ -1829,68 +1870,89 @@ window.printRequest = function (id) {
       const downloadBtn = document.getElementById('modalDownloadBtn');
       const tabsContainer = document.getElementById('modalFilesTabs');
 
-      if (title) title.innerText = `📄 Đang xem: ${file.name}`;
+      const fileName = file.name || file.fileName || file.originalName || 'tai-lieu';
+      const lowerName = String(fileName).toLowerCase();
+      const inlineData = getAttachmentDisplayUrl(file, 'inline');
+      const hasInlineData = Boolean(inlineData);
+      const driveViewUrl = getAttachmentDisplayUrl(file, 'view');
+      const driveDownloadUrl = getAttachmentDisplayUrl(file, 'download');
+
+      if (title) title.innerText = `📄 Đang xem: ${fileName}`;
+
       if (downloadBtn) {
-  const linkUrl = file.viewUrl || file.url || file.driveUrl || (file.fileId ? `https://drive.google.com/file/d/${file.fileId}/view` : (file.data || file.dataUrl || '#'));
-  downloadBtn.href = linkUrl;
-  downloadBtn.target = '_blank';
-  downloadBtn.rel = 'noopener noreferrer';
-  downloadBtn.download = file.name || 'tai-lieu';
-}
+        if (hasInlineData) {
+          downloadBtn.href = inlineData;
+          downloadBtn.target = '_blank';
+          downloadBtn.rel = 'noopener noreferrer';
+          downloadBtn.download = fileName;
+        } else if (driveDownloadUrl) {
+          downloadBtn.href = driveDownloadUrl;
+          downloadBtn.target = '_blank';
+          downloadBtn.rel = 'noopener noreferrer';
+          downloadBtn.removeAttribute('download');
+        } else {
+          downloadBtn.href = '#';
+          downloadBtn.removeAttribute('download');
+        }
+      }
 
       if (tabsContainer) {
         if (currentModalFiles.length > 1) {
-          tabsContainer.innerHTML = currentModalFiles.map((f, idx) => `
-            <button type="button" onclick="currentFileIndex = ${idx}; renderCurrentModalFile();"
-              style="background: ${idx === currentFileIndex ? '#0d6efd' : '#444'}; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
-              File ${idx + 1}: ${f.name}
-            </button>
-          `).join('');
+          tabsContainer.innerHTML = currentModalFiles.map((f, idx) => {
+            const tabLabel = f.name || f.fileName || f.originalName || ('File ' + (idx + 1));
+            return `
+              <button type="button" onclick="currentFileIndex = ${idx}; renderCurrentModalFile();"
+                style="background: ${idx === currentFileIndex ? '#0d6efd' : '#444'}; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                File ${idx + 1}: ${tabLabel}
+              </button>
+            `;
+          }).join('');
         } else {
           tabsContainer.innerHTML = '';
         }
       }
-      function getAttachmentDisplayUrl(file, mode = 'view') {
-  if (!file || typeof file !== 'object') return '';
 
-  const rawUrl = file.viewUrl || file.url || file.driveUrl || '';
-  let fileId = file.fileId || '';
+      const isImage =
+        /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(lowerName) ||
+        (hasInlineData && inlineData.startsWith('data:image/'));
 
-  if (!fileId && rawUrl) {
-    const matchD = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const matchId = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    fileId = (matchD && matchD[1]) || (matchId && matchId[1]) || '';
-  }
+      const isPdf =
+        /\.pdf(\?.*)?$/i.test(lowerName) ||
+        (hasInlineData && inlineData.startsWith('data:application/pdf'));
 
-  if (fileId) {
-    if (mode === 'image') {
-      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
-    }
-    return `https://drive.google.com/file/d/${fileId}/preview`;
-  }
-
-  if (rawUrl) {
-    return rawUrl;
-  }
-
-  return file.data || file.dataUrl || '';
-}
-      const lowerName = (file.name || '').toLowerCase();
-      const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp');
+      if (img) {
+        img.style.display = 'none';
+        img.src = '';
+        img.onerror = null;
+      }
+      if (iframe) {
+        iframe.style.display = 'none';
+        iframe.src = '';
+      }
 
       if (isImage) {
-  if (iframe) iframe.style.display = 'none';
-  if (img) {
-    img.style.display = 'block';
-    img.src = getAttachmentDisplayUrl(file, 'image');
-  }
-} else {
-  if (img) img.style.display = 'none';
-  if (iframe) {
-    iframe.style.display = 'block';
-    iframe.src = getAttachmentDisplayUrl(file, 'preview');
-  }
-}
+        const imgSrc = hasInlineData ? inlineData : getAttachmentDisplayUrl(file, 'image');
+        if (img && imgSrc) {
+          img.style.display = 'block';
+          img.onerror = () => {
+            img.style.display = 'none';
+            if (driveViewUrl) {
+              window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+            }
+          };
+          img.src = imgSrc;
+        }
+      } else if (isPdf && hasInlineData) {
+        if (iframe) {
+          iframe.style.display = 'block';
+          iframe.src = inlineData;
+        }
+      } else if (driveViewUrl) {
+        window.open(driveViewUrl, '_blank', 'noopener,noreferrer');
+      } else if (hasInlineData && iframe) {
+        iframe.style.display = 'block';
+        iframe.src = inlineData;
+      }
     }
 
     function closeFilePreviewModal() {
