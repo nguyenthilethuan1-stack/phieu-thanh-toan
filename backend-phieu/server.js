@@ -70,20 +70,25 @@ async function syncDriveAttachmentsInBackground(requestDoc, driveAttachments = [
         item?.mimeType ||
         item?.type ||
         'application/octet-stream';
+      const cleanCode = String(requestDoc?.requestCode || '')
+  .replace(/[\\/:*?"<>|]/g, '-')
+  .trim();
+const requestFolderName = cleanCode || 'Chua_co_so_phieu';
 
-      const payload = {
-        fileName,
-        mimeType,
-        base64Data,
-        year,
-        month,
-        department,
-        yearFolderName: year,
-        monthFolderName: month,
-        deptFolderName: department,
-        requestCode: requestDoc?.requestCode || '',
-        requestId: String(requestDoc?._id || requestDoc?.id || '')
-      };
+const payload = {
+  fileName,
+  mimeType,
+  base64Data,
+  year,
+  month,
+  department,
+  requestCode: requestDoc?.requestCode || '',
+  requestFolderName,
+  yearFolderName: year,
+  monthFolderName: month,
+  deptFolderName: department,
+  requestId: String(requestDoc?._id || requestDoc?.id || '')
+};
 
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
